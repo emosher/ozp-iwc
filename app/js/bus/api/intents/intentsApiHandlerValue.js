@@ -1,5 +1,5 @@
-ozpIwc.IntentsApiHandlerValue = ozpIwc.util.extend(ozpIwc.DataApiValue,function(config) {
-    ozpIwc.DataApiValue.apply(this,arguments);
+ozpIwc.IntentsApiHandlerValue = ozpIwc.util.extend(ozpIwc.DataApiValue, function (config) {
+    ozpIwc.DataApiValue.apply(this, arguments);
     config = config || {};
 
     //TODO: do we want to encapsulate intent properties inside a property of the value?
@@ -8,5 +8,4 @@ ozpIwc.IntentsApiHandlerValue = ozpIwc.util.extend(ozpIwc.DataApiValue,function(
     this.icon = config.icon;
     this.label = config.label;
     this.invokeIntent = config.invokeIntent;
-    console.log(this);
 });

@@ -8,6 +8,7 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
 
     beforeEach(function () {
         config = {
+            'contentType': 'application/ozp-intents-handler-v1+json',
             'type': "text/plain",
             'action': "view",
             'icon': "http://example.com/view-text-plain.png",
@@ -18,6 +19,6 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
     });
 }
 
-describe("Intent API Value", function () {
+describe("Intent API Handler Value", function () {
     intentsApiValueContractTests(ozpIwc.IntentsApiHandlerValue);
 });
