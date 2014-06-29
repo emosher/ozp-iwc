@@ -145,31 +145,34 @@ module.exports = function(grunt) {
                 options: {port: 14000, base: ["app", "test/tests"]}
             },
             testBus: {
-                options: {port: 14002, base: ["test/tests/integration/bus", "app"]}
+                options:{ port: 14002, base: ["test/tests/integration/bus","app"] }
             },
             pingers: {
-                options: {port: 14001, base: ["app", "test/pingers"]}
+                options:{	port: 14001, base: ["app","test/pingers"]	}
             },
             doc: {
-                options: {port: 13001, base: "doc"}
+                options: { port: 13001, base: "doc" }
             },
             demo1: {
-                options: {port: 15000, base: ["app", "demo/bouncingBalls"]}
+                options: { port: 15000, base: ["app","demo/bouncingBalls"] }
             },
             demo2: {
-                options: {port: 15001, base: ["app", "demo/bouncingBalls"]}
+                options: { port: 15001, base: ["app","demo/bouncingBalls"] }
             },
             demo3: {
-                options: {port: 15002, base: ["app", "demo/bouncingBalls"]}
+                options: { port: 15002, base: ["app","demo/bouncingBalls"] }
             },
             demo4: {
-                options: {port: 15003, base: ["app", "demo/bouncingBalls"]}
+                options: { port: 15003, base: ["app","demo/bouncingBalls"] }
             },
             gridsterDemo: {
-                options: {port: 15004, base: ["app", "demo/gridster"]}
+                options: { port: 15004, base: ["app","demo/gridster"] }
             },
             owf7: {
-                options: {port: 15005, base: ["app", "demo/owf7Widgets"], protocol: "https"}
+                options:{	port: 15005, base: ["app","demo/owf7Widgets"], protocol:"https"	}
+            },
+            intentsDemo: {
+                options:{	port: 15006, base: ["app","demo/intentsSandbox","test/tests/unit"]}
             }
         }
 

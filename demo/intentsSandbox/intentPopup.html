@@ -1,0 +1,13 @@
+<div class="modal-body">
+    <span ng-repeat="child in intent.children">
+        <div class="btn btn-primary padding">
+            {{child}}
+        </div>
+    </span>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+    <button type="button" class="btn btn-primary" ng-click="invokeSelected()"
+            ng-disabled="(nameDialog.$dirty && nameDialog.$invalid) || nameDialog.$pristine">Invoke
+    </button>
+</div>

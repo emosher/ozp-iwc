@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" ng-app="app">
+    <head>
+        <meta charset="utf-8">
+        <title>OZP IWC Intent Sandbox</title>
+        <script src="/js/ozpIwc-bus.js"></script>
+        <script src="mockObjects.js"></script>
+        <script src="/js/testWiring.js"></script>
+
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+        <script src="/js/ui-boostrap.min.js" type="text/javascript"></script>
+        <script src="http://m-e-conroy.github.io/angular-dialog-service/javascripts/dialogs.min.js"
+                type="text/javascript"></script>
+        <script src="/js/angularModule.js"></script>
+
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+        <link href="/style/style.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <div ng-controller="intentsApiScope">
+            Resource: <input ng-model="intentResource" type="text"> </input>
+            <div ng-repeat="(key, value) in data.data | keyFilter:intentResource ">
+                <div class="btn btn-primary padding" ng-click="invoke(value)">
+                    <img ng-src={{value.icon}} height="30" width="100">
+                    </br>{{key}}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
