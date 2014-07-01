@@ -1,18 +1,12 @@
-ozpIwc.IntentsApiValue = ozpIwc.util.extend(ozpIwc.DataApiValue, function (config) {
-    ozpIwc.DataApiValue.apply(this, arguments);
+ozpIwc.IntentsApiDefinitionValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, function (config) {
+    ozpIwc.CommonApiValue.apply(this, arguments);
     config = config || {};
 
-    //TODO: do we want to encapsulate intent properties inside a property of the value?
     this.type = config.type;
     this.action = config.action;
     this.icon = config.icon;
     this.label = config.label;
-    /*
-     * TODO: Is there any breaking reason not to use the DataApi children for IntentsApi handlers?
-     *       It may be confusing to debug (when converted to packet: children --> handler, when converting packet to
-     *       value: handler --> children)
-     */
-    this.children = config.handlers || [];
+    this.handlers = config.handlers || [];
 });
 
 /**
@@ -21,16 +15,16 @@ ozpIwc.IntentsApiValue = ozpIwc.util.extend(ozpIwc.DataApiValue, function (confi
  *
  * @param packet
  */
-ozpIwc.IntentsApiValue.prototype.set = function (packet) {
+ozpIwc.IntentsApiDefinitionValue.prototype.set = function (packet) {
     if (this.isValidContentType(packet.contentType)) {
         this.type = packet.type || this.type;
         this.action = packet.action || this.action;
         this.icon = packet.icon || this.icon;
         this.label = packet.label || this.label;
-        this.children = packet.handlers || this.children;
+        this.handlers = packet.handlers || this.handlers;
     }
 
-    ozpIwc.DataApiValue.prototype.set.call(this, packet);
+    ozpIwc.CommonApiValue.prototype.set.call(this, packet);
 };
 
 /**
@@ -43,14 +37,14 @@ ozpIwc.IntentsApiValue.prototype.set = function (packet) {
  *  It does NOT remove watchers.
  *  Resets Common Api Values to an empty state.
  */
-ozpIwc.IntentsApiValue.prototype.deleteData = function () {
+ozpIwc.IntentsApiDefinitionValue.prototype.deleteData = function () {
     this.type = undefined;
     this.action = undefined;
     this.icon = undefined;
     this.label = undefined;
-    this.children = [];
+    this.handlers = [];
 
-    ozpIwc.DataApiValue.prototype.deleteData.call(this);
+    ozpIwc.CommonApiValue.prototype.deleteData.call(this);
 };
 
 /**
@@ -58,14 +52,12 @@ ozpIwc.IntentsApiValue.prototype.deleteData = function () {
  *
  * @returns {ozpIwc.TransportPacket}
  */
-ozpIwc.IntentsApiValue.prototype.toPacket = function () {
-
-    // Note: we don't use DataApiValue for toPacket since we are setting this.children to packet.handlers
+ozpIwc.IntentsApiDefinitionValue.prototype.toPacket = function () {
     var packet = ozpIwc.CommonApiValue.prototype.toPacket.apply(this, arguments);
     packet.type = this.type;
     packet.action = this.action;
     packet.icon = this.icon;
     packet.label = this.label;
-    packet.handlers = this.children;
+    packet.handlers = this.handlers;
     return packet;
 };

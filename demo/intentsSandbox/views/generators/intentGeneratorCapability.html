@@ -1,0 +1,8 @@
+<div class="modal-header"> New Capability</div>
+<div class="modal-body">
+    <span>Resource: <input ng-model="resource"/>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-click="createIntent({resource: resource})">Create</button>
+</div>

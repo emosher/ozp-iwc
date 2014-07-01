@@ -1,0 +1,14 @@
+<div class="modal-header"> Capability: {{intent.resource}}</div>
+<div class="modal-body">
+    <span ng-repeat="(key,value) in intent"><b>{{key}}: </b> {{value}}</br></span>
+</div>
+<div class="modal-body">
+    <span ng-repeat="child in intent.definitions">
+        <div class="btn btn-primary padding" ng-click="openDefinition(child)">
+            {{child}}
+        </div>
+    </span>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+</div>

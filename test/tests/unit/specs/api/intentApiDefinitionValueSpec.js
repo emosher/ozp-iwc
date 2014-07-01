@@ -1,6 +1,6 @@
 function intentsApiValueContractTests(classUnderTest, baseConfig) {
     describe("Conforms to the DataApiValue contract", function () {
-        dataApiValueContractTests(classUnderTest);
+        commonApiValueContractTests(classUnderTest);
     });
 
     var value;
@@ -37,7 +37,7 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
             expect(value.action).toEqual(undefined);
             expect(value.icon).toEqual(undefined);
             expect(value.label).toEqual(undefined);
-            expect(value.children).toEqual([]);
+            expect(value.handlers).toEqual([]);
         });
 
         it("updates intent properties on set", function () {
@@ -54,7 +54,7 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
             expect(value.action).toBeUndefined();
             expect(value.label).toBeUndefined();
             expect(value.icon).toBeUndefined();
-            expect(value.children).toEqual([]);
+            expect(value.handlers).toEqual([]);
         });
 
         it("converts intent properties to a packet", function () {
@@ -63,11 +63,11 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
             expect(packet.action).toEqual(value.action);
             expect(packet.label).toEqual(value.label);
             expect(packet.icon).toEqual(value.icon);
-            expect(packet.handlers).toEqual(value.children);
+            expect(packet.handlers).toEqual(value.handlers);
         });
     });
 }
 
 describe("Intent API Value", function () {
-    intentsApiValueContractTests(ozpIwc.IntentsApiValue);
+    intentsApiValueContractTests(ozpIwc.IntentsApiDefinitionValue);
 });

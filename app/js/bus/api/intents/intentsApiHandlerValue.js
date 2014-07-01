@@ -2,7 +2,6 @@ ozpIwc.IntentsApiHandlerValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, functi
     ozpIwc.CommonApiValue.apply(this, arguments);
     config = config || {};
 
-    //TODO: do we want to encapsulate intent properties inside a property of the value?
     this.type = config.type;
     this.action = config.action;
     this.icon = config.icon;

@@ -1,0 +1,14 @@
+<div class="modal-header"> New Definition</div>
+<div class="modal-body">
+    <span>Resource: <input ng-model="definition.resource"/></span>
+    <hr>
+    <span>type: <input ng-model="definition.type"/></span></br>
+    <span>action: <input ng-model="definition.action"/><span></br>
+    <span>handlers: <input ng-model="definition.handlers"/><span></br>
+    <span>icon: <input ng-model="definition.icon"/><span></br>
+    <span>label: <input ng-model="definition.label"/><span></br>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-click="createIntent(definition)">Create</button>
+</div>

@@ -1,9 +1,6 @@
+<div class="modal-header"> Handler: {{intent.resource}}</div>
 <div class="modal-body">
-    <span ng-repeat="child in intent.children">
-        <div class="btn btn-primary padding">
-            {{child}}
-        </div>
-    </span>
+    <span ng-repeat="(key,value) in intent"><b>{{key}}: </b> {{value}}</br></span>
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
