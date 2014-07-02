@@ -48,6 +48,55 @@ ozpIwc.IntentsApiDefinitionValue.prototype.deleteData = function () {
 };
 
 /**
+ *
+ * @param {string} handler - name of the handler record of this
+ * @returns {undefined}
+ */
+ozpIwc.IntentsApiDefinitionValue.prototype.pushHandler = function (handler) {
+    this.handlers.push(handler);
+    this.version++;
+};
+
+/**
+ *
+ * @param {string} handler - name of the handler record of this
+ * @returns {undefined}
+ */
+ozpIwc.IntentsApiDefinitionValue.prototype.unshiftHandler = function (handler) {
+    this.handlers.unshift(handler);
+    this.version++;
+};
+
+/**
+ *
+ * @param {string} handler - name of the handler record of this
+ * @returns {undefined}
+ */
+ozpIwc.IntentsApiDefinitionValue.prototype.popHandler = function () {
+    this.version++;
+    return this.handlers.pop();
+};
+
+/**
+ *
+ * @param {string} handler - name of the handler record of this
+ * @returns {undefined}
+ */
+ozpIwc.IntentsApiDefinitionValue.prototype.shiftHandler = function () {
+    this.version++;
+    return this.handlers.shift();
+};
+
+/**
+ *
+ * @param {string} handler - name of the handler record of this
+ * @returns {undefined}
+ */
+ozpIwc.IntentsApiDefinitionValue.prototype.listHandlers = function () {
+    return this.handlers;
+};
+
+/**
  * Turns Intent Api Value into a packet
  *
  * @returns {ozpIwc.TransportPacket}

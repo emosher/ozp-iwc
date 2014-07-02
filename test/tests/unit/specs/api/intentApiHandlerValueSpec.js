@@ -1,27 +1,34 @@
-function intentsApiValueContractTests(classUnderTest, baseConfig) {
+function intentsApiHandlerValueContractTests(classUnderTest, baseConfig) {
     describe("Conforms to the CommonApiValue contract", function () {
         commonApiValueContractTests(classUnderTest);
     });
-
+    baseConfig = baseConfig || {};
     var value;
     var config;
 
     beforeEach(function () {
-        config = {
-            'contentType': 'application/ozp-intents-handler-v1+json',
-            'type': "text/plain",
-            'action': "view",
-            'icon': "http://example.com/view-text-plain.png",
-            'label': "View Plain Text",
-            'invokeIntent': "system.api/application/123-412"
-        };
+        config = ozpIwc.util.clone(baseConfig);
+
+        //CommonApiValue
+        config.resource= "/text/plain/view/1234";
+        config.entity= {};
+        config.contentType= "application/ozp-intents-definition-v1+json";
+        config.permissions= ['perms'];
+        config.version= 1;
+
+        //IntentApiHandlerValue
+        config.type = "text/plain";
+        config.action = "view";
+        config.icon = "http://example.com/view-text-plain.png";
+        config.label = "View Plain Text";
+        config.invokeIntent = "system.api/application/123-412";
+
         value = new classUnderTest(config);
     });
 
     describe("Basic Actions", function () {
 
         var setPacket = {
-            'contentType': "application/ozp-intents-handler-v1+json",
             'type': "text/rich",
             'label': "Reverse Rich Text",
             'action': "reverse",
@@ -40,6 +47,7 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
 
         it("updates intent properties on set", function () {
             value.set(setPacket);
+            console.log(value);
             expect(value.type).toEqual(setPacket.type);
             expect(value.action).toEqual(setPacket.action);
             expect(value.icon).toEqual(setPacket.icon);
@@ -67,5 +75,5 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
 }
 
 describe("Intent API Handler Value", function () {
-    intentsApiValueContractTests(ozpIwc.IntentsApiHandlerValue);
+    intentsApiHandlerValueContractTests(ozpIwc.IntentsApiHandlerValue);
 });

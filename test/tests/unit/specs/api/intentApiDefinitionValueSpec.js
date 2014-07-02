@@ -1,23 +1,32 @@
-function intentsApiValueContractTests(classUnderTest, baseConfig) {
+function intentsApiDefinitionValueContractTests(classUnderTest, baseConfig) {
     describe("Conforms to the DataApiValue contract", function () {
         commonApiValueContractTests(classUnderTest);
     });
 
+    baseConfig = baseConfig || {};
     var value;
     var config;
 
     beforeEach(function () {
-        config = {
-            'contentType': "application/ozp-intents-definition-v1+json",
-            'type': "text/plain",
-            'action': "view",
-            'icon': "http://example.com/view-text-plain.png",
-            'label': "View Plain Text",
-            'handlers': [
-                "intents.api/text/plain/view/1234",
-                "intents.api/text/plain/view/4321"
-            ]
-        };
+        config = ozpIwc.util.clone(baseConfig);
+
+        //CommonApiValue
+        config.resource= "/text/plain/view/1234";
+        config.entity= {};
+        config.contentType= "application/ozp-intents-definition-v1+json";
+        config.permissions= ['perms'];
+        config.version= 1;
+
+        //IntentApiHandlerValue
+        config.type = "text/plain";
+        config.action = "view";
+        config.icon = "http://example.com/view-text-plain.png";
+        config.label = "View Plain Text";
+        config.handlers =  [
+            "/text/plain/view/1234",
+            "/text/plain/view/4321"
+        ];
+
         value = new classUnderTest(config);
     });
 
@@ -66,8 +75,47 @@ function intentsApiValueContractTests(classUnderTest, baseConfig) {
             expect(packet.handlers).toEqual(value.handlers);
         });
     });
+
+    describe("Collection-like Actions", function() {
+
+        it('pushes and pops handlers', function() {
+            value.pushHandler("/text/plain/view/1");
+            value.pushHandler("/text/plain/view/2");
+            expect(value.handlers.length).toEqual(4);
+            expect(value.popHandler()).toEqual("/text/plain/view/2");
+            expect(value.handlers.length).toEqual(3);
+            expect(value.popHandler()).toEqual("/text/plain/view/1");
+            expect(value.handlers.length).toEqual(2);
+            expect(value.popHandler()).toEqual("/text/plain/view/4321");
+            expect(value.handlers.length).toEqual(1);
+            expect(value.popHandler()).toEqual("/text/plain/view/1234");
+            expect(value.handlers.length).toEqual(0);
+            expect(value.popHandler()).toEqual(undefined);
+        });
+        it('unshifts and shifts handlers', function() {
+            value.unshiftHandler("/text/plain/view/1");
+            value.unshiftHandler("/text/plain/view/2");
+            expect(value.handlers.length).toEqual(4);
+            expect(value.shiftHandler()).toEqual("/text/plain/view/2");
+            expect(value.handlers.length).toEqual(3);
+            expect(value.shiftHandler()).toEqual("/text/plain/view/1");
+            expect(value.handlers.length).toEqual(2);
+            expect(value.shiftHandler()).toEqual("/text/plain/view/1234");
+            expect(value.handlers.length).toEqual(1);
+            expect(value.shiftHandler()).toEqual("/text/plain/view/4321");
+            expect(value.handlers.length).toEqual(0);
+            expect(value.shiftHandler()).toEqual(undefined);
+
+        });
+        it('lists handlers', function() {
+            var list = value.listHandlers();
+            expect(list.length).toEqual(2);
+            expect(list[0]).toEqual(value.handlers[0]);
+            expect(list[1]).toEqual(value.handlers[1]);
+        });
+    });
 }
 
 describe("Intent API Value", function () {
-    intentsApiValueContractTests(ozpIwc.IntentsApiDefinitionValue);
+    intentsApiDefinitionValueContractTests(ozpIwc.IntentsApiDefinitionValue);
 });

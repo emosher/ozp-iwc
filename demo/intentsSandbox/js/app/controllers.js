@@ -11,6 +11,15 @@ angular.module('app')
             });
         };
 
+        $scope.getIntentDlg = function () {
+            var dlg = $dialogs.create('/views/queries/byResource.html', 'dialogCtrl', {}, {keyboard: true});
+            dlg.result.then(function (result) {
+
+            }, function () {
+
+            });
+        };
+
         $scope.openDialog = function (node) {
             sharedIntent.setIntent(node);
             switch (node.resource.split('/').length) {
@@ -69,6 +78,25 @@ angular.module('app')
             }, function () {
             });
         };
+
+        $scope.getIntent = function(resource) {
+            var type = ozpIwc.intentApi.parseResource(resource).intentValueType;
+            switch (type) {
+                case 'handler':
+                    $scope.openHandler(resource);
+                    break;
+                case 'definition':
+                    $scope.openHandler(resource);
+                    break;
+                case 'capability':
+                    sharedIntent.setIntent(ozpIwc.intentsApi.findOrMakeValue({resource: resource}));
+                    var dlg = $dialogs.create('/views/displays/intentPopupCapabilities.html', 'dialogCtrl', {}, {keyboard: true});
+                    dlg.result.then(function (result) {
+                    }, function () {
+                    });
+                    break;
+            }
+        }
     })
 
     .controller('genCtrl', function ($scope, $dialogs, $modalInstance, data, sharedIntent) {
@@ -107,6 +135,13 @@ angular.module('app')
         };
 
         $scope.createIntent = function (packet) {
-            ozpIwc.intentsApi.findOrMakeValue(packet);
+            packet.action = 'register';
+            packet.dst = 'intent.api';
+            var out = client.send(packet);
+            console.log(out);
+            //var node = ozpIwc.intentsApi.handleRegister(packet);
         };
+    })
+    .controller('queryCtrl', function ($scope, $dialogs, $modalInstance, data, sharedIntent) {
+
     });

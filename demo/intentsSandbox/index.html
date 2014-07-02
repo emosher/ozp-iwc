@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <title>OZP IWC Intent Sandbox</title>
     <script src="/js/ozpIwc-bus.js"></script>
-    <script src="mockObjects.js"></script>
+    <script src="/js/ozpIwc-client.js"></script>
     <script src="/js/testWiring.js"></script>
+    <script src="/js/app/script.js"></script>
 
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
     <script src="/js/ui-boostrap.min.js" type="text/javascript"></script>
@@ -23,6 +24,7 @@
 <div ng-controller="intentsApiScope">
     <h3> ozpIwc.intentsApi.data</h3></br>
     <button class="btn btn-primary" ng-click="newIntent()">new Intent</button>
+    <button class="btn btn-primary" ng-click="getIntentDlg()">new Intent</button>
     Filter: <input ng-model="intentResource" type="text"> </input>
     <hr>
     <div ng-repeat="(key, value) in data.data | keyFilter:intentResource ">

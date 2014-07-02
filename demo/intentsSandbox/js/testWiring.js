@@ -35,7 +35,7 @@ if(ozpIwc.DataApi) {
 }
 if(ozpIwc.IntentsApi) {
     ozpIwc.intentsApi=new ozpIwc.IntentsApi({
-        'participant': new TestParticipant()
+        'participant': new ozpIwc.LeaderGroupParticipant({'name': "intents.api"})
     });
 
     ozpIwc.defaultRouter.registerParticipant(ozpIwc.intentsApi.participant);
