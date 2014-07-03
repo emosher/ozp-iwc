@@ -1,14 +1,14 @@
 <div class="modal-header"> New Handler</div>
 <div class="modal-body">
-    <span>Resource: <input ng-model="definition.resource"/></span>
+    <span>Resource: <input ng-model="handler.resource"/></span>
     <hr>
-    <span>type: <input ng-model="definition.entity.type"/></span></br>
-    <span>action: <input ng-model="definition.entity.action"/><span></br>
-    <span>icon: <input ng-model="definition.entity.icon"/><span></br>
-    <span>label: <input ng-model="definition.entity.label"/><span></br>
-    <span>invokeIntent: <input ng-model="definition.entity.invokeIntent"/><span></br>
+    <span>type: <input ng-model="handler.entity.type"/></span></br>
+    <span>action: <input ng-model="handler.entity.action"/><span></br>
+    <span>icon: <input ng-model="handler.entity.icon"/><span></br>
+    <span>label: <input ng-model="handler.entity.label"/><span></br>
+    <span>invokeIntent: <input ng-model="handler.entity.invokeIntent"/><span></br>
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
-    <button class="btn btn-primary" ng-click="createIntent(definition)">Create</button>
+    <button class="btn btn-primary" ng-click="createHandler(handler)">Create</button>
 </div>

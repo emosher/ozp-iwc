@@ -12,7 +12,7 @@ ozpIwc.IntentsApiDefinitionValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, fun
 /**
  * Sets Intents Api Value properties from packet.
  * Sets Common Api Value properties from packet.
- *
+ * @override
  * @param packet
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.set = function (packet) {
@@ -36,6 +36,7 @@ ozpIwc.IntentsApiDefinitionValue.prototype.set = function (packet) {
  *  <li> handlers: [] </li>
  *  It does NOT remove watchers.
  *  Resets Common Api Values to an empty state.
+ * @override
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.deleteData = function () {
     this.type = undefined;
@@ -98,15 +99,16 @@ ozpIwc.IntentsApiDefinitionValue.prototype.listHandlers = function () {
 
 /**
  * Turns Intent Api Value into a packet
- *
+ * @override
  * @returns {ozpIwc.TransportPacket}
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.toPacket = function () {
     var packet = ozpIwc.CommonApiValue.prototype.toPacket.apply(this, arguments);
-    packet.type = this.type;
-    packet.action = this.action;
-    packet.icon = this.icon;
-    packet.label = this.label;
-    packet.handlers = this.handlers;
+    packet.entity = packet.entity || {};
+    packet.entity.type = this.type;
+    packet.entity.action = this.action;
+    packet.entity.icon = this.icon;
+    packet.entity.label = this.label;
+    packet.entity.handlers = this.handlers;
     return packet;
 };

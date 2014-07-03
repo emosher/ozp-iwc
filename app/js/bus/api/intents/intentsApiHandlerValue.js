@@ -12,7 +12,7 @@ ozpIwc.IntentsApiHandlerValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, functi
 /**
  * Sets Intents Api Handler Value properties from packet.
  * Sets Common Api Value properties from packet.
- *
+ * @override
  * @param packet
  */
 ozpIwc.IntentsApiHandlerValue.prototype.set = function (packet) {
@@ -36,6 +36,7 @@ ozpIwc.IntentsApiHandlerValue.prototype.set = function (packet) {
  *  <li> invokeIntent: undefined </li>
  *  It does NOT remove watchers.
  *  Resets Common Api Values to an empty state.
+ * @override
  */
 ozpIwc.IntentsApiHandlerValue.prototype.deleteData = function () {
     this.type = undefined;
@@ -48,18 +49,28 @@ ozpIwc.IntentsApiHandlerValue.prototype.deleteData = function () {
 };
 
 /**
+ * Invokes the handler with the given packet information.
+ * @param packet
+ */
+ozpIwc.IntentsApiHandlerValue.prototype.invoke = function (packet) {
+    console.error('Invoking of intents.api handlers is not implemented.'+
+        'Override ozpIwc.IntentsApiHandlerValue.invoke to implement');
+};
+
+/**
  * Turns Intent Api Handler Value into a packet
- *
+ * @override
  * @returns {ozpIwc.TransportPacket}
  */
 ozpIwc.IntentsApiHandlerValue.prototype.toPacket = function () {
 
     // Note: we don't use DataApiValue for toPacket since we are setting this.children to packet.handlers
     var packet = ozpIwc.CommonApiValue.prototype.toPacket.apply(this, arguments);
-    packet.type = this.type;
-    packet.action = this.action;
-    packet.icon = this.icon;
-    packet.label = this.label;
-    packet.invokeIntent = this.invokeIntent;
+    packet.entity =  packet.entity || {};
+    packet.entity.type = this.type;
+    packet.entity.action = this.action;
+    packet.entity.icon = this.icon;
+    packet.entity.label = this.label;
+    packet.entity.invokeIntent = this.invokeIntent;
     return packet;
 };

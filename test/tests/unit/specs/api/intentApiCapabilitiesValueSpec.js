@@ -1,4 +1,4 @@
-function intentsApiCapabilitiesValueContractTests(classUnderTest, baseConfig) {
+function intentsApiCapabilityValueContractTests(classUnderTest, baseConfig) {
     describe("Conforms to the CommonApiValue contract", function () {
         commonApiValueContractTests(classUnderTest);
     });
@@ -96,5 +96,5 @@ function intentsApiCapabilitiesValueContractTests(classUnderTest, baseConfig) {
 }
 
 describe("Intent API Capabilities Value", function () {
-    intentsApiCapabilitiesValueContractTests(ozpIwc.IntentsApiCapabilitiesValue);
+    intentsApiCapabilityValueContractTests(ozpIwc.IntentsApiCapabilityValue);
 });

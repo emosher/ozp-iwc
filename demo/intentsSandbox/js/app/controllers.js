@@ -12,11 +12,13 @@ angular.module('app')
         };
 
         $scope.getIntentDlg = function () {
-            var dlg = $dialogs.create('/views/queries/byResource.html', 'dialogCtrl', {}, {keyboard: true});
-            dlg.result.then(function (result) {
-
-            }, function () {
-
+            client.send({
+                dst: 'intents.api',
+                contentType: 'a',
+                resource: '/ignore/this/resource',
+                action: 'debug'
+            }, function(reply){
+                console.log(reply.entity);
             });
         };
 
@@ -135,13 +137,12 @@ angular.module('app')
         };
 
         $scope.createIntent = function (packet) {
-            packet.action = 'register';
+            console.log(packet);
             packet.dst = 'intent.api';
-            var out = client.send(packet);
-            console.log(out);
-            //var node = ozpIwc.intentsApi.handleRegister(packet);
+            packet.contentType = 'a';
+            packet.action = 'register';
+            var out = client.send(packet, function(reply) {
+                console.log(reply);
+            });
         };
-    })
-    .controller('queryCtrl', function ($scope, $dialogs, $modalInstance, data, sharedIntent) {
-
     });

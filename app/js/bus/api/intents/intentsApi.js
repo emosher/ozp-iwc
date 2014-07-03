@@ -51,17 +51,17 @@ ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
  * Takes the resource of the given packet and creates an empty value in the IntentsApi. Chaining of creation is
  * accounted for (A handler requires a definition, which requires a capability).
  * @param packet
- * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilitiesValue}
+ * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue}
  */
 ozpIwc.IntentsApi.prototype.makeValue = function (packet) {
     var resource = this.parseResource(packet.resource);
     switch (resource.intentValueType) {
         case 'handler':
-            return this.findOrMakeHandler(resource);
+            return this.getHandler(resource);
         case 'definition':
-            return this.findOrMakeDefinition(resource);
+            return this.getDefinition(resource);
         case 'capabilities':
-            return this.findOrMakeCapabilities(resource);
+            return this.getCapability(resource);
         default:
             return null;
     }
@@ -73,9 +73,9 @@ ozpIwc.IntentsApi.prototype.makeValue = function (packet) {
  * @param resource
  * @param packet
  * @param constructor
- * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilitiesValue}
+ * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue}
  */
-ozpIwc.IntentsApi.prototype.findOrMakeGeneric = function (resource, constructor) {
+ozpIwc.IntentsApi.prototype.getGeneric = function (resource, constructor) {
     var node = this.data[resource];
     if (!node) {
         node = this.data[resource] = new constructor({resource: resource});
@@ -87,10 +87,10 @@ ozpIwc.IntentsApi.prototype.findOrMakeGeneric = function (resource, constructor)
  * Returns the given capability in the IntentsApi. Constructs a new one if it does not exist.
  * @param packet
  * @param resource
- * @returns {IntentsApiCapabilitiesValue}
+ * @returns {IntentsApiCapabilityValue}
  */
-ozpIwc.IntentsApi.prototype.findOrMakeCapabilities = function (resource) {
-    return this.findOrMakeGeneric(resource.capabilityRes, ozpIwc.IntentsApiCapabilitiesValue);
+ozpIwc.IntentsApi.prototype.getCapability = function (resource) {
+    return this.getGeneric(resource.capabilityRes, ozpIwc.IntentsApiCapabilityValue);
 };
 
 /**
@@ -100,14 +100,14 @@ ozpIwc.IntentsApi.prototype.findOrMakeCapabilities = function (resource) {
  * @param resource
  * @returns {IntentsAPiDefinitionValue}
  */
-ozpIwc.IntentsApi.prototype.findOrMakeDefinition = function (resource) {
-    var capability = this.findOrMakeCapabilities(resource);
+ozpIwc.IntentsApi.prototype.getDefinition = function (resource) {
+    var capability = this.getCapability(resource);
     var definitionIndex = capability.definitions.indexOf(resource.definitionRes);
     if (definitionIndex === -1) {
         capability.definitions.push(resource.definitionRes);
     }
 
-    return this.findOrMakeGeneric(resource.definitionRes, ozpIwc.IntentsApiDefinitionValue);
+    return this.getGeneric(resource.definitionRes, ozpIwc.IntentsApiDefinitionValue);
 };
 
 /**
@@ -117,14 +117,14 @@ ozpIwc.IntentsApi.prototype.findOrMakeDefinition = function (resource) {
  * @param resource
  * @returns {IntentsApiHandlerValue}
  */
-ozpIwc.IntentsApi.prototype.findOrMakeHandler = function (resource) {
-    var definition = this.findOrMakeDefinition(resource);
-    var handlerIndex = definition.handlers.indexOf(resource.handlerRes);
+ozpIwc.IntentsApi.prototype.getHandler = function (resource) {
+    var definition = this.getDefinition(resource);
+    var handlerIndex = definition.handlers.indexOf(resource);
     if (handlerIndex === -1) {
         definition.handlers.push(resource.handlerRes);
     }
 
-    return this.findOrMakeGeneric(resource.handlerRes, ozpIwc.IntentsApiHandlerValue);
+    return this.getGeneric(resource.handlerRes, ozpIwc.IntentsApiHandlerValue);
 };
 
 /**
@@ -132,14 +132,23 @@ ozpIwc.IntentsApi.prototype.findOrMakeHandler = function (resource) {
  * @param packet
  * @returns {IntentsApiHandlerValue}
  */
-ozpIwc.IntentsApi.prototype.handleRegister = function (packet) {
-    //
-    var key = this.createKey(packet.resource + '/');
-    var resource = this.parseResource(key);
-    var node = this.findOrMakeHandler(resource);
-    node.set(packet);
+ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
+    var resource = this.parseResource(packetContext.packet.resource);
+    if (resource.intentValueType === 'definition') {
+        resource.handlerRes = this.createKey(packetContext.packet.resource + '/');
+    } else if (resource.intentValueType !== 'handler') {
+        return packetContext.replyTo({
+            'action': 'badResource'
+        });
+    }
 
-    return node;
+    var handler = this.getHandler(resource);
+    handler.set(packetContext.packet.entity);
+
+    packetContext.replyTo({
+        'action': 'ok',
+        'entity': handler.resource
+    });
 };
 
 /**
@@ -147,35 +156,42 @@ ozpIwc.IntentsApi.prototype.handleRegister = function (packet) {
  * @param packet
  * @returns {?}
  */
-ozpIwc.IntentsApi.prototype.handleUnregister = function (packet) {
-    var parse = this.parseResource(packet.resource);
-    console.log(this.data[parse.definitionRes]);
-    console.log(this.data[parse.capabilityRes]);
-    var index = this.data[parse.definitionRes].definitions.indexOf(parse.handlerRes);
-    if (index > -1) {
-        this.data[parse.definitionRes].definitions.splice(index, 1);
-    }
-    console.log(this.data[parse.definitionRes]);
-    console.log(this.data[parse.capabilityRes]);
+ozpIwc.IntentsApi.prototype.handleUnregister = function (node, packetContext) {
+    var parse = this.parseResource(packetContext.packet.resource);
+    var index = this.data[parse.definitionRes].handlers.indexOf(parse.handlerRes);
 
-    packet.reply({'action':'ok'});
+    if (index > -1) {
+        this.data[parse.definitionRes].handlers.splice(index, 1);
+    }
+    delete this.data[parse.handlerRes];
+    packetContext.replyTo({'action': 'ok'});
 };
 
 /**
  * Invokes the appropriate handler for the intent from either user preference or by prompting the user.
  * @param packet
  */
-ozpIwc.IntentsApi.prototype.handleInvoke = function (packet) {
-    var parse = this.parseResource(packet.resource);
+ozpIwc.IntentsApi.prototype.handleInvoke = function (node, packetContext) {
+    var parse = this.parseResource(packetContext.packet.resource);
+
     switch (parse.intentValueType) {
         case 'handler':
-            //TODO invoke the specific handler.
+            node.invoke(packetContext.packet);
             break;
+
         case 'definition':
-            //TODO give the user options from all handlers in definition.
+            //TODO get user preference of which handler to use?
+            var handlerPreference = 0;
+            if (node.handlers.length > 0) {
+                var handler = node.handlers[handlerPreference];
+                this.data[handler].invoke(packet);
+            } else {
+                packetContext.replyTo({'action': 'badResource'});
+            }
             break;
+
         default:
-            //TODO handle badResource (naming?)
+            packetContext.replyTo({'action': 'badResource'});
             break;
     }
 };
@@ -184,29 +200,42 @@ ozpIwc.IntentsApi.prototype.handleInvoke = function (packet) {
  * Listen for broadcast intents.
  * @param packet
  */
-ozpIwc.IntentsApi.prototype.handleListen = function (packet) {
+ozpIwc.IntentsApi.prototype.handleListen = function (node, packetContext) {
     //TODO handleListen()
-    var parse = this.parseResource(packet.resource);
-    if (parse.intentValueType !== 'definition') {
-        //TODO error handling
-        return null;
-    }
-    this.handleWatch
-    //TODO add listener
+//    var parse = this.parseResource(packetContext.packet.resource);
+//    if (parse.intentValueType !== 'definition') {
+//        return packetContext.replyTo({
+//            'action': 'badResource'
+//        });
+//    }
+
 };
 
 /**
  * Handle a broadcast intent
  * @param packet
  */
-ozpIwc.IntentsApi.prototype.handleBroadcast = function (packet) {
+ozpIwc.IntentsApi.prototype.handleBroadcast = function (node, packetContext) {
     //TODO handleBroadcast()
-    var parse = this.parseResource(packet.resource);
-    if (parse.intentValueType !== 'definition') {
-        //TODO error handling
-        return null;
-    }
-    //TODO broadcast
+//    var parse = this.parseResource(packetContext.packet.resource);
+//    if (parse.intentValueType !== 'definition') {
+//        return packetContext.replyTo({
+//            'action': 'badResource'
+//        });
+//    }
+//    for (var i in node.handlers) {
+//        this.data[node.handlers[i]].invoke(packetContext.packet);
+//    }
+};
+
+/**
+ * @override
+ * @param {ozpIwc.CommonApiValue} node
+ * @param {ozpIwc.TransportPacketContext} packetContext
+ */
+ozpIwc.CommonApiBase.prototype.handleSet = function (node, packetContext) {
+    node.set(packetContext.packet.entity);
+    packetContext.replyTo({'action': 'ok'});
 };
 
 ///**
@@ -219,13 +248,16 @@ ozpIwc.IntentsApi.prototype.handleBroadcast = function (packet) {
 //};
 //
 ///**
-// * @override
-// * @param node
-// * @param packetContext
-// * @returns {*}
-// */
+//* @override
+//* @param node
+//* @param packetContext
+//* @returns {*}
+//*/
 //ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
-//    //TODO validateResource()
+//    var resource = this.parseResource(packetContext.packet.resource);
+//    if(!resource) {
+//        return null;
+//    }
 //    return packetContext.resource;
 //
 //};
@@ -238,3 +270,10 @@ ozpIwc.IntentsApi.prototype.handleBroadcast = function (packet) {
 //ozpIwc.IntentsApi.prototype.validatePreconditions = function (node, packetContext) {
 //    //TODO validatePreconditions()
 //};
+
+ozpIwc.IntentsApi.prototype.handleDebug = function (node, packetContext) {
+    packetContext.replyTo({
+        action: 'ok',
+        entity: ozpIwc.intentsApi.data
+    });
+};
