@@ -1,3 +1,10 @@
+/**
+ * The capability value for an intent. adheres to the ozp-intents-type-capabilities-v1+json content type.
+ * @class
+ * @param {object} config
+ * @param {string} config.name - the name of this intent capability.
+ * @param {string} config.definitions - the list of definitions in this intent capability.
+ */
 ozpIwc.IntentsApiCapabilityValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, function (config) {
     ozpIwc.CommonApiValue.apply(this, arguments);
     config = config || {};
@@ -5,10 +12,11 @@ ozpIwc.IntentsApiCapabilityValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, fun
 });
 
 /**
- * Sets Intents Api Value properties from packet.
+ * Sets Intents Api Capability Value properties from packet.
  * Sets Common Api Value properties from packet.
  * @override
- * @param packet
+ * @param {object}packet
+ * @param {string} packet.definitions - the list of definitions in this intent capability.
  */
 ozpIwc.IntentsApiCapabilityValue.prototype.set = function (packet) {
     if (this.isValidContentType(packet.contentType)) {
@@ -20,7 +28,7 @@ ozpIwc.IntentsApiCapabilityValue.prototype.set = function (packet) {
 
 /**
  * Resets the data to an empty state:
- *  <li> definitionss: [] </li>
+ *  <li> definitions: [] </li>
  *  It does NOT remove watchers.
  *  Resets Common Api Values to an empty state.
  * @override
@@ -33,9 +41,8 @@ ozpIwc.IntentsApiCapabilityValue.prototype.deleteData = function () {
 
 
 /**
- *
- * @param {string} definition - name of the definition record of this
- * @returns {undefined}
+ * Adds a definition to the end of the capability's list of definitions.
+ * @param {string} definition - name of the definition added to this capability.
  */
 ozpIwc.IntentsApiCapabilityValue.prototype.pushDefinition = function (definition) {
     this.definitions.push(definition);
@@ -43,9 +50,8 @@ ozpIwc.IntentsApiCapabilityValue.prototype.pushDefinition = function (definition
 };
 
 /**
- *
- * @param {string} definition - name of the definition record of this
- * @returns {undefined}
+ * Adds a definition to the beginning of the capability's list of definitions.
+ * @param {string} definition - name of the definition added to this capability.
  */
 ozpIwc.IntentsApiCapabilityValue.prototype.unshiftDefinition = function (definition) {
     this.definitions.unshift(definition);
@@ -53,8 +59,8 @@ ozpIwc.IntentsApiCapabilityValue.prototype.unshiftDefinition = function (definit
 };
 
 /**
- *
- * @returns {definition} - name of the definition record of this
+ * Removes a definition from the end of the capability's list of definitions.
+ * @returns {string} definition - name of the definition removed from this capability.
  */
 ozpIwc.IntentsApiCapabilityValue.prototype.popDefinition = function () {
     this.version++;
@@ -62,7 +68,8 @@ ozpIwc.IntentsApiCapabilityValue.prototype.popDefinition = function () {
 };
 
 /**
- * @returns {definition} - name of the definition record of this
+ * Removes a definition from the beginning of the capability's list of definitions.
+ * @returns {string} definition - name of the definition removed from this capability.
  */
 ozpIwc.IntentsApiCapabilityValue.prototype.shiftDefinition = function () {
     this.version++;
@@ -70,15 +77,15 @@ ozpIwc.IntentsApiCapabilityValue.prototype.shiftDefinition = function () {
 };
 
 /**
- *
- * @returns {definitions} - list of definitions in this capability
+ * Lists all definitions of the given capability.
+ * @returns {Array} definitions - list of definitions in this capability.
  */
 ozpIwc.IntentsApiCapabilityValue.prototype.listDefinitions = function () {
     return this.definitions;
 };
 
 /**
- * Turns Intent Api Value into a packet
+ * Returns the capability as a packet.
  * @override
  * @returns {ozpIwc.TransportPacket}
  */

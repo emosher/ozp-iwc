@@ -1,3 +1,14 @@
+/**
+ * The definition value for an intent. adheres to the ozp-intents-definition-v1+json content type.
+ * @class
+ * @param {object} config
+ * @param {string} config.name - the name of this intent definition.
+ * @param {string} config.type - the type of this intent definition.
+ * @param {string} config.action - the action of this intent definition.
+ * @param {string} config.icon - the icon for this intent definition.
+ * @param {string} config.label - the label for this intent definition.
+ * @param {string} config.handlers - the list of handlers for the definition.
+ */
 ozpIwc.IntentsApiDefinitionValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, function (config) {
     ozpIwc.CommonApiValue.apply(this, arguments);
     config = config || {};
@@ -10,10 +21,16 @@ ozpIwc.IntentsApiDefinitionValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, fun
 });
 
 /**
- * Sets Intents Api Value properties from packet.
+ * Sets Intents Api Definition Value properties from packet.
  * Sets Common Api Value properties from packet.
  * @override
- * @param packet
+ * @param {object} packet
+ * @param {string} packet.name - the name of this intent definition.
+ * @param {string} packet.type - the type of this intent definition.
+ * @param {string} packet.action - the action of this intent definition.
+ * @param {string} packet.icon - the icon for this intent definition.
+ * @param {string} packet.label - the label for this intent definition.
+ * @param {string} packet.handlers - the list of handlers for the definition.
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.set = function (packet) {
     if (this.isValidContentType(packet.contentType)) {
@@ -50,8 +67,8 @@ ozpIwc.IntentsApiDefinitionValue.prototype.deleteData = function () {
 
 /**
  *
- * @param {string} handler - name of the handler record of this
- * @returns {undefined}
+ * Adds a handler to the end of the definition's list of handler.
+ * @param {string} definition - name of the handler added to this definition.
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.pushHandler = function (handler) {
     this.handlers.push(handler);
@@ -59,9 +76,8 @@ ozpIwc.IntentsApiDefinitionValue.prototype.pushHandler = function (handler) {
 };
 
 /**
- *
- * @param {string} handler - name of the handler record of this
- * @returns {undefined}
+ * Adds a handler to the beginning of the definition's list of handler.
+ * @param {string} definition - name of the handler added to this definition.
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.unshiftHandler = function (handler) {
     this.handlers.unshift(handler);
@@ -69,9 +85,8 @@ ozpIwc.IntentsApiDefinitionValue.prototype.unshiftHandler = function (handler) {
 };
 
 /**
- *
- * @param {string} handler - name of the handler record of this
- * @returns {undefined}
+ * Removes a handler from the end of the definition's list of handlers.
+ * @returns {string} handler - name of the handler removed from this definition.
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.popHandler = function () {
     this.version++;
@@ -79,9 +94,8 @@ ozpIwc.IntentsApiDefinitionValue.prototype.popHandler = function () {
 };
 
 /**
- *
- * @param {string} handler - name of the handler record of this
- * @returns {undefined}
+ * Removes a handler from the beginning of the definition's list of handlers.
+ * @returns {string} handler - name of the handler removed from this definition.
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.shiftHandler = function () {
     this.version++;
@@ -89,16 +103,15 @@ ozpIwc.IntentsApiDefinitionValue.prototype.shiftHandler = function () {
 };
 
 /**
- *
- * @param {string} handler - name of the handler record of this
- * @returns {undefined}
+ * Lists all handlers of the given intent definition.
+ * @returns {Array} handlers - list of handlers in this capability.
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.listHandlers = function () {
     return this.handlers;
 };
 
 /**
- * Turns Intent Api Value into a packet
+ * Returns the intent definition value as a packet.
  * @override
  * @returns {ozpIwc.TransportPacket}
  */

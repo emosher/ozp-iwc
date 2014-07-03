@@ -1,13 +1,23 @@
-var ozpIwc = ozpIwc || {};
-
+/**
+ * The Intents API. Subclasses The Common Api Base.
+ * @class
+ */
 ozpIwc.IntentsApi = ozpIwc.util.extend(ozpIwc.CommonApiBase, function () {
     ozpIwc.CommonApiBase.apply(this, arguments);
 });
 
 /**
- * Internal method, not intended API. Used for handling resource path parsing.
- * @param resource
- * @returns {*}
+ * Internal method, not intended for API use. Used for handling resource path parsing.
+ * @param  {string} resource - the resource path to be evaluated.
+ * @returns {object} result
+ * @returns {string} result.type - the type of the resource
+ * @returns {string} result.subtype - the subtype of the resource
+ * @returns {string} result.verb - the verb (action) of the resource
+ * @returns {string} result.handler - the handler of the resource
+ * @returns {string} result.capabilityRes - the resource path of this resource's capability
+ * @returns {string} result.definitionRes - the resource path of this resource's definition
+ * @returns {string} result.handlerRes - the resource path of this resource's handler
+ * @returns {string} result.intentValueType - returns the value type given the resource path (capability, definition, handler)
  */
 ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
     var resourceSplit = resource.split('/');
@@ -38,19 +48,11 @@ ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
 
     return result;
 };
-//
-///**
-// *
-// * @param prefix
-// */
-//ozpIwc.IntentsApi.prototype.createKey = function (prefix) {
-//    //TODO createKey()
-//};
 
 /**
  * Takes the resource of the given packet and creates an empty value in the IntentsApi. Chaining of creation is
  * accounted for (A handler requires a definition, which requires a capability).
- * @param packet
+ * @param {object} packet
  * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue}
  */
 ozpIwc.IntentsApi.prototype.makeValue = function (packet) {
@@ -68,12 +70,11 @@ ozpIwc.IntentsApi.prototype.makeValue = function (packet) {
 };
 
 /**
- * Generic version of findOrMakeValue that uses the constructor parameter to determine what is constructed if the
+ * Internal method, not intended for API use. Uses constructor parameter to determine what is constructed if the
  * resource does not exist.
- * @param resource
- * @param packet
- * @param constructor
- * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue}
+ * @param {string} resource - the resource path of the desired value.
+ * @param {Function} constructor - constructor function to be used if value does not exist.
+ * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue} node - node has only the resource parameter initialized.
  */
 ozpIwc.IntentsApi.prototype.getGeneric = function (resource, constructor) {
     var node = this.data[resource];
@@ -85,9 +86,8 @@ ozpIwc.IntentsApi.prototype.getGeneric = function (resource, constructor) {
 
 /**
  * Returns the given capability in the IntentsApi. Constructs a new one if it does not exist.
- * @param packet
- * @param resource
- * @returns {IntentsApiCapabilityValue}
+ * @param {string} resource - the resource path of the desired value.
+ * @returns {IntentsApiCapabilityValue} value - the capability value requested.
  */
 ozpIwc.IntentsApi.prototype.getCapability = function (resource) {
     return this.getGeneric(resource.capabilityRes, ozpIwc.IntentsApiCapabilityValue);
@@ -96,9 +96,8 @@ ozpIwc.IntentsApi.prototype.getCapability = function (resource) {
 /**
  * Returns the given definition in the IntentsApi. Constructs a new one if it does not exist. Constructs a capability
  * if necessary.
- * @param packet
- * @param resource
- * @returns {IntentsAPiDefinitionValue}
+ * @param {string} resource - the resource path of the desired value.
+ * @returns {IntentsAPiDefinitionValue} value - the definition value requested.
  */
 ozpIwc.IntentsApi.prototype.getDefinition = function (resource) {
     var capability = this.getCapability(resource);
@@ -112,10 +111,9 @@ ozpIwc.IntentsApi.prototype.getDefinition = function (resource) {
 
 /**
  * Returns the given handler in the IntentsApi. Constructs a new one if it does not exist. Constructs a definition
- * if necessary.
- * @param packet
- * @param resource
- * @returns {IntentsApiHandlerValue}
+ * and capability if necessary.
+ * @param {string} resource - the resource path of the desired value.
+ * @returns {IntentsApiHandlerValue} value - the handler value requested.
  */
 ozpIwc.IntentsApi.prototype.getHandler = function (resource) {
     var definition = this.getDefinition(resource);
@@ -129,17 +127,19 @@ ozpIwc.IntentsApi.prototype.getHandler = function (resource) {
 
 /**
  * Creates and registers a handler to the given definition resource path.
- * @param packet
- * @returns {IntentsApiHandlerValue}
+ * @param {object} node - the handler value to register, or the definition value the handler will register to
+ * (handler will receive a generated key if definition value is provided).
+ * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
     var resource = this.parseResource(packetContext.packet.resource);
     if (resource.intentValueType === 'definition') {
         resource.handlerRes = this.createKey(packetContext.packet.resource + '/');
     } else if (resource.intentValueType !== 'handler') {
-        return packetContext.replyTo({
+        packetContext.replyTo({
             'action': 'badResource'
         });
+        return null;
     }
 
     var handler = this.getHandler(resource);
@@ -153,10 +153,11 @@ ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
 
 /**
  * Unregisters and destroys the handler assigned to the given handler resource path.
- * @param packet
- * @returns {?}
+ * @param {object} node - the handler value to unregister from its definition.
+ * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleUnregister = function (node, packetContext) {
+    console.log(packetContext);
     var parse = this.parseResource(packetContext.packet.resource);
     var index = this.data[parse.definitionRes].handlers.indexOf(parse.handlerRes);
 
@@ -168,8 +169,14 @@ ozpIwc.IntentsApi.prototype.handleUnregister = function (node, packetContext) {
 };
 
 /**
- * Invokes the appropriate handler for the intent from either user preference or by prompting the user.
- * @param packet
+ * Invokes the appropriate handler for the intent from one of the following methods:
+ *  <li> user preference specifies which handler to use. </li>
+ *  <li> by prompting the user to select which handler to use. </li>
+ *  <li> by receiving a handler resource instead of a definition resource </li>
+ *  @todo <li> user preference specifies which handler to use. </li>
+ *  @todo <li> by prompting the user to select which handler to use. </li>
+ * @param {object} node - the definition or handler value used to invoke the intent.
+ * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleInvoke = function (node, packetContext) {
     var parse = this.parseResource(packetContext.packet.resource);
@@ -198,7 +205,9 @@ ozpIwc.IntentsApi.prototype.handleInvoke = function (node, packetContext) {
 
 /**
  * Listen for broadcast intents.
- * @param packet
+ * @todo unimplemented
+ * @param {object} node - ?
+ * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleListen = function (node, packetContext) {
     //TODO handleListen()
@@ -212,8 +221,10 @@ ozpIwc.IntentsApi.prototype.handleListen = function (node, packetContext) {
 };
 
 /**
- * Handle a broadcast intent
- * @param packet
+ * Handle a broadcast intent.
+ * @todo unimplemented
+ * @param {object} node - ?
+ * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleBroadcast = function (node, packetContext) {
     //TODO handleBroadcast()
@@ -229,11 +240,14 @@ ozpIwc.IntentsApi.prototype.handleBroadcast = function (node, packetContext) {
 };
 
 /**
+ * Handles the set action for Intent Api values.
  * @override
- * @param {ozpIwc.CommonApiValue} node
- * @param {ozpIwc.TransportPacketContext} packetContext
+ * @see ozpIwc.CommonApiBase.handleSet
+ * @param {ozpIwc.IntentsApiHandlerValue | ozpIwc.IntentsApiCapabilityValue} node - the handler or definition value of
+ * which to set properties of the received packet.
+ * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
-ozpIwc.CommonApiBase.prototype.handleSet = function (node, packetContext) {
+ozpIwc.IntentsApi.prototype.handleSet = function (node, packetContext) {
     node.set(packetContext.packet.entity);
     packetContext.replyTo({'action': 'ok'});
 };
@@ -271,6 +285,13 @@ ozpIwc.CommonApiBase.prototype.handleSet = function (node, packetContext) {
 //    //TODO validatePreconditions()
 //};
 
+
+/**
+ * Replys with a copy of the Intents Api data object.
+ * Debugging method. Will be removed proir to merging the Intents Api into the master branch.
+ * @param node - any node (existant or non).
+ * @param packetContext - packet sent across is only sent to meet validation.
+ */
 ozpIwc.IntentsApi.prototype.handleDebug = function (node, packetContext) {
     packetContext.replyTo({
         action: 'ok',
