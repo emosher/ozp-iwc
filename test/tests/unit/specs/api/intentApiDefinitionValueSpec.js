@@ -1,5 +1,5 @@
 function intentsApiDefinitionValueContractTests(classUnderTest, baseConfig) {
-    describe("Conforms to the DataApiValue contract", function () {
+    describe("Conforms to the Common API contract", function () {
         commonApiValueContractTests(classUnderTest);
     });
 
@@ -116,6 +116,6 @@ function intentsApiDefinitionValueContractTests(classUnderTest, baseConfig) {
     });
 }
 
-describe("Intent API Value", function () {
+describe("Intent API Definition Value", function () {
     intentsApiDefinitionValueContractTests(ozpIwc.IntentsApiDefinitionValue);
 });

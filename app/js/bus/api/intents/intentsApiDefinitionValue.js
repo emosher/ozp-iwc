@@ -117,11 +117,10 @@ ozpIwc.IntentsApiDefinitionValue.prototype.listHandlers = function () {
  */
 ozpIwc.IntentsApiDefinitionValue.prototype.toPacket = function () {
     var packet = ozpIwc.CommonApiValue.prototype.toPacket.apply(this, arguments);
-    packet.entity = packet.entity || {};
-    packet.entity.type = this.type;
-    packet.entity.action = this.action;
-    packet.entity.icon = this.icon;
-    packet.entity.label = this.label;
-    packet.entity.handlers = this.handlers;
+    packet.type = this.type;
+    packet.action = this.action;
+    packet.icon = this.icon;
+    packet.label = this.label;
+    packet.handlers = this.handlers;
     return packet;
 };

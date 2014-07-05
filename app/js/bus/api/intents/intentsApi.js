@@ -9,15 +9,15 @@ ozpIwc.IntentsApi = ozpIwc.util.extend(ozpIwc.CommonApiBase, function () {
 /**
  * Internal method, not intended for API use. Used for handling resource path parsing.
  * @param  {string} resource - the resource path to be evaluated.
- * @returns {object} result
- * @returns {string} result.type - the type of the resource
- * @returns {string} result.subtype - the subtype of the resource
- * @returns {string} result.verb - the verb (action) of the resource
- * @returns {string} result.handler - the handler of the resource
- * @returns {string} result.capabilityRes - the resource path of this resource's capability
- * @returns {string} result.definitionRes - the resource path of this resource's definition
- * @returns {string} result.handlerRes - the resource path of this resource's handler
- * @returns {string} result.intentValueType - returns the value type given the resource path (capability, definition, handler)
+ * @returns {object} parsedResource
+ * @returns {string} parsedResource.type - the type of the resource
+ * @returns {string} parsedResource.subtype - the subtype of the resource
+ * @returns {string} parsedResource.verb - the verb (action) of the resource
+ * @returns {string} parsedResource.handler - the handler of the resource
+ * @returns {string} parsedResource.capabilityRes - the resource path of this resource's capability
+ * @returns {string} parsedResource.definitionRes - the resource path of this resource's definition
+ * @returns {string} parsedResource.handlerRes - the resource path of this resource's handler
+ * @returns {string} parsedResource.intentValueType - returns the value type given the resource path (capability, definition, handler)
  */
 ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
     var resourceSplit = resource.split('/');
@@ -56,14 +56,15 @@ ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
  * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue}
  */
 ozpIwc.IntentsApi.prototype.makeValue = function (packet) {
-    var resource = this.parseResource(packet.resource);
-    switch (resource.intentValueType) {
+    var parsedResource = this.parseResource(packet.resource);
+
+    switch (parsedResource.intentValueType) {
         case 'handler':
-            return this.getHandler(resource);
+            return this.getHandler(parsedResource);
         case 'definition':
-            return this.getDefinition(resource);
+            return this.getDefinition(parsedResource);
         case 'capabilities':
-            return this.getCapability(resource);
+            return this.getCapability(parsedResource);
         default:
             return null;
     }
@@ -86,43 +87,45 @@ ozpIwc.IntentsApi.prototype.getGeneric = function (resource, constructor) {
 
 /**
  * Returns the given capability in the IntentsApi. Constructs a new one if it does not exist.
- * @param {string} resource - the resource path of the desired value.
+ * @param {object} parsedResource - the  parsed resource of the desired value. Created from parsedResource().
  * @returns {IntentsApiCapabilityValue} value - the capability value requested.
  */
-ozpIwc.IntentsApi.prototype.getCapability = function (resource) {
-    return this.getGeneric(resource.capabilityRes, ozpIwc.IntentsApiCapabilityValue);
+ozpIwc.IntentsApi.prototype.getCapability = function (parsedResource) {
+    return this.getGeneric(parsedResource.capabilityRes, ozpIwc.IntentsApiCapabilityValue);
 };
 
 /**
  * Returns the given definition in the IntentsApi. Constructs a new one if it does not exist. Constructs a capability
  * if necessary.
- * @param {string} resource - the resource path of the desired value.
+ * @param {object} parsedResource - the  parsed resource of the desired value. Created from parsedResource().
  * @returns {IntentsAPiDefinitionValue} value - the definition value requested.
  */
-ozpIwc.IntentsApi.prototype.getDefinition = function (resource) {
-    var capability = this.getCapability(resource);
-    var definitionIndex = capability.definitions.indexOf(resource.definitionRes);
+ozpIwc.IntentsApi.prototype.getDefinition = function (parsedResource) {
+    var capability = this.getCapability(parsedResource);
+
+    var definitionIndex = capability.definitions.indexOf(parsedResource.definitionRes);
     if (definitionIndex === -1) {
-        capability.definitions.push(resource.definitionRes);
+        capability.definitions.push(parsedResource.definitionRes);
     }
 
-    return this.getGeneric(resource.definitionRes, ozpIwc.IntentsApiDefinitionValue);
+    return this.getGeneric(parsedResource.definitionRes, ozpIwc.IntentsApiDefinitionValue);
 };
 
 /**
  * Returns the given handler in the IntentsApi. Constructs a new one if it does not exist. Constructs a definition
  * and capability if necessary.
- * @param {string} resource - the resource path of the desired value.
+ * @param {object} parsedResource - the  parsed resource of the desired value. Created from parsedResource().
  * @returns {IntentsApiHandlerValue} value - the handler value requested.
  */
-ozpIwc.IntentsApi.prototype.getHandler = function (resource) {
-    var definition = this.getDefinition(resource);
-    var handlerIndex = definition.handlers.indexOf(resource);
+ozpIwc.IntentsApi.prototype.getHandler = function (parsedResource) {
+    var definition = this.getDefinition(parsedResource);
+
+    var handlerIndex = definition.handlers.indexOf(parsedResource.handlerRes);
     if (handlerIndex === -1) {
-        definition.handlers.push(resource.handlerRes);
+        definition.handlers.push(parsedResource.handlerRes);
     }
 
-    return this.getGeneric(resource.handlerRes, ozpIwc.IntentsApiHandlerValue);
+    return this.getGeneric(parsedResource.handlerRes, ozpIwc.IntentsApiHandlerValue);
 };
 
 /**
@@ -132,10 +135,10 @@ ozpIwc.IntentsApi.prototype.getHandler = function (resource) {
  * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
-    var resource = this.parseResource(packetContext.packet.resource);
-    if (resource.intentValueType === 'definition') {
-        resource.handlerRes = this.createKey(packetContext.packet.resource + '/');
-    } else if (resource.intentValueType !== 'handler') {
+    var parsedResource = this.parseResource(packetContext.packet.resource);
+    if (parsedResource.intentValueType === 'definition') {
+        parsedResource.handlerRes = this.createKey(packetContext.packet.resource + '/');
+    } else if (parsedResource.intentValueType !== 'handler') {
         packetContext.replyTo({
             'action': 'badResource'
         });
@@ -157,7 +160,6 @@ ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext - the packet received by the router.
  */
 ozpIwc.IntentsApi.prototype.handleUnregister = function (node, packetContext) {
-    console.log(packetContext);
     var parse = this.parseResource(packetContext.packet.resource);
     var index = this.data[parse.definitionRes].handlers.indexOf(parse.handlerRes);
 
@@ -261,20 +263,20 @@ ozpIwc.IntentsApi.prototype.handleSet = function (node, packetContext) {
 //    //TODO isPermitted()
 //};
 //
-///**
-//* @override
-//* @param node
-//* @param packetContext
-//* @returns {*}
-//*/
-//ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
-//    var resource = this.parseResource(packetContext.packet.resource);
-//    if(!resource) {
-//        return null;
-//    }
-//    return packetContext.resource;
-//
-//};
+/**
+* @override
+* @param node
+* @param packetContext
+* @returns {*}
+*/
+ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
+    var parsedResource = this.parseResource(packetContext.packet.resource);
+    if(!parsedResource) {
+        return null;
+    }
+    return packetContext.resource;
+
+};
 //
 ///**
 // *

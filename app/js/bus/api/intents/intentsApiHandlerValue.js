@@ -82,11 +82,10 @@ ozpIwc.IntentsApiHandlerValue.prototype.toPacket = function () {
 
     // Note: we don't use DataApiValue for toPacket since we are setting this.children to packet.handlers
     var packet = ozpIwc.CommonApiValue.prototype.toPacket.apply(this, arguments);
-    packet.entity = packet.entity || {};
-    packet.entity.type = this.type;
-    packet.entity.action = this.action;
-    packet.entity.icon = this.icon;
-    packet.entity.label = this.label;
-    packet.entity.invokeIntent = this.invokeIntent;
+    packet.type = this.type;
+    packet.action = this.action;
+    packet.icon = this.icon;
+    packet.label = this.label;
+    packet.invokeIntent = this.invokeIntent;
     return packet;
 };
