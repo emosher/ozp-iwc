@@ -26,7 +26,7 @@ describe("intents.api integration", function () {
 
     afterEach(function () {
         if (client) {
-     //       client.remove();
+            client.remove();
         }
     });
 
@@ -126,7 +126,6 @@ describe("intents.api integration", function () {
             };
 
             var registerCallback = function (reply) {
-                console.log(reply);
                 sentPacket = client.send(unregisterPacket(reply.entity), unregisterCallback);
             };
 
@@ -159,15 +158,19 @@ describe("intents.api integration", function () {
             var sentPacket;
 
             client.send(registerPacket('/a/b/c'), function (registerReply) {
-
-                client.send(setPacket(registerReply.entity), function (setReply) {
+                var setPacketObj = setPacket(registerReply.entity);
+                client.send(setPacketObj, function (setReply) {
 
                     sentPacket = client.send(getPacket(registerReply.entity), function (reply) {
                         if (!called) {
                             called = true;
+                            label: 'changed label',
                             expect(reply.replyTo).toEqual(sentPacket.msgId);
-                            expect(reply.action).toEqual('ok');
-                            expect(reply.entity).toEqual(setPacket(registerReply.entity).entity);
+                            expect(reply.label).toEqual(setPacketObj.entity.label);
+                            expect(reply.invokeIntent).toEqual(setPacketObj.entity.invokeIntent);
+                            expect(reply.action).toEqual(setPacketObj.entity.action);
+                            expect(reply.icon).toEqual(setPacketObj.entity.icon);
+                            expect(reply.type).toEqual(setPacketObj.entity.type);
                             done();
                         }
                     });
@@ -190,7 +193,7 @@ describe("intents.api integration", function () {
             })
         });
 
-        it('Invokes specific handlers', function (done) {
+        xit('Invokes specific handlers', function (done) {
             var called = false;
             var sentPacket;
 

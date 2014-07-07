@@ -31,7 +31,6 @@ ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
         handlerRes: '/' + resourceSplit[1] + '/' + resourceSplit[2] + '/' + resourceSplit[3] + '/' + resourceSplit[4],
         intentValueType: undefined
     };
-
     if (result.type && result.subtype) {
         if (result.verb) {
             if (result.handler) {
@@ -265,5 +264,5 @@ ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
     if(!parsedResource) {
         return null;
     }
-    return packetContext.resource;
+    return packetContext.packet.resource;
 };
