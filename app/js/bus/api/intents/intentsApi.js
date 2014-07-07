@@ -145,7 +145,7 @@ ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
         return null;
     }
 
-    var handler = this.getHandler(resource);
+    var handler = this.getHandler(parsedResource);
     handler.set(packetContext.packet.entity);
 
     packetContext.replyTo({
@@ -219,7 +219,6 @@ ozpIwc.IntentsApi.prototype.handleListen = function (node, packetContext) {
 //            'action': 'badResource'
 //        });
 //    }
-
 };
 
 /**
@@ -254,19 +253,11 @@ ozpIwc.IntentsApi.prototype.handleSet = function (node, packetContext) {
     packetContext.replyTo({'action': 'ok'});
 };
 
-///**
-// * @override
-// * @param node
-// * @param packetContext
-// */
-//ozpIwc.IntentsApi.prototype.isPermitted = function (node, packetContext) {
-//    //TODO isPermitted()
-//};
-//
 /**
+ * If the resource cannot be parsed it doesn't pass validation.
 * @override
-* @param node
-* @param packetContext
+* @param node - the handler or definition value of which to set properties of the received packet.
+* @param packetContext - the packet received by the router.
 * @returns {*}
 */
 ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
@@ -275,28 +266,4 @@ ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
         return null;
     }
     return packetContext.resource;
-
-};
-//
-///**
-// *
-// * @param node
-// * @param packetContext
-// */
-//ozpIwc.IntentsApi.prototype.validatePreconditions = function (node, packetContext) {
-//    //TODO validatePreconditions()
-//};
-
-
-/**
- * Replys with a copy of the Intents Api data object.
- * Debugging method. Will be removed proir to merging the Intents Api into the master branch.
- * @param node - any node (existant or non).
- * @param packetContext - packet sent across is only sent to meet validation.
- */
-ozpIwc.IntentsApi.prototype.handleDebug = function (node, packetContext) {
-    packetContext.replyTo({
-        action: 'ok',
-        entity: ozpIwc.intentsApi.data
-    });
 };
