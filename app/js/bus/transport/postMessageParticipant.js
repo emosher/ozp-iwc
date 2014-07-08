@@ -77,7 +77,7 @@ ozpIwc.PostMessageParticipant.prototype.forwardFromPostMessage=function(packet,e
 	}
 	if(event.origin !== this.origin) {
 		/** @todo participant changing origins should set off more alarms, probably */
-		ozpIwc.metrics.counter("transport."+this.address+".invalidSenderOrigin").inc();
+		ozpIwc.metrics.counter("iwc.transport."+participant.address+".invalidSenderOrigin").inc();
 		return;
 	}
 

@@ -140,7 +140,7 @@ ozpIwc.Router=function(config) {
 	// Stores all local addresses
 	this.participants={};
 	
-	ozpIwc.metrics.gauge("transport.participants").set(function() {
+	ozpIwc.metrics.gauge("iwc.router." + this.self_id + ".participants").set(function() {
 		return Object.keys(self.participants).length;
 	});
 
@@ -164,7 +164,7 @@ ozpIwc.Router=function(config) {
 			event.cancel("nullDestination");
 		}
 		if(event.canceled) {
-			ozpIwc.metrics.counter("transport.packets.invalidFormat").inc();
+			ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.invalidFormat").inc();
 		}
 	};
 	this.events.on("preSend",checkFormat);
@@ -237,7 +237,7 @@ ozpIwc.Router.prototype.deliverLocal=function(packet,sendingParticipant) {
 	});
 
 	if(this.events.trigger("preDeliver",preDeliverEvent).canceled) {
-		ozpIwc.metrics.counter("transport.packets.rejected").inc();
+		ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.rejected").inc();
 		return;
 	}
 
@@ -247,12 +247,12 @@ ozpIwc.Router.prototype.deliverLocal=function(packet,sendingParticipant) {
         'action': {'action': 'receive'}
     })
 		.success(function() {
-			ozpIwc.metrics.counter("transport.packets.delivered").inc();
+			ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.delivered").inc();
 			localParticipant.receiveFromRouter(packetContext);
 		})
 		.failure(function() {
 			/** @todo do we send a "denied" message to the destination?  drop?  who knows? */
-			ozpIwc.metrics.counter("transport.packets.forbidden").inc();
+			ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.forbidden").inc();
 		});
 	
 };
@@ -293,10 +293,10 @@ ozpIwc.Router.prototype.send=function(packet,sendingParticipant) {
 	this.events.trigger("preSend",preSendEvent);
 
 	if(preSendEvent.canceled) {
-		ozpIwc.metrics.counter("transport.packets.sendCanceled");
+		ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.sendCanceled");
 		return;
 	} 
-	ozpIwc.metrics.counter("transport.packets.sent").inc();
+	ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.sent").inc();
 	this.deliverLocal(packet,sendingParticipant);
 	this.events.trigger("send",{'packet': packet});
 	this.peer.send(packet);
@@ -308,7 +308,7 @@ ozpIwc.Router.prototype.send=function(packet,sendingParticipant) {
  * @param packet {ozpIwc.TransportPacket} the packet to receive
  */
 ozpIwc.Router.prototype.receiveFromPeer=function(packet) {
-	ozpIwc.metrics.counter("transport.packets.receivedFromPeer").inc();
+	ozpIwc.metrics.counter("iwc.router." + this.self_id + ".packets.receivedFromPeer").inc();
 	var peerReceiveEvent=new ozpIwc.CancelableEvent({
 		'packet' : packet.data,
 		'rawPacket' : packet
