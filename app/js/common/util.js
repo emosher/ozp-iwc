@@ -112,3 +112,14 @@ ozpIwc.util.objectContainsAll=function(haystack,needles,equal) {
     }
     return true;
 };
+
+ozpIwc.util.parseQueryParams=function(query) {
+    query = query || window.location.search;
+    var params={};
+	var regex=/\??([^&=]+)=?([^&]*)/g;
+	var match;
+	while(match=regex.exec(query)) {
+		params[match[1]]=decodeURIComponent(match[2]);
+	}
+    return params;
+};
