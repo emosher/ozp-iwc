@@ -43,14 +43,6 @@ Widget.prototype.updateSize=function() {
 
 var gridster;
 
-var widgetDefs={
-	'Blue Balls' : "../bouncingBalls?color=blue",//"http://"+window.location.hostname + ":15000",
-	'Red Balls' : "../bouncingBalls?color=red",//"http://"+window.location.hostname + ":15001",
-	'Green Balls' : "../bouncingBalls?color=green",//"http://"+window.location.hostname + ":15002",
-	'Black Balls' : "../bouncingBalls?color=black",//"http://"+window.location.hostname + ":15003",
-	'Debugger' : "../tools/debugger"
-};
-
 $(function(){
 	var onResize=function(e, ui, $widget) {
 		$widget.data("controller").updateSize();
@@ -75,10 +67,10 @@ $(function(){
 			var name=$(this).data("widgetName");
 			var widget=new Widget({
 				'name': name, 
-				'url': widgetDefs[name], 
+				'url': widgetDefs[name].href, 
 				'gridster':gridster
 			});
-			gridster.add_widget(widget.el,2,2);
+			gridster.add_widget(widget.el,widgetDefs[name].height,widgetDefs[name].width);
 			widget.updateSize();
 		});
 		$('.header').append(button);
