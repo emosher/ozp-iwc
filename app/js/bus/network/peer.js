@@ -80,7 +80,7 @@ ozpIwc.Peer.maxSeqIdPerSource=500;
 ozpIwc.Peer.prototype.haveSeen=function(packet) {
     // don't forward our own packets
     if (packet.src_peer === this.selfId) {
-        ozpIwc.metrics.counter('iwc.network.' + this.self_id + '.packets.droppedOwnPacket').inc();
+        ozpIwc.metrics.counter('iwc.network.' + this.selfId + '.packets.droppedOwnPacket').inc();
         return true;
     }
     var seen = this.packetsSeen[packet.src_peer];
@@ -118,10 +118,10 @@ ozpIwc.Peer.prototype.send= function(packet) {
 
     this.events.trigger("preSend",preSendEvent);
     if(!preSendEvent.canceled) {
-        ozpIwc.metrics.counter('iwc.network.' + this.self_id + '.packets.sent').inc();
+        ozpIwc.metrics.counter('iwc.network.' + this.selfId + '.packets.sent').inc();
         this.events.trigger("send",{'packet':networkPacket});
     } else {
-        ozpIwc.metrics.counter('iwc.network.' + this.self_id + '.packets.sendRejected').inc();
+        ozpIwc.metrics.counter('iwc.network.' + this.selfId + '.packets.sendRejected').inc();
     }
 };
 
@@ -135,10 +135,10 @@ ozpIwc.Peer.prototype.send= function(packet) {
 ozpIwc.Peer.prototype.receive=function(linkId,packet) {
     // drop it if we've seen it before
     if(this.haveSeen(packet)) {
-        ozpIwc.metrics.counter('iwc.network.' + this.self_id + '.packets.dropped').inc();
+        ozpIwc.metrics.counter('iwc.network.' + this.selfId + '.packets.dropped').inc();
         return;
     }
-    ozpIwc.metrics.counter('iwc.network.' + this.self_id + '.packets.received').inc();
+    ozpIwc.metrics.counter('iwc.network.' + this.selfId + '.packets.received').inc();
     this.events.trigger("receive",{'packet':packet,'linkId': linkId});
 };
 

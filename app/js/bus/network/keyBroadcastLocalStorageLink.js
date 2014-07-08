@@ -41,11 +41,11 @@ ozpIwc.KeyBroadcastLocalStorageLink = function(config) {
 			packet=JSON.parse(event.key);
 		} catch(e) {
 			console.log("Parse error on " + event.key );
-			ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.self_id + '.packets.parseError').inc();
+			ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.parseError').inc();
 			return;
 		}
 		self.peer.receive(self.linkId,packet);
-		ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.self_id + '.packets.received').inc();
+		ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.received').inc();
 
 	};
 	window.addEventListener('storage',receiveStorageEvent , false); 
@@ -74,7 +74,7 @@ ozpIwc.KeyBroadcastLocalStorageLink.prototype.send = function(packet) {
       this.attemptSend(this.sendQueue.shift());
     }
   } else {
-    ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.self_id + '.packets.sendFailed').inc();
+    ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.sendFailed').inc();
     ozpIwc.log.error("Failed to write packet(len=" + packet.length + "):" + " Send queue full.");
   }
 };
@@ -102,7 +102,7 @@ ozpIwc.KeyBroadcastLocalStorageLink.prototype.attemptSend = function(packet, ret
         self.attemptSend(packet, retryCount);
       }, timeOut);
     } else {
-      ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.self_id + '.packets.attemptSendFailed').inc();
+      ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.attemptSendFailed').inc();
       ozpIwc.log.error("Failed to write packet(len=" + packet.length + "):" + sendStatus);
       return sendStatus;
     }       
@@ -124,7 +124,7 @@ ozpIwc.KeyBroadcastLocalStorageLink.prototype.sendImpl = function(packet) {
   try {
 		var p=JSON.stringify(packet);
     localStorage.setItem(p,"");
-    ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.self_id + '.packets.sent').inc();
+    ozpIwc.metrics.counter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.sent').inc();
     localStorage.removeItem(p);
     sendStatus = null;
   }

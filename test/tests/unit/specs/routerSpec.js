@@ -36,7 +36,7 @@ describe("Router",function() {
 		it("assigns a participant id derived from the router id", function() {
 			var participantId=router.registerParticipant(participant,{});
 
-			expect(participantId).toMatch(new RegExp("(.*)\."+router.self_id));
+			expect(participantId).toMatch(new RegExp("(.*)\."+router.selfId));
 		});
 
 		it("calls registration handlers",function() {
