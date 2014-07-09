@@ -33,6 +33,13 @@ if(ozpIwc.DataApi) {
 
 	ozpIwc.defaultRouter.registerParticipant(ozpIwc.dataApi.participant);
 }
+
+ozpIwc.initialized.success(function(config) {
+    console.log("initialized with ",config);
+}).failure(function(code,response) {
+    console.error("failed to initialize IWC, status code=",code,", response=",response);
+});
+
 //
 //if(ozpIwc.NamesApi) {
 //	ozpIwc.namesApi=new ozpIwc.LeaderGroupParticipant({

@@ -136,7 +136,7 @@ module.exports = function(grunt) {
             app: {
                 options: {
                     port: 13000,
-                    base: ["app", "sampleData"],
+                    base: ["sampleData","app"],
                     index: "index.json",
                     debug: true
                 }

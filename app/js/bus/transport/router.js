@@ -174,7 +174,7 @@ ozpIwc.Router=function(config) {
 
 ozpIwc.Router.prototype.shutdown=function() {
     this.watchdog.shutdown();
-}
+};
 
 /**
  * Allows a listener to add a new participant.  
