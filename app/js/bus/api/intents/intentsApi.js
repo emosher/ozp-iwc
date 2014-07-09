@@ -25,26 +25,28 @@ ozpIwc.IntentsApi.prototype.parseResource = function (resource) {
         type: resourceSplit[1],
         subtype: resourceSplit[2],
         verb: resourceSplit[3],
-        handler: resourceSplit[4],
-        capabilityRes: '/' + resourceSplit[1] + '/' + resourceSplit[2],
-        definitionRes: '/' + resourceSplit[1] + '/' + resourceSplit[2] + '/' + resourceSplit[3],
-        handlerRes: '/' + resourceSplit[1] + '/' + resourceSplit[2] + '/' + resourceSplit[3] + '/' + resourceSplit[4],
-        intentValueType: undefined
+        handler: resourceSplit[4]
     };
     if (result.type && result.subtype) {
         if (result.verb) {
             if (result.handler) {
                 result.intentValueType = 'handler';
+                result.handlerRes = '/' + resourceSplit[1] + '/' + resourceSplit[2] + '/' + resourceSplit[3] + '/' + resourceSplit[4];
+                result.definitionRes = '/' + resourceSplit[1] + '/' + resourceSplit[2] + '/' + resourceSplit[3];
+                result.capabilityRes = '/' + resourceSplit[1] + '/' + resourceSplit[2];
             } else {
                 result.intentValueType = 'definition';
+                result.definitionRes = '/' + resourceSplit[1] + '/' + resourceSplit[2] + '/' + resourceSplit[3];
+                result.capabilityRes = '/' + resourceSplit[1] + '/' + resourceSplit[2];
             }
         } else {
             result.intentValueType = 'capabilities'
+            result.capabilityRes = '/' + resourceSplit[1] + '/' + resourceSplit[2];
         }
     } else {
         return null;
     }
-
+    console.log(result);
     return result;
 };
 
@@ -254,14 +256,14 @@ ozpIwc.IntentsApi.prototype.handleSet = function (node, packetContext) {
 
 /**
  * If the resource cannot be parsed it doesn't pass validation.
-* @override
-* @param node - the handler or definition value of which to set properties of the received packet.
-* @param packetContext - the packet received by the router.
-* @returns {*}
-*/
+ * @override
+ * @param node - the handler or definition value of which to set properties of the received packet.
+ * @param packetContext - the packet received by the router.
+ * @returns {*}
+ */
 ozpIwc.IntentsApi.prototype.validateResource = function (node, packetContext) {
     var parsedResource = this.parseResource(packetContext.packet.resource);
-    if(!parsedResource) {
+    if (!parsedResource) {
         return null;
     }
     return packetContext.packet.resource;
