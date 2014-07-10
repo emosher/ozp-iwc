@@ -11,7 +11,8 @@ describe("Intent API Class", function () {
                 'contentType': "application/fake+json"
             }
         });
-        packetContext.packet.parsedResource = ozpIwc.IntentsApi.prototype.parseResource(packetContext);
+
+        ozpIwc.IntentsApi.prototype.parseResource(packetContext);
 
         return packetContext;
     };

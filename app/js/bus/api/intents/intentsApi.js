@@ -4,19 +4,8 @@
  */
 ozpIwc.IntentsApi = ozpIwc.util.extend(ozpIwc.CommonApiBase, function () {
     ozpIwc.CommonApiBase.apply(this, arguments);
-    this.participant.off("receive", ozpIwc.CommonApiBase.prototype.routePacket, this);
-    this.participant.on("receive", ozpIwc.IntentsApi.prototype.parseAndRoute, this);
+    this.events.on("receive", ozpIwc.IntentsApi.prototype.parseResource, this);
 });
-
-/**
- * Parses the received packets resource and routes the resulting TransportPacket.
- * Fails silently, if the resource cannot be parsed packetContext.packet.parsedResource will be undefined.
- * @param packetContext {TransportPacket} - the packet received from the router.
- */
-ozpIwc.IntentsApi.prototype.parseAndRoute = function (packetContext) {
-    packetContext.packet.parsedResource = this.parseResource(packetContext);
-    this.routePacket(packetContext);
-};
 
 /**
  * Internal method, not intended for API use. Used for handling resource path parsing.
@@ -55,10 +44,8 @@ ozpIwc.IntentsApi.prototype.parseResource = function (packetContext) {
             result.intentValueType = 'capabilities';
             result.capabilityRes = '/' + resourceSplit[1] + '/' + resourceSplit[2];
         }
-    } else {
-        return null;
+        packetContext.packet.parsedResource = result;
     }
-    return result;
 };
 
 /**

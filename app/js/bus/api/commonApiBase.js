@@ -8,7 +8,10 @@ ozpIwc.CommonApiBase = function(config) {
 	this.participant=config.participant;
 	
 	this.participant.on("receive",ozpIwc.CommonApiBase.prototype.routePacket,this);
-	
+
+	this.events = new ozpIwc.Event();
+    this.events.mixinOnOff(this);
+
 	this.data={};
 };
 /**
@@ -140,6 +143,9 @@ ozpIwc.CommonApiBase.prototype.routePacket=function(packetContext) {
 		});
         return;
 	}
+
+    this.events.trigger("receive",packetContext);
+
 	var node=this.findOrMakeValue(packetContext.packet);
 	this.invokeHandler(node,packetContext,this[handler]);
 	
