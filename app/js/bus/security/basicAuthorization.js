@@ -26,7 +26,23 @@ ozpIwc.BasicAuthorization=function(config) {
         ozpIwc.abacPolicies.permitWhenObjectHasNoAttributes,
         ozpIwc.abacPolicies.subjectHasAllObjectAttributes
     ];
+
+    var self = this;
+    ozpIwc.metrics.gauge('security.authorization.roles').set(function() {
+        return {'roles':  self.getRoleCount()};
+    });
 };
+/**
+ * Returns the number of roles currently defined
+ * @returns {number} the number of roles defined
+ */
+ozpIwc.BasicAuthorization.prototype.getRoleCount=function() {
+    if (!this.roles || !Object.keys(this.roles)) {
+        return 0;
+    }
+    return Object.keys(this.roles).length;
+};
+
 
 ozpIwc.BasicAuthorization.prototype.implies=function(subjectVal,objectVal) {
     // no object value is trivially true

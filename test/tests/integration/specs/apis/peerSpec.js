@@ -94,8 +94,21 @@ describe('Participant Integration', function () {
         var receiveCount = 0;
         var echoCallback = function (event) {
             if (event.echo) {
+                try {
+//                var authenticationMetrics = ozpMetrics.gauge('security.authentication.roles').get();
+//                console.log("authenticated roles: " + authenticationMetrics.roles);
+
+                } catch (e) {
+                    console.log(e);
+                }
+
                 expect(event.maxSeqIdPerSource).not.toBeLessThan(maxPacketsPerSource(event.packetsSeen));
                 if (!called && receiveCount++ >= 1010) {
+                    console.log("authorized roles: " + event.authorizedRoles);
+                    console.log("internal participants: " + event.internalParticipantCallbacks);
+                    console.log("leader group election queue: " + event.leaderGroupElectionQueue);
+                    console.log("post message listener participants: " + event.postMessageParticipants);
+                    console.log("router participants: " + event.routerParticipants);
                     expect(maxPacketsPerSource(event.packetsSeen)).not.toBeLessThan(1000);
                     called = true;
                     done();

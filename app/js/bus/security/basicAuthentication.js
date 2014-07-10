@@ -16,7 +16,22 @@ var ozpIwc=ozpIwc || {};
  * @class
  */
 ozpIwc.BasicAuthentication=function() {
-	this.roles={};	
+	this.roles={};
+    var self = this;
+    ozpIwc.metrics.gauge('security.authentication.roles').set(function() {
+        return {'roles': self.getRoleCount()};
+    });
+};
+
+/**
+ * Returns the number of roles currently defined
+ * @returns {number} the number of roles defined
+ */
+ozpIwc.BasicAuthentication.prototype.getRoleCount=function() {
+    if (!this.roles || !Object.keys(this.roles)) {
+        return 0;
+    }
+    return Object.keys(this.roles).length;
 };
 
 /**

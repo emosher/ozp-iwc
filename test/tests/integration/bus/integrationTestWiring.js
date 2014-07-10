@@ -21,6 +21,11 @@ if(ozpIwc.Router) {
             var packet = event.packet.data;
             //intercept test packets and return, with additional info, to sending Participant
             if (packet.test) {
+                var authorizedRoles = ozpIwc.metrics.gauge('security.authorization.roles').get().roles;
+                var internalParticipantCallbacks = ozpIwc.metrics.gauge('transport.internal.participants').get().callbacks;
+                var leaderGroupElectionQueue = ozpIwc.metrics.gauge('transport.leaderGroup.election').get().queue;
+                var postMessageParticipants = ozpIwc.metrics.gauge('transport.postMessageListener.participants').get().participants;
+                var routerParticipants = ozpIwc.metrics.gauge('transport.router.participants').get().participants;
                 var testReply = {
                     ver: 1,
                     src: ozpIwc.testParticipant.address,
@@ -29,6 +34,11 @@ if(ozpIwc.Router) {
                     dst: packet.src,
                     maxSeqIdPerSource: ozpIwc.Peer.maxSeqIdPerSource,
                     packetsSeen: ozpIwc.defaultRouter.peer.packetsSeen,
+                    'authorizedRoles': authorizedRoles,
+                    'internalParticipantCallbacks': internalParticipantCallbacks,
+                    'leaderGroupElectionQueue': leaderGroupElectionQueue,
+                    'postMessageParticipants': postMessageParticipants,
+                    'routerParticipants': routerParticipants,
                     echo: true,//marker used by originating Participant
                     packet: packet
                 };

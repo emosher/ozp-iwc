@@ -65,8 +65,22 @@ ozpIwc.LeaderGroupParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(con
 		self.startElection();
 		
 	});
+
+    ozpIwc.metrics.gauge('transport.leaderGroup.election').set(function() {
+        var queue = self.getElectionQueue();
+        return {'queue': queue ? queue.length : 0};
+    });
 	
 });
+
+/**
+ * Retrieve the election queue. Called by closures which need access to the
+ * queue as it grows
+ * @returns {Array} the election queue
+ */
+ozpIwc.LeaderGroupParticipant.prototype.getElectionQueue=function() {
+    return this.electionQueue;
+}
 
 /**
  * Override from the participant in order to register our multicast addresses

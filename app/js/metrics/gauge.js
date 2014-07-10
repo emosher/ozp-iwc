@@ -19,7 +19,7 @@ ozpIwc.metricTypes.Gauge=function(metricsCallback) {
  * @returns {ozpIwc.metricTypes.Gauge} this
  */
 ozpIwc.metricTypes.Gauge.prototype.set=function(metricsCallback) { 
-	callback=metricsCallback; 
+	this.callback=metricsCallback;
 	return this;
 };
 /**
@@ -27,5 +27,5 @@ ozpIwc.metricTypes.Gauge.prototype.set=function(metricsCallback) {
  * @returns {ozpIwc.metricTypes.MetricsTree}
  */
 ozpIwc.metricTypes.Gauge.prototype.get=function() { 
-	return callback(); 
+	return this.callback();
 };

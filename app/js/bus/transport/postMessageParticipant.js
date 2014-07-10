@@ -107,6 +107,21 @@ ozpIwc.PostMessageParticipantListener=function(config) {
 	window.addEventListener("message", function(event) {
 		self.receiveFromPostMessage(event);
 	}, false);
+
+    ozpIwc.metrics.gauge('transport.postMessageListener.participants').set(function() {
+        return {'participants': self.getParticipantCount()};
+    });
+};
+
+/**
+ * gets the count of known participants
+ * @returns {number} the number of known participants
+ */
+ozpIwc.PostMessageParticipantListener.prototype.getParticipantCount=function() {
+    if (!this.participants) {
+        return 0;
+    }
+    return this.participants.length;
 };
 
 /**

@@ -5,7 +5,23 @@ ozpIwc.InternalParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config
 	this.replyCallbacks={};
 	this.participantType="internal";
 	this.name=config.name;
+
+    var self = this;
+    ozpIwc.metrics.gauge('transport.internal.participants').set(function() {
+        return {'callbacks':  self.getCallbackCount()};
+    });
 });
+
+/**
+ * Gets the count of the registered reply callbacks
+ * @returns {number} the number of registered callbacks
+ */
+ozpIwc.InternalParticipant.prototype.getCallbackCount=function() {
+    if (!this.replyCallbacks | !Object.keys(this.replyCallbacks)) {
+        return 0;
+    }
+    return Object.keys(this.replyCallbacks).length;
+};
 
 /**
  * @param {ozpIwc.PacketContext} packetContext

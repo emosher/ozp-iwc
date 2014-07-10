@@ -31,6 +31,10 @@ ozpIwc.metricTypes.BaseMetric.prototype.unit=function(val) {
  */
 ozpIwc.MetricsRegistry=function() {
 	this.metrics={};
+//    var self=this;
+//    this.gauge('registry.metrics').set(function() {
+//        return {'types':  Object.keys(self.metrics).length};
+//    });
 };
 
 /**

@@ -170,6 +170,21 @@ ozpIwc.Router=function(config) {
 	this.events.on("preSend",checkFormat);
 	this.watchdog=new ozpIwc.RouterWatchdog({router: this});
 	this.registerParticipant(this.watchdog);
+
+    ozpIwc.metrics.gauge('transport.router.participants').set(function() {
+        return {'participants':  self.getParticipantCount()};
+    });
+};
+
+/**
+ * gets the count of participants who have registered with the router
+ * @returns {number} the number of registered participants
+ */
+ozpIwc.Router.prototype.getParticipantCount=function() {
+    if (!this.participants || !Object.keys(this.participants)) {
+        return 0;
+    }
+    return Object.keys(this.participants).length;
 };
 
 ozpIwc.Router.prototype.shutdown=function() {
