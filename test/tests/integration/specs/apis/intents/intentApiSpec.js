@@ -166,11 +166,7 @@ describe("intents.api integration", function () {
                             called = true;
                             label: 'changed label',
                             expect(reply.replyTo).toEqual(sentPacket.msgId);
-                            expect(reply.label).toEqual(setPacketObj.entity.label);
-                            expect(reply.invokeIntent).toEqual(setPacketObj.entity.invokeIntent);
-                            expect(reply.action).toEqual(setPacketObj.entity.action);
-                            expect(reply.icon).toEqual(setPacketObj.entity.icon);
-                            expect(reply.type).toEqual(setPacketObj.entity.type);
+                            expect(reply.entity).toEqual(setPacketObj.entity);
                             done();
                         }
                     });

@@ -10,11 +10,11 @@ function intentsApiHandlerValueContractTests(classUnderTest, baseConfig) {
         config = ozpIwc.util.clone(baseConfig);
 
         //CommonApiValue
-        config.resource= "/text/plain/view/1234";
-        config.entity= {};
-        config.contentType= "application/ozp-intents-definition-v1+json";
-        config.permissions= ['perms'];
-        config.version= 1;
+        config.resource = "/text/plain/view/1234";
+        config.entity = {};
+        config.contentType = "application/ozp-intents-definition-v1+json";
+        config.permissions = ['perms'];
+        config.version = 1;
 
         //IntentApiHandlerValue
         config.type = "text/plain";
@@ -47,11 +47,7 @@ function intentsApiHandlerValueContractTests(classUnderTest, baseConfig) {
 
         it("updates intent properties on set", function () {
             value.set(setPacket);
-            console.log(value);
-            expect(value.type).toEqual(setPacket.type);
-            expect(value.action).toEqual(setPacket.action);
-            expect(value.icon).toEqual(setPacket.icon);
-            expect(value.label).toEqual(setPacket.label);
+            expect(value.entity).toEqual(setPacket.entity);
         });
 
         it("resets intent properties on deleteData", function () {

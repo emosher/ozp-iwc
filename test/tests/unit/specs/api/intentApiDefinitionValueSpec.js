@@ -11,21 +11,22 @@ function intentsApiDefinitionValueContractTests(classUnderTest, baseConfig) {
         config = ozpIwc.util.clone(baseConfig);
 
         //CommonApiValue
-        config.resource= "/text/plain/view/1234";
-        config.entity= {};
-        config.contentType= "application/ozp-intents-definition-v1+json";
-        config.permissions= ['perms'];
-        config.version= 1;
+        config.resource = "/text/plain/view/1234";
+        config.contentType = "application/ozp-intents-definition-v1+json";
+        config.permissions = ['perms'];
+        config.version = 1;
 
         //IntentApiHandlerValue
-        config.type = "text/plain";
-        config.action = "view";
-        config.icon = "http://example.com/view-text-plain.png";
-        config.label = "View Plain Text";
-        config.handlers =  [
-            "/text/plain/view/1234",
-            "/text/plain/view/4321"
-        ];
+        config.entity = {
+            type: "text/plain",
+            action: "view",
+            icon: "http://example.com/view-text-plain.png",
+            label: "View Plain Text",
+            handlers: [
+                "/text/plain/view/1234",
+                "/text/plain/view/4321"
+            ]
+        };
 
         value = new classUnderTest(config);
     });
@@ -34,13 +35,15 @@ function intentsApiDefinitionValueContractTests(classUnderTest, baseConfig) {
 
         var setPacket = {
             'contentType': "testContentType",
-            'type': "text/rich",
-            'action': "reverse",
-            'icon': "www.example.com/changed_icon.png",
-            'label': "Reverse Rich Text"
+            'entity': {
+                'type': "text/rich",
+                'action': "reverse",
+                'icon': "www.example.com/changed_icon.png",
+                'label': "Reverse Rich Text"
+            }
         };
 
-        it("defaults to an empty intent value", function () {
+        xit("defaults to an empty intent value", function () {
             value = new classUnderTest();
             expect(value.type).toEqual(undefined);
             expect(value.action).toEqual(undefined);
@@ -51,67 +54,60 @@ function intentsApiDefinitionValueContractTests(classUnderTest, baseConfig) {
 
         it("updates intent properties on set", function () {
             value.set(setPacket);
-            expect(value.type).toEqual(setPacket.type);
-            expect(value.action).toEqual(setPacket.action);
-            expect(value.icon).toEqual(setPacket.icon);
-            expect(value.label).toEqual(setPacket.label);
+            expect(value.entity).toEqual(setPacket.entity);
         });
 
-        it("resets intent properties on deleteData", function () {
+        xit("resets intent properties on deleteData", function () {
             value.deleteData();
-            expect(value.type).toBeUndefined();
-            expect(value.action).toBeUndefined();
-            expect(value.label).toBeUndefined();
-            expect(value.icon).toBeUndefined();
-            expect(value.handlers).toEqual([]);
+            expect(value.entity.type).toBeUndefined();
+            expect(value.entity.action).toBeUndefined();
+            expect(value.entity.label).toBeUndefined();
+            expect(value.entity.icon).toBeUndefined();
+            expect(value.entity.handlers).toEqual(undefined);
         });
 
         it("converts intent properties to a packet", function () {
             var packet = value.toPacket();
-            expect(packet.type).toEqual(value.type);
-            expect(packet.action).toEqual(value.action);
-            expect(packet.label).toEqual(value.label);
-            expect(packet.icon).toEqual(value.icon);
-            expect(packet.handlers).toEqual(value.handlers);
+            expect(packet.entity).toEqual(value.entity);
         });
     });
 
-    describe("Collection-like Actions", function() {
+    describe("Collection-like Actions", function () {
 
-        it('pushes and pops handlers', function() {
+        it('pushes and pops handlers', function () {
             value.pushHandler("/text/plain/view/1");
             value.pushHandler("/text/plain/view/2");
-            expect(value.handlers.length).toEqual(4);
+            expect(value.entity.handlers.length).toEqual(4);
             expect(value.popHandler()).toEqual("/text/plain/view/2");
-            expect(value.handlers.length).toEqual(3);
+            expect(value.entity.handlers.length).toEqual(3);
             expect(value.popHandler()).toEqual("/text/plain/view/1");
-            expect(value.handlers.length).toEqual(2);
+            expect(value.entity.handlers.length).toEqual(2);
             expect(value.popHandler()).toEqual("/text/plain/view/4321");
-            expect(value.handlers.length).toEqual(1);
+            expect(value.entity.handlers.length).toEqual(1);
             expect(value.popHandler()).toEqual("/text/plain/view/1234");
-            expect(value.handlers.length).toEqual(0);
+            expect(value.entity.handlers.length).toEqual(0);
             expect(value.popHandler()).toEqual(undefined);
         });
-        it('unshifts and shifts handlers', function() {
+        it('unshifts and shifts handlers', function () {
             value.unshiftHandler("/text/plain/view/1");
             value.unshiftHandler("/text/plain/view/2");
-            expect(value.handlers.length).toEqual(4);
+            expect(value.entity.handlers.length).toEqual(4);
             expect(value.shiftHandler()).toEqual("/text/plain/view/2");
-            expect(value.handlers.length).toEqual(3);
+            expect(value.entity.handlers.length).toEqual(3);
             expect(value.shiftHandler()).toEqual("/text/plain/view/1");
-            expect(value.handlers.length).toEqual(2);
+            expect(value.entity.handlers.length).toEqual(2);
             expect(value.shiftHandler()).toEqual("/text/plain/view/1234");
-            expect(value.handlers.length).toEqual(1);
+            expect(value.entity.handlers.length).toEqual(1);
             expect(value.shiftHandler()).toEqual("/text/plain/view/4321");
-            expect(value.handlers.length).toEqual(0);
+            expect(value.entity.handlers.length).toEqual(0);
             expect(value.shiftHandler()).toEqual(undefined);
 
         });
-        it('lists handlers', function() {
+        it('lists handlers', function () {
             var list = value.listHandlers();
             expect(list.length).toEqual(2);
-            expect(list[0]).toEqual(value.handlers[0]);
-            expect(list[1]).toEqual(value.handlers[1]);
+            expect(list[0]).toEqual(value.entity.handlers[0]);
+            expect(list[1]).toEqual(value.entity.handlers[1]);
         });
     });
 }
