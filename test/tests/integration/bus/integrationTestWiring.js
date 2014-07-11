@@ -21,11 +21,48 @@ if(ozpIwc.Router) {
             var packet = event.packet.data;
             //intercept test packets and return, with additional info, to sending Participant
             if (packet.test) {
-                var authorizedRoles = ozpIwc.metrics.gauge('security.authorization.roles').get().roles;
-                var internalParticipantCallbacks = ozpIwc.metrics.gauge('transport.internal.participants').get().callbacks;
-                var leaderGroupElectionQueue = ozpIwc.metrics.gauge('transport.leaderGroup.election').get().queue;
-                var postMessageParticipants = ozpIwc.metrics.gauge('transport.postMessageListener.participants').get().participants;
-                var routerParticipants = ozpIwc.metrics.gauge('transport.router.participants').get().participants;
+                var authenticatedRoles=0;
+                var authorizedRoles=0;
+                var internalParticipantCallbacks=0;
+                var leaderGroupElectionQueue=0;
+                var postMessageParticipants=0;
+                var routerParticipants=0;
+                var linksStorage=0;
+                var metricsTypes=0;
+                var specs = ozpIwc.metrics.gauge('security.authentication.roles').get();
+                if (specs) {
+                    authenticatedRoles=specs.roles;
+                }
+                specs=ozpIwc.metrics.gauge('security.authorization.roles').get();
+                if (specs) {
+                    authorizedRoles=specs.roles;
+                }
+                specs=ozpIwc.metrics.gauge('transport.internal.participants').get();
+                if (specs) {
+                    internalParticipantCallbacks=specs.callbacks;
+                }
+                specs=ozpIwc.metrics.gauge('transport.leaderGroup.election').get();
+                if (specs) {
+                    leaderGroupElectionQueue=specs.queue;
+                }
+                specs=ozpIwc.metrics.gauge('transport.postMessageListener.participants').get();
+                if (specs) {
+                    postMessageParticipants=specs.participants;
+                }
+                specs=ozpIwc.metrics.gauge('transport.router.participants').get();
+                if (specs) {
+                    routerParticipants = specs.participants;
+                }
+                specs=ozpIwc.metrics.gauge('1links.localStorage.buffer').get();
+                if (specs) {
+                    linksStorage=specs.used;
+                }
+                specs=ozpIwc.metrics.gauge('registry.metrics').get();
+                if (specs) {
+                    metricsTypes = specs.types;
+                } else {
+                    console.log("no metrics");
+                }
                 var testReply = {
                     ver: 1,
                     src: ozpIwc.testParticipant.address,
@@ -34,11 +71,14 @@ if(ozpIwc.Router) {
                     dst: packet.src,
                     maxSeqIdPerSource: ozpIwc.Peer.maxSeqIdPerSource,
                     packetsSeen: ozpIwc.defaultRouter.peer.packetsSeen,
+                    'authenticatedRoles': authenticatedRoles,
                     'authorizedRoles': authorizedRoles,
                     'internalParticipantCallbacks': internalParticipantCallbacks,
                     'leaderGroupElectionQueue': leaderGroupElectionQueue,
                     'postMessageParticipants': postMessageParticipants,
                     'routerParticipants': routerParticipants,
+                    'linksStorage': linksStorage,
+                    'metricsTypes': metricsTypes,
                     echo: true,//marker used by originating Participant
                     packet: packet
                 };

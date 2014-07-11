@@ -1,4 +1,4 @@
-
+ozpIwc.metricTypes=ozpIwc.metricTypes || {};
 /**
  * @callback ozpIwc.metricTypes.Gauge~gaugeCallback
  * @returns {ozpIwc.metricTypes.MetricsTree} 
@@ -26,6 +26,9 @@ ozpIwc.metricTypes.Gauge.prototype.set=function(metricsCallback) {
  * Executes the callback and returns a metrics tree.
  * @returns {ozpIwc.metricTypes.MetricsTree}
  */
-ozpIwc.metricTypes.Gauge.prototype.get=function() { 
-	return this.callback();
+ozpIwc.metricTypes.Gauge.prototype.get=function() {
+    if (this.callback) {
+        return this.callback();
+    }
+    return undefined;
 };
