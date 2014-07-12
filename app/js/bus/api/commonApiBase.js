@@ -51,6 +51,7 @@ ozpIwc.CommonApiBase.prototype.isPermitted=function(node,packetContext) {
 
 /** 
  * Turn an event into a list of change packets to be sent to the watchers.
+ * @todo needs unit test
  * @param {object} evt
  * @param {object} evt.node - The node being changed.
  */
@@ -129,7 +130,8 @@ ozpIwc.CommonApiBase.prototype.routePacket=function(packetContext) {
 	var packet=packetContext.packet;
 
 	if(packetContext.leaderState !== 'leader')	{
-		// if not leader, just drop it.
+            ozpIwc.metrics.counter('iwc.common.routePacket.' + this.participant.origin + '.notLeader').inc();
+        // if not leader, just drop it.
 		return;
 	}	
 	var handler;
@@ -137,6 +139,7 @@ ozpIwc.CommonApiBase.prototype.routePacket=function(packetContext) {
 		handler="handle" + packet.action.charAt(0).toUpperCase() + packet.action.slice(1).toLowerCase();
 	}
 	if(!handler || typeof(this[handler]) !== 'function') {
+            ozpIwc.metrics.counter('iwc.common.routePacket.' + this.participant.origin + '.badAction').inc();
 		packetContext.replyTo({
 			'action': 'badAction',
 			'entity': packet.action
@@ -169,18 +172,22 @@ ozpIwc.CommonApiBase.prototype.validatePreconditions=function(node,packetContext
 ozpIwc.CommonApiBase.prototype.invokeHandler=function(node,packetContext,handler) {
 	this.isPermitted(node,packetContext)
 		.failure(function() {
+                    ozpIwc.metrics.counter('iwc.common.invokeHandler.notPermitted').inc();
 			packetContext.replyTo({'action':'noPerm'});				
 		})
 		.success(function() {
 			if(!this.validateResource(node,packetContext)) {
+                                ozpIwc.metrics.counter('iwc.common.invokeHandler.badResource').inc();
 				packetContext.replyTo({'action': 'badResource'});
 				return;
 			}
 			if(!this.validatePreconditions(node,packetContext)) {
+                                ozpIwc.metrics.counter('iwc.common.invokeHandler.noMatch').inc();
 				packetContext.replyTo({'action': 'noMatch'});
 				return;
 			}
 
+                        ozpIwc.metrics.counter('iwc.common.invokeHandler.success').inc();
 			var snapshot=node.snapshot();
 			handler.call(this,node,packetContext);
 			var changes=node.changesSince(snapshot);
@@ -197,6 +204,7 @@ ozpIwc.CommonApiBase.prototype.invokeHandler=function(node,packetContext,handler
  * @param {ozpIwc.TransportPacketContext} packetContext
  */
 ozpIwc.CommonApiBase.prototype.handleGet=function(node,packetContext) {
+    ozpIwc.metrics.counter('iwc.common.' + this.participant.origin + '.handleGet').inc();
 	packetContext.replyTo(node.toPacket({'action': 'ok'}));
 };
 
@@ -205,6 +213,7 @@ ozpIwc.CommonApiBase.prototype.handleGet=function(node,packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext
  */
 ozpIwc.CommonApiBase.prototype.handleSet=function(node,packetContext) {
+    ozpIwc.metrics.counter('iwc.common.' + this.participant.origin + '.handleSet').inc();
 	node.set(packetContext.packet);
 	packetContext.replyTo({'action':'ok'});
 };
@@ -214,6 +223,7 @@ ozpIwc.CommonApiBase.prototype.handleSet=function(node,packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext
  */
 ozpIwc.CommonApiBase.prototype.handleDelete=function(node,packetContext) {
+        ozpIwc.metrics.counter('iwc.common.' + this.participant.origin + '.handleDelete').inc();
 	node.deleteData();
 	packetContext.replyTo({'action':'ok'});
 };
@@ -223,6 +233,7 @@ ozpIwc.CommonApiBase.prototype.handleDelete=function(node,packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext
  */
 ozpIwc.CommonApiBase.prototype.handleWatch=function(node,packetContext) {
+        ozpIwc.metrics.counter('iwc.common.' + this.participant.origin + '.handleWatch').inc();
 	node.watch(packetContext.packet);
 	
 	// @TODO: Reply with the entity? Immediately send a change notice to the new watcher?  
@@ -234,6 +245,7 @@ ozpIwc.CommonApiBase.prototype.handleWatch=function(node,packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext
  */
 ozpIwc.CommonApiBase.prototype.handleUnwatch=function(node,packetContext) {
+        ozpIwc.metrics.counter('iwc.common.' + this.participant.origin + '.handleUnwatch').inc();
 	node.unwatch(packetContext.packet);
 	
 	packetContext.replyTo({'action':'ok'});
