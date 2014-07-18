@@ -90,6 +90,7 @@ ozpIwc.CommonApiValue.prototype.deleteData=function() {
  * @returns {ozpIwc.TransportPacket}
  */
 ozpIwc.CommonApiValue.prototype.toPacket=function(base) {
+    ozpIwc.metrics.meter('iwc.common.toPacket').update();
 	base = base || {};
 	base.entity=ozpIwc.util.clone(this.entity);
 	base.contentType=this.contentType;
@@ -136,6 +137,7 @@ ozpIwc.CommonApiValue.prototype.changesSince=function(snapshot) {
 	if(snapshot.eTag === this.version) {
         return null;
     }
+        ozpIwc.metrics.meter('iwc.common.changesSince').update();
 	return {
 			'newValue': ozpIwc.util.clone(this.entity),
 			'oldValue': snapshot.entity
