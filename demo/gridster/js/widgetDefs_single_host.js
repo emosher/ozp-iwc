@@ -24,6 +24,8 @@ var widgetDefs={
         'width':2
     },
 	'Debugger' : {
-        'href':"../tools/debugger"
+        'href':"../tools/debugger",
+        'height':5,
+        'width':5
     }
 };
