@@ -10,8 +10,9 @@ module.exports = function(grunt) {
                 'app/js/metrics/statistics/binary_heap.js',
                 'app/js/metrics/statistics/exponentiallyDecayingSample.js',
                 'app/js/metrics/statistics/exponentiallyWeightedMovingAverage.js',
-                'app/js/metrics/metricsRegistry.js',
-                'app/js/metrics/**/*.js'
+                'app/js/metrics/baseMetric.js',
+                'app/js/metrics/types/*.js',
+                'app/js/metrics/metricsRegistry.js'
             ],
             bus: [
                 '<%= src.metrics %>',
