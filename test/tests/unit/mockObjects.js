@@ -77,7 +77,7 @@ var TestParticipant=ozpIwc.util.extend(ozpIwc.InternalParticipant,function(confi
 
     this.receiveFromRouter=function(packet){
 		this.packets.push(packet); 
-		return ozpIwc.InternalParticipant.prototype.receiveFromRouter.call(this,packet,callback);;
+		return ozpIwc.InternalParticipant.prototype.receiveFromRouter.call(this,packet);
 	};
 
 	this.send=function(packet,callback) {
