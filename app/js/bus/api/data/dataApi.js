@@ -1,10 +1,12 @@
 var ozpIwc=ozpIwc || {};
 
 ozpIwc.DataApi = ozpIwc.util.extend(ozpIwc.CommonApiBase,function() {
+    ozpIwc.metrics.counter('iwc.dataApi.dataRegistered').inc();
 	ozpIwc.CommonApiBase.apply(this,arguments);
 });
 
 ozpIwc.DataApi.prototype.makeValue = function(packet){
+    ozpIwc.metrics.meter('iwc.dataApi.' + this.participant.address + '.makeValue').mark();
     return new ozpIwc.DataApiValue({resource: packet.resource});
 };
 

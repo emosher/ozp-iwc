@@ -11,6 +11,7 @@ ozpIwc.DataApiValue = ozpIwc.util.extend(ozpIwc.CommonApiValue,function(config) 
  * @returns {undefined}
  */
 ozpIwc.DataApiValue.prototype.addChild=function(child) {
+    ozpIwc.metrics.meter('iwc.dataApiValue.addChild').mark();
     if(this.children.indexOf(child) < 0) {
         this.children.push(child);
     	this.version++;

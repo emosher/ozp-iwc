@@ -106,7 +106,7 @@ ozpIwc.KeyBroadcastLocalStorageLink.prototype.attemptSend = function(packet, ret
       ozpIwc.log.error("Failed to write packet(len=" + packet.length + "):" + sendStatus);
       return sendStatus;
     }
-    ozpIwc.metrics.meter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.attemptSendSuccess').update();
+    ozpIwc.metrics.meter('iwc.links.keyBroadcastLocalStorage.' + this.selfId + '.packets.attemptSendSuccess').mark();
   }
 };
 
