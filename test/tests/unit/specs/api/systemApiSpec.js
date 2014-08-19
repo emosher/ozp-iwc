@@ -39,6 +39,7 @@ describe("System API",function() {
     });
 
     it("sets an application",function() {
+		// TODO: packet and context need to be updated to current format
         var packetContext=new TestPacketContext({
             'packet': {
                 'entity' : {
@@ -213,5 +214,43 @@ describe("System API",function() {
         systemApi.handleSet(applicationNode,packetContext);
         expect(systemApi.data['/application'].entity.length).toEqual(1);
     });
+
+
+	it("launches an application", function() {
+		// set spy on open window function
+		spyOn(systemApi,"launchCommand");
+		
+		// build test node
+		var node= new ozpIwc.SystemApiValue({
+            'contentType' : "ozp-application-definition-v1+json",
+            'version' : 1,
+			'dst': "system.api",
+            'resource': "/application/system-launch-test",
+			'action': "launch",
+			'entity': {
+				'_links': {
+					launch: {
+						default: "https://mail.example.com"
+					}
+				}
+			}
+        });
+		
+		// issue launch with invokeIntent component of application/ozp-intents-handler-v1+json
+		var packetContext=new TestPacketContext({
+            'packet': {
+				dst: "system.api",
+				resource: "/application/system-launch-test",
+				action: "launch"
+			}
+		});
+		
+		// call launch function
+		var windowObjectReference = systemApi.handleLaunch(node, packetContext);
+		
+		// expect one call to open window function (can validate url as well?)
+		expect(windowObjectReference !== null);
+		expect(systemApi.launchCommand).toHaveBeenCalledWith(node.entity._links, node.entity._links.launch.default);
+	});
 
 });

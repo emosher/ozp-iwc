@@ -44,8 +44,8 @@ ozpIwc.SystemApi.prototype.isPermitted=function(node,packetContext) {
     }
     var retVal=ozpIwc.CommonApiBase.prototype.isPermitted.apply(this,arguments);
     delete node.permissions.modifyAuthority;
-    return retVal
-}
+    return retVal;
+};
 
 /**
  * Loads the user and system data from the specified href. Data must be of hal/json type and
@@ -74,4 +74,44 @@ ozpIwc.SystemApi.prototype.loadServerDataEmbedded = function (config) {
         });
 
     return asyncResponse;
+};
+
+/**
+ * This systemApi launch function issues activates the new application.
+ * Currently, it will just call window.open. 
+ * Later, it will fire an intent for a registered app manager handler to launch (showing the user 
+ * a choice of containers if more than one is registered.  Default is window.open.).
+ * Finally, it will populate the launch mailbox to support passing data to the new application.
+ * 
+ * Parameter packet is of type invokeIntent, from "ozp intents handler v1 json".  See wiki.
+ * 
+ * @param {ozpIwc.CommonApiValue} node
+ * @param {ozpIwc.TransportPacketContext} packetContext
+ * @returns {windowObjectReference}
+ */
+ozpIwc.SystemApi.prototype.handleLaunch = function(node, packetContext){
+	// Should use resource in packet as the key to look up the application node...
+	// then use the application node to find the entity launch url, and issue that 
+	// to window.open.
+	
+	var packet = packetContext.packet;
+	
+	// look up packetContext.packet.resource in node.entity[]._links.self
+	// when match found, get launch url and call launchCommand
+	node.resource === packet.resource;
+	var launch_url = node.entity._links.launch.default;
+	
+	var windowObjectReference = this.launchCommand(node.entity._links, launch_url);
+	//return new ozpIwc.SystemApiValue({resource: packet.resource, contentType: packet.contentType, systemApi: this});
+	return windowObjectReference;
+};
+
+/**
+ * Helper funtion for 'launch'. Opens application.
+ * 
+ * @param url {String}
+ * @returns {windowObjectReference}
+ */
+ozpIwc.SystemApi.prototype.launchCommand = function(_links, url) {
+	return window.open(url);
 };
