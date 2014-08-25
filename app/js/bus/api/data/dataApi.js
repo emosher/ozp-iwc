@@ -1,11 +1,11 @@
-var ozpIwc=ozpIwc || {};
-
-ozpIwc.DataApi = ozpIwc.util.extend(ozpIwc.CommonApiBase,function() {
+ozpIwc.DataApi = ozpIwc.util.extend(ozpIwc.CommonApiBase,function(config) {
 	ozpIwc.CommonApiBase.apply(this,arguments);
+    this.endpointName="data";
+    this.loadFromServer();
 });
 
 ozpIwc.DataApi.prototype.makeValue = function(packet){
-    return new ozpIwc.DataApiValue({resource: packet.resource});
+    return new ozpIwc.DataApiValue(packet);
 };
 
 ozpIwc.DataApi.prototype.createChild=function(node,packetContext) {
@@ -19,7 +19,7 @@ ozpIwc.DataApi.prototype.createChild=function(node,packetContext) {
 
 ozpIwc.DataApi.prototype.handleList=function(node,packetContext) {
 	packetContext.replyTo({
-        'action': 'ok',
+        'response': 'ok',
         'entity': node.listChildren()
     });
 };
@@ -34,7 +34,7 @@ ozpIwc.DataApi.prototype.handleAddchild=function(node,packetContext) {
 	node.addChild(childNode.resource);
 	
 	packetContext.replyTo({
-        'action':'ok',
+        'response':'ok',
         'entity' : {
             'resource': childNode.resource
         }
@@ -49,6 +49,6 @@ ozpIwc.DataApi.prototype.handleRemovechild=function(node,packetContext) {
     node.removeChild(packetContext.packet.entity.resource);
 	// delegate to the handleGet call
 	packetContext.replyTo({
-        'action':'ok'
+        'response':'ok'
     });
 };

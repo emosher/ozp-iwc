@@ -8,6 +8,8 @@ ozpIwc.metricTypes=ozpIwc.metricTypes || {};
 
 ozpIwc.metricTypes.BaseMetric=function() {
 	this.value=0;
+    this.name="";
+    this.unitName="";
 };
 
 ozpIwc.metricTypes.BaseMetric.prototype.get=function() { 
@@ -16,10 +18,10 @@ ozpIwc.metricTypes.BaseMetric.prototype.get=function() {
 
 ozpIwc.metricTypes.BaseMetric.prototype.unit=function(val) { 
 	if(val) {
-		this.unit=val;
+		this.unitName=val;
 		return this;
 	}
-	return this.unit; 
+	return this.unitName; 
 };
 
 

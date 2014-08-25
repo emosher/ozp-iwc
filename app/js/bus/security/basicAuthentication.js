@@ -19,7 +19,7 @@ ozpIwc.BasicAuthentication=function() {
 	this.roles={};
     var self = this;
     ozpIwc.metrics.gauge('security.authentication.roles').set(function() {
-        return {'roles': self.getRoleCount()};
+        return self.getRoleCount();
     });
 };
 

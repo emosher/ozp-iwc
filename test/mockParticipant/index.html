@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mock Participant for OZP IWC integration testing</title>
+    <script type="text/javascript" src="//localhost:13000/js/ozpIwc-bus.js"></script>
+    <script type="text/javascript" src="//localhost:13000/js/ozpIwc-metrics.js"></script>
+    <script type="text/javascript" src="//localhost:13000/js/ozpIwc-client.js"></script>
+    <script type="text/javascript">
+        var client = new ozpIwc.Client({peerUrl: "http://localhost:14002"});
+        var testAddress = "";
+        var sendToParent=function(data) {
+            console.log("Sending to test",data);
+            parent.postMessage(data,"*");
+        };
+        
+        window.addEventListener("message", function(event) {
+                // ignore anything not from our parent
+                if(event.source !== window.parent) {
+                    return;
+                }
+            console.log("Fake IWC App received: ",event.data);
+
+                switch(event.data.msgType) {
+                    case "run": 
+                        func=eval('( function() { return '+event.data.func+';})();');
+//                        console.log("Fake App running ", func.toString());
+                        var rv=func.call(null,client,testAddress);
+                        sendToParent({
+                            'msgType': "return",
+                            'runId' : event.data.runId,
+                            'returnValue' : rv
+                        });
+                        break;
+                    case "address":
+                        testAddress=event.data.address;
+                        break;
+                    case "send":
+                        client.send(event.data.packet,function(response) {
+                            sendToParent({
+                                'msgType': "return",
+                                'runId' : event.data.runId,
+                                'returnValue' : response
+                            });
+                        });
+                        break;
+                    default:
+                        console.log("Fake App received unknown command from parent: ",event.data);
+                        break;
+                }
+            
+            }, false);
+        
+        client.on("connected",function() {
+            sendToParent({
+                'msgType': "address",
+                'address' : client.address
+            });
+        });
+    </script>
+</head>
+<body>
+</body>
+</html>

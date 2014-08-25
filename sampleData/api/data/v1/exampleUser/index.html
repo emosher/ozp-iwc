@@ -1,0 +1,57 @@
+{
+    "_links": {
+        "self": { "href" : "/api/data/v1/exampleUser" },
+        "curies": [{
+            "name": "ozp",
+            "href": "/api/data/v1/exampleUser/rels/{rel}",
+            "templated": true
+        }]
+    },
+    "_embedded": {
+        "ozp:dataObjects": [
+            {
+                "_links": {
+                    "self": {"href": "/api/data/v1/exampleUser/someResource"}
+                },
+                "contentType": "application/json",
+                "entity": {
+                    "some" : "data"
+                }
+            },
+            {
+                "_links": {
+                    "self": {"href": "/api/data/v1/exampleUser/pizza"}
+                },
+                "contentType": "text/plain",
+                "entity": "pepperoni"
+            },
+            {
+                "_links": {
+                    "self": {"href": "/api/data/v1/exampleUser/theme"}
+                },
+                "contentType": "text/plain",
+                "entity": "dark"
+            },
+            {
+                "_links": {
+                    "self": {"href": "/api/data/v1/exampleUser/parent"}
+                },
+                "children": ["/parent/1234", "/parent/5678"]
+            },
+            {
+                "_links": {
+                    "self": {"href": "/api/data/v1/exampleUser/parent/1234"}
+                },
+                "contentType": "text/plain",
+                "entity": "I am child 1234 of parent."
+            },
+            {
+                "_links": {
+                    "self": {"href": "/api/data/v1/exampleUser/parent/5678"}
+                },
+                "contentType": "text/plain",
+                "entity": "I am child 5678 of parent."
+            }
+        ]
+    }
+}

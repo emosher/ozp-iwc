@@ -1,13 +1,7 @@
 /nbproject
 /node_modules
 doc
-app/js/ozpIwc-client.js
-app/js/ozpIwc-client.min.js
-app/js/ozpIwc-server.js
-app/js/ozpIwc-server.min.js
-app/js/ozpIwc-metrics.js
-app/js/ozpIwc-metrics.min.js
-app/js/ozpIwc-owf7.js
-app/js/ozpIwc-owf7.min.js
-app/js/ozpIwc-bus.js
-app/js/ozpIwc-bus.min.js
+app/js/ozpIwc-*.js
+.idea/
+hal-browser
+bower_components

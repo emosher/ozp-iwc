@@ -2,7 +2,7 @@ var ozpIwc=ozpIwc || {};
 
 ozpIwc.SystemApi = ozpIwc.util.extend(ozpIwc.CommonApiBase,function(config) {
     ozpIwc.CommonApiBase.apply(this,arguments);
-    this.participant.securityAttributes=config.securityAttributes;
+//    this.participant.securityAttributes=config.securityAttributes;
     if (config.userHref) {
         this.loadServerDataEmbedded({href: config.userHref, resource: '/user'})
             .success(function () {
@@ -18,7 +18,7 @@ ozpIwc.SystemApi = ozpIwc.util.extend(ozpIwc.CommonApiBase,function(config) {
 });
 
 ozpIwc.SystemApi.prototype.makeValue = function(packet){
-    return new ozpIwc.SystemApiValue({resource: packet.resource, contentType: packet.contentType, systemApi: this});
+    return new ozpIwc.SystemApiValue({resource: packet.resource, entity: packet.entity, contentType: packet.contentType, systemApi: this});
 };
 
 ozpIwc.SystemApi.prototype.isPermitted=function(node,packetContext) {

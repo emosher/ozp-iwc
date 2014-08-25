@@ -18,6 +18,7 @@ ozpIwc.IntentsApiHandlerValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, functi
  * @param {object} packet - information passed to the activity receiving the intent.
  */
 ozpIwc.IntentsApiHandlerValue.prototype.invoke = function (packet) {
-    console.error('Invoking of intents.api handlers is not implemented.' +
-        'Override ozpIwc.IntentsApiHandlerValue.invoke to implement');
+    this.set(packet);
+//    console.error('Invoking of intents.api handlers is not implemented.' +
+//        'Override ozpIwc.IntentsApiHandlerValue.invoke to implement');
 };

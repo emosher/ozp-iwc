@@ -40,6 +40,9 @@ ozpIwc.IntentsApi = ozpIwc.util.extend(ozpIwc.CommonApiBase, function (config) {
  * @returns {string} parsedResource.intentValueType - returns the value type given the resource path (capability, definition, handler)
  */
 ozpIwc.IntentsApi.prototype.parseResource = function (packetContext) {
+    if(!packetContext.packet.resource) {
+        return;
+    }
     var resourceSplit = packetContext.packet.resource.split('/');
     var result = {
         type: resourceSplit[1],
@@ -65,6 +68,7 @@ ozpIwc.IntentsApi.prototype.parseResource = function (packetContext) {
         }
         packetContext.packet.parsedResource = result;
     }
+    return packetContext;
 };
 
 /**
@@ -74,6 +78,9 @@ ozpIwc.IntentsApi.prototype.parseResource = function (packetContext) {
  * @returns {IntentsApiHandlerValue|IntentsAPiDefinitionValue|IntentsApiCapabilityValue}
  */
 ozpIwc.IntentsApi.prototype.makeValue = function (packet) {
+    if (!packet.packetResource) {
+        packet = ozpIwc.IntentsApi.prototype.parseResource({packet: packet}).packet;
+    }
     switch (packet.parsedResource.intentValueType) {
         case 'handler':
             return this.getHandler(packet);
@@ -159,7 +166,7 @@ ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
         packetContext.packet.parsedResource.handlerRes = this.createKey(packetContext.packet.resource + '/');
     } else if (packetContext.packet.parsedResource.intentValueType !== 'handler') {
         packetContext.replyTo({
-            'action': 'badResource'
+            'response': 'badResource'
         });
         return null;
     }
@@ -168,7 +175,7 @@ ozpIwc.IntentsApi.prototype.handleRegister = function (node, packetContext) {
     handler.set(packetContext);
 
     packetContext.replyTo({
-        'action': 'ok',
+        'response': 'ok',
         'entity': handler.resource
     });
 };
@@ -188,7 +195,7 @@ ozpIwc.IntentsApi.prototype.handleUnregister = function (node, packetContext) {
         this.data[definitionPath].entity.handlers.splice(index, 1);
     }
     delete this.data[handlerPath];
-    packetContext.replyTo({'action': 'ok'});
+    packetContext.replyTo({'response': 'ok'});
 };
 
 /**
@@ -214,12 +221,12 @@ ozpIwc.IntentsApi.prototype.handleInvoke = function (node, packetContext) {
                 var handler = node.handlers[handlerPreference];
                 this.data[handler].invoke(packet);
             } else {
-                packetContext.replyTo({'action': 'badResource'});
+                packetContext.replyTo({'response': 'badResource'});
             }
             break;
 
         default:
-            packetContext.replyTo({'action': 'badResource'});
+            packetContext.replyTo({'response': 'badResource'});
             break;
     }
 };
@@ -235,7 +242,7 @@ ozpIwc.IntentsApi.prototype.handleListen = function (node, packetContext) {
 //    var parse = this.parseResource(packetContext.packet.resource);
 //    if (parse.intentValueType !== 'definition') {
 //        return packetContext.replyTo({
-//            'action': 'badResource'
+//            'response': 'badResource'
 //        });
 //    }
 };
@@ -251,7 +258,7 @@ ozpIwc.IntentsApi.prototype.handleBroadcast = function (node, packetContext) {
 //    var parse = this.parseResource(packetContext.packet.resource);
 //    if (parse.intentValueType !== 'definition') {
 //        return packetContext.replyTo({
-//            'action': 'badResource'
+//            'response': 'badResource'
 //        });
 //    }
 //    for (var i in node.handlers) {

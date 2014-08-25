@@ -1,0 +1,27 @@
+{
+  "name": "ozp-iwc",
+  "main": [
+    "dist/js/ozpIwc-bus.js",
+    "dist/js/ozpIwc-client.js",
+    "dist/js/ozpIwc-metrics.js",
+    "dist/js/defaultWiring.js",
+    "dist/iframe_peer.html"
+  ],
+  "version": "0.0.1",
+  "homepage": "https://github.com/ozone-development/ozp-iwc",
+  "authors": [
+    "Ozone Developers"
+  ],
+  "description": "In-browser communications network between participants in multiple browser tabs, iframes, or workers using HTML5 standard features",
+  "license": "Apache-2.0",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ],
+  "dependencies": {
+    "es6-promise" : "~1"
+  }
+}

@@ -14,7 +14,7 @@ ozpIwc.SystemApiValue.prototype.set=function(packet) {
                 if (id) {
                     this.entity = packet.entity;
                     var node = this.systemApi.findOrMakeValue({resource: '/application'});
-                    node.set({entity: id})
+                    node.set({entity: id});
                 } else {
                     this.entity = this.entity || [];
                     if (this.entity.indexOf(packet.entity) < 0) {

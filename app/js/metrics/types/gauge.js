@@ -10,9 +10,10 @@ ozpIwc.metricTypes=ozpIwc.metricTypes || {};
  * A gauge is an externally defined set of metrics returned by a callback function
  * @param {ozpIwc.metricTypes.Gauge~gaugeCallback} metricsCallback
  */
-ozpIwc.metricTypes.Gauge=function(metricsCallback) {
+ozpIwc.metricTypes.Gauge=ozpIwc.util.extend(ozpIwc.metricTypes.BaseMetric,function(metricsCallback) {
+	ozpIwc.metricTypes.BaseMetric.apply(this,arguments);
 	this.callback=metricsCallback;
-};
+});
 /**
  * Set the metrics callback for this gauge.
  * @param {ozpIwc.metricTypes.Gauge~gaugeCallback} metricsCallback

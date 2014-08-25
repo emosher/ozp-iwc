@@ -11,6 +11,17 @@ ozpIwc.Participant=function() {
 	this.events.mixinOnOff(this);
 	this.securityAttributes={};
     this.msgId=0;
+    var fakeMeter=new ozpIwc.metricTypes.Meter();
+    this.sentPacketsMeter=fakeMeter;
+    this.receivedPacketsMeter=fakeMeter;
+    this.forbiddenPacketsMeter=fakeMeter;
+    
+    this.participantType=this.constructor.name;
+    this.heartBeatContentType="application/ozpIwc-address-v1+json";
+    this.heartBeatStatus={
+        name: this.name,
+        type: this.participantType || this.constructor.name
+    };
 };
 
 /**
@@ -21,15 +32,16 @@ ozpIwc.Participant.prototype.receiveFromRouter=function(packetContext) {
     var self = this;
     ozpIwc.authorization.isPermitted({
         'subject': this.securityAttributes,
-        'object': packetContext.packet.permissions,
+        'object': packetContext.packet.permissions
     })
         .success(function(){
-            ozpIwc.metrics.counter("transport.packets.delivered").inc();
+            self.receivedPacketsMeter.mark();
+
             self.receiveFromRouterImpl(packetContext);
         })
         .failure(function() {
             /** @todo do we send a "denied" message to the destination?  drop?  who knows? */
-            ozpIwc.metrics.counter("transport.packets.forbidden").inc();
+            self.forbiddenPacketsMeter.mark();
         });
 };
 
@@ -53,6 +65,17 @@ ozpIwc.Participant.prototype.connectToRouter=function(router,address) {
     this.router=router;
     this.securityAttributes.rawAddress=address;
     this.msgId=0;
+    this.metricRoot="participants."+ this.address.split(".").reverse().join(".");
+    this.sentPacketsMeter=ozpIwc.metrics.meter(this.metricRoot,"sentPackets").unit("packets");
+    this.receivedPacketsMeter=ozpIwc.metrics.meter(this.metricRoot,"receivedPackets").unit("packets");
+    this.forbiddenPacketsMeter=ozpIwc.metrics.meter(this.metricRoot,"forbiddenPackets").unit("packets");
+    
+    this.namesResource="/address/"+this.address;
+    this.heartBeatStatus.address=this.address;
+    this.heartBeatStatus.name=this.name;
+    this.heartBeatStatus.type=this.participantType || this.constructor.name;
+
+    this.events.trigger("connectedToRouter");
 };
 
 /**
@@ -82,6 +105,7 @@ ozpIwc.Participant.prototype.fixPacket=function(packet) {
  */
 ozpIwc.Participant.prototype.send=function(packet) {
     packet=this.fixPacket(packet);
+    this.sentPacketsMeter.mark();
     this.router.send(packet,this);
     return packet;
 };
@@ -91,11 +115,14 @@ ozpIwc.Participant.prototype.generateMsgId=function() {
     return "i:" + this.msgId++;
 };
 
-ozpIwc.Participant.prototype.heartbeatStatus=function() {
-    return {
-        address: this.address,
-        securityAttributes: this.securityAttributes,
-        type: this.participantType || this.constructor.name,
-        name: this.name
-    };
+ozpIwc.Participant.prototype.heartbeat=function() {
+    if(this.router) {
+        this.send({
+            'dst': "names.api",
+            'resource': this.namesResource,
+            'action' : "set",
+            'entity' : this.heartBeatStatus,
+            'contentType' : this.heartBeatContentType
+        },function() {/* eat the response*/});
+    }
 };

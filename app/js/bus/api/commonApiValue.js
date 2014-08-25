@@ -8,13 +8,16 @@
  */
 ozpIwc.CommonApiValue = function(config) {
 	config = config || {};
-	this.watchers=[];
+	this.watchers= config.watchers || [];
 	this.resource=config.resource;
-    
-  this.entity=config.entity;
+    this.allowedContentTypes=config.allowedContentTypes;
+    this.entity=config.entity;
 	this.contentType=config.contentType;
 	this.permissions=config.permissions || {};
 	this.version=config.version || 0;
+    
+    this.persist=true;
+    this.deleted=true;
 };
 
 /**
@@ -81,6 +84,7 @@ ozpIwc.CommonApiValue.prototype.deleteData=function() {
 	this.contentType=undefined;
 	this.permissions=[];
 	this.version=0;
+    this.deleted=true;
 };
 
 /**
@@ -106,7 +110,12 @@ ozpIwc.CommonApiValue.prototype.toPacket=function(base) {
  * @returns {Boolean}
  */
 ozpIwc.CommonApiValue.prototype.isValidContentType=function(contentType) {
-	return true;
+    if(this.allowedContentTypes && this.allowedContentTypes.indexOf(contentType) < 0) {
+        throw new ozpIwc.ApiError("badContent",
+                "Bad contentType " + contentType +", expected " + this.allowedContentTypes.join(","));
+     } else {
+        return true;
+    }
 };
 
 /**
@@ -140,4 +149,26 @@ ozpIwc.CommonApiValue.prototype.changesSince=function(snapshot) {
 			'newValue': ozpIwc.util.clone(this.entity),
 			'oldValue': snapshot.entity
 	};
+};
+
+/**
+ * Returns true if the value of this is impacted by the value of node.
+ * For nodes that base their value off of other nodes, override this function.
+ * @param {type} node 
+ * @returns boolean
+ */
+ozpIwc.CommonApiValue.prototype.isUpdateNeeded=function(node) {
+    return false;
+};
+
+/**
+ * Update this node based upon the changes made to changedNodes.
+ * @param {ozpIwc.CommonApiValue[]} changedNodes - Array of all nodes for which isUpdatedNeeded returned true.
+ * @returns {ozpIwc.CommonApiValue.changes}
+ */
+ozpIwc.CommonApiValue.prototype.updateContent=function(changedNodes) {
+    return null;
+};
+
+ozpIwc.CommonApiValue.prototype.deserialize=function(serverData) {
 };

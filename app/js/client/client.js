@@ -54,7 +54,17 @@ ozpIwc.Client=function(config) {
         }
     };
 	// receive postmessage events
-	this.messageEventListener=window.addEventListener("message", this.postMessageHandler, false);
+	window.addEventListener("message", this.postMessageHandler, false);
+    
+    this.preconnectionQueue=[];
+    
+    this.on("connected",function() {
+        self.preconnectionQueue.forEach(function(p) {
+            console.log("Sending from queue: ",p);
+            self.send(p.fields,p.callback,p.promise);
+        });
+        self.preconnectionQueue=null;
+    });
 };
 
 /**
@@ -82,10 +92,20 @@ ozpIwc.Client.prototype.receive=function(packet) {
  * persisted if it returns a truth-like value, canceled if it returns a
  * false-like value.
  */
-ozpIwc.Client.prototype.send=function(fields,callback) {
-	var now=new Date().getTime();
+ozpIwc.Client.prototype.send=function(fields,callback,preexistingPromise) {
+    var promise= preexistingPromise; // || new Promise();
+    if(!(this.isConnected() || fields.dst=="$transport")) {
+        // when send is switched to promises, create the promise first and return it here, as well
+        console.log("Queuing to be sent later:",arguments);
+        this.preconnectionQueue.push({
+            'fields': fields,
+            'callback': callback,
+            'promise': promise
+        });
+        return promise;
+    }
+    var now=new Date().getTime();
 	var id="p:"+this.msgIdSequence++; // makes the code below read better
-
 	var packet={
 		ver: 1,
 		src: this.address,
@@ -109,7 +129,9 @@ ozpIwc.Client.prototype.send=function(fields,callback) {
 	this.sentPackets++;
 	return packet;
 };
-
+ozpIwc.Client.prototype.isConnected=function(){
+	return this.address !== "$nobody";
+};
 /**
  * Cancel a callback registration
  * @param (string} msgId - The packet replyTo ID for which the callback was registered
@@ -125,7 +147,7 @@ ozpIwc.Client.prototype.cancelCallback=function(msgId) {
 
 
 ozpIwc.Client.prototype.on=function(event,callback) {
-	if(event==="connected" && this.address !=="$nobody") {
+	if(event==="connected" && this.isConnected()) {
 		callback(this);
 		return;
 	}
@@ -137,7 +159,8 @@ ozpIwc.Client.prototype.off=function(event,callback) {
 };
 
 ozpIwc.Client.prototype.disconnect=function() {
-    window.removeEventListener("message",this.messageEventListener,false);
+    this.replyCallbacks={};
+    window.removeEventListener("message",this.postMessageHandler,false);
     if(this.iframe) {
         document.body.removeChild(this.iframe);
     }

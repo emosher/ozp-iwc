@@ -7,8 +7,8 @@ var ozpIwc=ozpIwc || {};
 ozpIwc.MetricsRegistry=function() {
 	this.metrics={};
     var self=this;
-    this.gauge('registry.metrics').set(function() {
-        return {'types':  Object.keys(self.metrics).length};
+    this.gauge('registry.metrics.types').set(function() {
+        return Object.keys(self.metrics).length;
     });
 
 };
@@ -21,7 +21,12 @@ ozpIwc.MetricsRegistry=function() {
  * @returns {MetricType} - Null if the metric already exists of a different type.  Otherwise a reference to the metric.
  */
 ozpIwc.MetricsRegistry.prototype.findOrCreateMetric=function(name,type) {
-	var m= this.metrics[name] = this.metrics[name] || new type();
+	var m= this.metrics[name];
+    if(!m) {
+        m = this.metrics[name] = new type();
+        m.name=name;
+        return m;
+    }
 	if(m instanceof type){
 			return m;
 	} else {
@@ -107,6 +112,14 @@ ozpIwc.MetricsRegistry.prototype.toJson=function() {
 		pos[path[0]]=this.metrics[k].get();
 	}
 	return rv;
+};
+
+ozpIwc.MetricsRegistry.prototype.allMetrics=function() {
+    var rv=[];
+    for(var k in this.metrics) {
+        rv.push(this.metrics[k]);
+    }
+    return rv;
 };
 
 ozpIwc.metrics=new ozpIwc.MetricsRegistry();
