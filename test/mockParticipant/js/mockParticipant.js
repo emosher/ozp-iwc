@@ -17,7 +17,7 @@ ozpIwc.test.MockParticipant=function(config) {
     }, false);
     
     this.iframe = document.createElement("iframe");
-    this.iframe.src = this.clientUrl;
+    this.iframe.src = this.clientUrl+"/iframe_peer.html";
     this.iframe.height = 1;
     this.iframe.width = 1;
     this.iframe.style = "display:none !important;";
@@ -69,7 +69,8 @@ ozpIwc.test.MockParticipant.prototype.sendDirectly=function(data,callback) {
 ozpIwc.test.MockParticipant.prototype.send=function(packet,callback) {
     this.sendDirectly({
         'msgType': "send",
-        'packet': packet
+        'packet': packet,
+        'dst': packet.dst
     },callback);
 };
 

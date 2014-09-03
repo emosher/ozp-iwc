@@ -119,6 +119,7 @@ ozpIwc.Peer.prototype.send= function(packet) {
     this.events.trigger("preSend",preSendEvent);
     if(!preSendEvent.canceled) {
         ozpIwc.metrics.counter('network.packets.sent').inc();
+        console.log("triggering 'send' event for Peer with ID " + this.selfId + " resource: " + networkPacket.data.resource);
         this.events.trigger("send",{'packet':networkPacket});
     } else {
         ozpIwc.metrics.counter('network.packets.sendRejected').inc();

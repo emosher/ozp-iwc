@@ -62,7 +62,7 @@ ozpIwc.NamesApi = ozpIwc.util.extend(ozpIwc.CommonApiBase, function() {
 
 ozpIwc.NamesApi.prototype.validateResource=function(node,packetContext) {
     if(packetContext.packet.resource && !packetContext.packet.resource.match(/^\/(api|address|multicast|router|me)/)){
-        throw new ozpIwc.ApiError('badResource',"Invalide resource for name.api: " + packetContext.packet.resource);
+        throw new ozpIwc.ApiError('badResource',"Invalid resource for name.api: " + packetContext.packet.resource);
     }
 };
 
@@ -78,6 +78,7 @@ ozpIwc.NamesApi.prototype.makeValue = function(packet) {
     switch(path[1]) {
         case "api": config.allowedContentTypes=["application/ozpIwc-api-descriptor-v1+json"]; break;
         case "address": config.allowedContentTypes=["application/ozpIwc-address-v1+json"]; break;
+        case "me": config.allowedContentTypes=["application/ozpIwc-address-v1+json"]; break;
         case "multicast": config.allowedContentTypes=["application/ozpIwc-multicast-address-v1+json"]; break;
         case "router": config.allowedContentTypes=["application/ozpIwc-router-v1+json"]; break;
 
