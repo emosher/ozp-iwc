@@ -29,7 +29,11 @@ ozpIwc.EndpointRegistry=function(config) {
     }).then(function(data) {
         for (var ep in data._links) {
             if (ep !== 'self') {
-                self.endpoint(ep).baseUrl=data._links[ep].href;
+                var link=data._links[ep].href;
+                if(link.charAt(link.length-1) !== "/") {
+                    link += "/";
+                }
+                self.endpoint(ep).baseUrl=link;
             }
         }
     });

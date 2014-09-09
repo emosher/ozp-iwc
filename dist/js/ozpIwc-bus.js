@@ -6516,7 +6516,11 @@ ozpIwc.EndpointRegistry=function(config) {
     }).then(function(data) {
         for (var ep in data._links) {
             if (ep !== 'self') {
-                self.endpoint(ep).baseUrl=data._links[ep].href;
+                var link=data._links[ep].href;
+                if(link.charAt(link.length-1) !== "/") {
+                    link += "/";
+                }
+                self.endpoint(ep).baseUrl=link;
             }
         }
     });
@@ -7062,7 +7066,7 @@ ozpIwc.SystemApi.prototype.updateIntents=function(node,changes) {
                 'label': i.label,
                 '_links': node.entity['_links'],
                 'invokeIntent': {
-                    'action' : 'launch',
+                    'action' : 'invoke',
                     'resource' : node.resource
                 }
             }
@@ -7116,6 +7120,21 @@ ozpIwc.SystemApi.prototype.handleLaunch = function(node,packetContext) {
     packetContext.replyTo({'action': "ok"});
 };
 
+ozpIwc.SystemApi.prototype.handleInvoke = function(node,packetContext) {
+    var key=this.createKey("/mailbox/");
+
+	// save the new child
+	var mailboxNode=this.findOrMakeValue({'resource':key});
+    mailboxNode.set({
+        contentType: "application/ozpiwc-intent-invocation+json",
+        permissions: packetContext.permissions,
+        entity: packetContext.packet
+    });
+    
+    this.launchApplication(node,mailboxNode);
+    packetContext.replyTo({'action': "ok"});
+};
+
 ozpIwc.SystemApi.prototype.launchApplication=function(node,mailboxNode) {
     var launchParams=[
         "ozpIwc.peer="+encodeURIComponent(ozpIwc.BUS_ROOT),
@@ -7124,6 +7143,8 @@ ozpIwc.SystemApi.prototype.launchApplication=function(node,mailboxNode) {
     
     window.open(node.entity['_links'].describes.href,launchParams.join("&"));    
 };
+
+
 ozpIwc.SystemApiApplicationValue = ozpIwc.util.extend(ozpIwc.CommonApiValue,function(config) {
     ozpIwc.CommonApiValue.apply(this,arguments);
     this.systemApi=config.systemApi;
