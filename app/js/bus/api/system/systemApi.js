@@ -66,7 +66,7 @@ ozpIwc.SystemApi.prototype.updateIntents=function(node,changes) {
 };
 
 ozpIwc.SystemApi.prototype.findNodeForServerResource=function(serverObject,objectPath,rootPath) {
-    var resource="/application" + objectPath.replace(rootPath,'');
+    var resource="/application/" + objectPath.replace(rootPath,'');
     return this.findOrMakeValue({
         'resource': resource,
         'entity': serverObject,
@@ -83,12 +83,14 @@ ozpIwc.SystemApi.prototype.makeValue = function(packet){
         });
     }
         
-    return new ozpIwc.SystemApiApplicationValue({
+    var app=new ozpIwc.SystemApiApplicationValue({
         resource: packet.resource, 
         entity: packet.entity, 
         contentType: packet.contentType, 
         systemApi: this
     });
+    this.updateIntents(app);
+    return app;
 };
 
 ozpIwc.SystemApi.prototype.handleSet = function() {

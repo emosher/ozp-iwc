@@ -34,3 +34,4 @@ ozpIwc.IntentsApiDefinitionValue.prototype.updateContent=function(changedNodes) 
 ozpIwc.IntentsApiDefinitionValue.prototype.getHandlers=function(packetContext) {
     return [this.handlers];
 };
+

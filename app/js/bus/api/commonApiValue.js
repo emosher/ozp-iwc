@@ -171,4 +171,11 @@ ozpIwc.CommonApiValue.prototype.updateContent=function(changedNodes) {
 };
 
 ozpIwc.CommonApiValue.prototype.deserialize=function(serverData) {
+    this.entity=this.entity || {};
+    this.version++;
+    for(var k in serverData) {
+        if(serverData.hasOwnProperty(k)) {
+            this.entity[k]=serverData[k];
+        }
+    }
 };

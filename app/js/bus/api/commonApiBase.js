@@ -19,6 +19,10 @@ ozpIwc.CommonApiBase = function(config) {
 
 ozpIwc.CommonApiBase.prototype.findNodeForServerResource=function(serverObject,objectPath,rootPath) {
     var resource=objectPath.replace(rootPath,'');
+    // @todo HACK HACK HACK
+    if(resource.charAt(0) !== "/") {
+        resource="/"+resource;
+    }
     return this.findOrMakeValue({
         'resource': resource,
         'entity': serverObject.entity,
@@ -48,7 +52,7 @@ ozpIwc.CommonApiBase.prototype.updateResourceFromServer=function(object,path,end
     var node = this.findNodeForServerResource(object,path,endpoint.baseUrl);
 
     var snapshot=node.snapshot();
-    node.deserialize(node,object);
+    node.deserialize(object);
 
     this.notifyWatchers(node,node.changesSince(snapshot));
     this.loadLinkedObjectsFromServer(endpoint,object);

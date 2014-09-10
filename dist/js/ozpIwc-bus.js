@@ -6022,6 +6022,13 @@ ozpIwc.CommonApiValue.prototype.updateContent=function(changedNodes) {
 };
 
 ozpIwc.CommonApiValue.prototype.deserialize=function(serverData) {
+    this.entity=this.entity || {};
+    this.version++;
+    for(var k in serverData) {
+        if(serverData.hasOwnProperty(k)) {
+            this.entity[k]=serverData[k];
+        }
+    }
 };
 
 
@@ -6072,6 +6079,10 @@ ozpIwc.CommonApiBase = function(config) {
 
 ozpIwc.CommonApiBase.prototype.findNodeForServerResource=function(serverObject,objectPath,rootPath) {
     var resource=objectPath.replace(rootPath,'');
+    // @todo HACK HACK HACK
+    if(resource.charAt(0) !== "/") {
+        resource="/"+resource;
+    }
     return this.findOrMakeValue({
         'resource': resource,
         'entity': serverObject.entity,
@@ -6101,7 +6112,7 @@ ozpIwc.CommonApiBase.prototype.updateResourceFromServer=function(object,path,end
     var node = this.findNodeForServerResource(object,path,endpoint.baseUrl);
 
     var snapshot=node.snapshot();
-    node.deserialize(node,object);
+    node.deserialize(object);
 
     this.notifyWatchers(node,node.changesSince(snapshot));
     this.loadLinkedObjectsFromServer(endpoint,object);
@@ -6853,6 +6864,8 @@ ozpIwc.IntentsApiDefinitionValue.prototype.updateContent=function(changedNodes) 
 ozpIwc.IntentsApiDefinitionValue.prototype.getHandlers=function(packetContext) {
     return [this.handlers];
 };
+
+
 /**
  * The capability value for an intent. adheres to the ozp-intents-type-capabilities-v1+json content type.
  * @class
@@ -6895,7 +6908,7 @@ ozpIwc.IntentsApiTypeValue = ozpIwc.util.extend(ozpIwc.CommonApiValue, function 
     config.contentType="application/ozpIwc-intents-contentType-v1+json";
 
     ozpIwc.CommonApiValue.apply(this, arguments);
-    this.pattern=new RegExp(ozpIwc.util.escapeRegex(this.resource)+"/[^/]*");
+    this.pattern=new RegExp(ozpIwc.util.escapeRegex(this.resource)+"/[^/]*$");
     this.entity={
         type: config.intentType,
         actions: []
@@ -7076,7 +7089,7 @@ ozpIwc.SystemApi.prototype.updateIntents=function(node,changes) {
 };
 
 ozpIwc.SystemApi.prototype.findNodeForServerResource=function(serverObject,objectPath,rootPath) {
-    var resource="/application" + objectPath.replace(rootPath,'');
+    var resource="/application/" + objectPath.replace(rootPath,'');
     return this.findOrMakeValue({
         'resource': resource,
         'entity': serverObject,
@@ -7093,12 +7106,14 @@ ozpIwc.SystemApi.prototype.makeValue = function(packet){
         });
     }
         
-    return new ozpIwc.SystemApiApplicationValue({
+    var app=new ozpIwc.SystemApiApplicationValue({
         resource: packet.resource, 
         entity: packet.entity, 
         contentType: packet.contentType, 
         systemApi: this
     });
+    this.updateIntents(app);
+    return app;
 };
 
 ozpIwc.SystemApi.prototype.handleSet = function() {
@@ -7148,15 +7163,8 @@ ozpIwc.SystemApi.prototype.launchApplication=function(node,mailboxNode) {
 ozpIwc.SystemApiApplicationValue = ozpIwc.util.extend(ozpIwc.CommonApiValue,function(config) {
     ozpIwc.CommonApiValue.apply(this,arguments);
     this.systemApi=config.systemApi;
+    this.entity={};
 });
-
-
-ozpIwc.SystemApiApplicationValue.prototype.deserialize=function(serverData) {
-    this.entity=serverData.entity;
-    this.contentType=serverData.contentType || this.contentType;
-	this.permissions=serverData.permissions || this.permissions;
-	this.version=serverData.version || ++this.version;
-};
 
 ozpIwc.SystemApiApplicationValue.prototype.getIntentsRegistrations=function() {
     return this.entity.intents;
