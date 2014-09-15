@@ -126,10 +126,11 @@ describe('Participant Integration', function () {
 
     });
 
-    afterEach(function() {
+    afterEach(function(done) {
         ozpIwc.defaultPeer.events.off("send",sendHandler);
         client.disconnect();
         participant.close();
+        done();
     });
 
     var maxPacketsPerSource = function (packetsSeen) {

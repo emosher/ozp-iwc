@@ -17,7 +17,7 @@ ozpIwc.test.MockParticipant=function(config) {
     }, false);
     
     this.iframe = document.createElement("iframe");
-    this.iframe.src = this.clientUrl+"/iframe_peer.html";
+    this.iframe.src = this.clientUrl;
     this.iframe.height = 1;
     this.iframe.width = 1;
     this.iframe.style = "display:none !important;";
