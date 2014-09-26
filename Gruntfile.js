@@ -47,7 +47,9 @@ module.exports = function(grunt) {
             ],
             client: [
                 '<%= src.common %>',
-                'app/js/client/**/*.js'
+                '<%= src.metrics %>',
+                'app/js/client/**/*.js',
+                'app/js/metrics/piwik/piwikRegistry.js'
             ],
             test: [
                 'test/**/*'
