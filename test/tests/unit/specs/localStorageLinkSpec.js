@@ -22,7 +22,6 @@ describe("LocalStorageLink",function() {
 	});
 	
 	afterEach(function() {
-		jasmine.clock().uninstall();
 		event=link=null;
 	});
 	

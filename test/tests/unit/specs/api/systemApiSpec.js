@@ -136,7 +136,7 @@ describe("System API",function() {
         expect(sent.action).toEqual("invoke");
         expect(sent.dst).toEqual("intents.api");
         expect(sent.entity).toEqual({ 
-            "url": "http://localhost:15000/?color=blue",
+            "url": "http://" + window.location.hostname + ":15000/?color=blue",
             "applicationId": "/application/abcApp",
             "launchData": launchData
         });
@@ -151,7 +151,7 @@ describe("System API",function() {
                     'inFlightIntent': '/intents/invocation/123',
                     'inFlightIntentEntity': {
                         'entity': {
-                            'url': "http://localhost:15000/?color=blue",
+                            'url': "http://" + window.location.hostname + ":15000/?color=blue",
                             "applicationId": "/application/abcApp",
                             "launchData": "Hello World"
                         }

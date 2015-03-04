@@ -1,10 +1,18 @@
 describe("Policy Repository Point",function() {
 
     var prp;
+    beforeEach(function() {
+
+        jasmine.getGlobal().setTimeout = function (funcToCall, millis) {
+            funcToCall();
+        };
+        prp = new ozpIwc.policyAuth.PRP();
+    });
+    afterEach(function(){
+        jasmine.getGlobal().setTimeout = window.setTimeout;
+    });
     describe("default behavior and policy acquisition failure.",function(){
-        beforeEach(function(){
-            prp = new ozpIwc.policyAuth.PRP();
-        });
+
 
         xit("formats server loaded policies as Policy Elements",function(){
         });
@@ -49,14 +57,10 @@ describe("Policy Repository Point",function() {
 
             // make all policy requests reject to test the denyAll functionality
             spyOn(ozpIwc.util,"ajax").and.callFake(function(){
-                return new Promise(function(resolve,reject){
-                    resolve({
+                return Promise.resolve({
                         'response': prp.policyCache['policy://policy/connect']
-                    });
                 });
             });
-
-            prp = new ozpIwc.policyAuth.PRP();
         });
 
         xit("fetches desired policies.",function(done){

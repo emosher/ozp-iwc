@@ -5,13 +5,10 @@ describe("Policy Information Point",function() {
     beforeEach(function(){
 
         spyOn(ozpIwc.util,"ajax").and.callFake(function(){
-            return new Promise(function(resolve,reject) {
-                resolve({
-                    'nonCachedExample:val1': ["serverLoadedVal"]
-                });
+            return Promise.resolve({
+                'nonCachedExample:val1': ["serverLoadedVal"]
             });
         });
-
         pip = new ozpIwc.policyAuth.PIP({
             attributes : {
                 'ozp:attributeCollection:fake': {
@@ -20,6 +17,13 @@ describe("Policy Information Point",function() {
                 }
             }
         });
+        jasmine.getGlobal().setTimeout = function (funcToCall, millis) {
+            funcToCall();
+        };
+    });
+
+    afterEach(function() {
+        jasmine.getGlobal().setTimeout = window.setTimeout;
     });
 
     it("returns an attribute from the cache if possible",function(){
