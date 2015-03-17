@@ -1,67 +1,73 @@
-<form class="form-inline">
-    <div class="input-group">
-      <span class="input-group-btn">
-        <button class="btn" ng-class="{true:'btn-danger',false:'btn-primary'}[logging]"
-               btn-checkbox ng-model="logging"
-               tooltip-placement="bottom" tooltip="Start/Stop packet capture.">
-              {{ logging ? 'Enabled' : 'Disabled' }}({{packets.length}})
-          </button>
-          <button class="btn btn-primary" ng-disabled="packets.length === 0"
-                  ng-click="packets=[]"> Clear
-          </button>
-      </span>
-      </div>
-      <div class="form-group">
-        <select ng-model="maxShown" tooltip-placement="bottom" class="form-control" style="margin-left: 10px;"
-              tooltip="Number of packets to display.  Higher numbers may reduce browser performance in high packets/second situations.">
-          <option value="50">50 Packets</option>
-          <option value="100">100 Packets</option>
-          <option value="150">150 Packets</option>
-          <option value="200">200 Packets</option>
-          </select>
-        </div>
-      <div class="form-group  {{viewFilterValidation}}">
-        <label for="packetFilter" style="margin-left: 10px;" class="control-label">Filter:</label>
-        <input id="packetFilter" ng-model="viewFilter" type="text" size="40" 
-           class="form-control" 
-           placeholder="data.action === 'get'"
-           tooltip-placement="bottom" tooltip="A boolean expression evaluator to filter packets by.
-               The filter's scope is the packet object.
-               Example: data.action === 'get' will show only packets with a 'get' action">
-        <button class="btn btn-primary" ng-disabled="filterError" ng-click="updateFilter(viewFilter)">Apply
-        </button>
-        <span>{{filterError}}</span>
-      </div>
-</form>
-
-<div class="scrollOver traffic-snooper-table">
-  <table class="table table-striped table-bordered td-compact ">
-  <thead><tr>
-          <th class="dateString">Time</th>
-          <th class="srcPeer">Src Peer</th>
-          <th class="sequence">Sequence</th>
-          <th class="dst">Destination</th>
-          <th class="src">Source</th>
-          <th class="msgId">Message ID</th>
-          <th class="replyTo">Reply To</th>
-          <th class="action">Action</th>
-          <th class="response">Response</th>
-          <th class="resource">Resource</th>
-          <th class="contentType">Content Type</th>
-      </tr></thead><tbody>
-      <tr ng-repeat="packet in packets | filter:logicalFilter() | limitTo:-maxShown" ng-click="setSelectedPacket(packet)">
-          <td class="dateString">{{::packet.data.time | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
-          <td class="srcPeer">{{::packet.srcPeer}}</td>
-          <td class="sequence">{{::packet.sequence}}</td>
-          <td class="dst">{{::packet.data.dst}}</td>
-          <td class="src">{{::packet.data.src}}</td>
-          <td class="msgId">{{::packet.data.msgId}}</td>
-          <td class="replyTo">{{::packet.data.replyTo}}</td>
-          <td class="action">{{::packet.data.action}}</td>
-          <td class="response">{{::packet.data.response}}</td>
-          <td class="resource">{{::packet.data.resource}}</td>
-          <td class="contentType">{{::packet.data.contentType}}</td>
-      </tr>
-  </tbody></table>
+<div class="app-toolbar">
+    <form class="form-inline">
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn" ng-class="{true:'btn-danger',false:'btn-primary'}[logging]"
+                   btn-checkbox ng-model="logging"
+                   tooltip-placement="bottom" tooltip="Start/Stop packet capture.">
+                  {{ logging ? 'Enabled' : 'Disabled' }}({{packets.length}})
+              </button>
+              <button class="btn btn-primary" ng-disabled="packets.length === 0"
+                      ng-click="packets=[]"> Clear
+              </button>
+          </span>
+          </div>
+          <div class="form-group">
+            <select ng-model="maxShown" tooltip-placement="bottom" class="form-control" style="margin-left: 10px;"
+                  tooltip="Number of packets to display.  Higher numbers may reduce browser performance in high packets/second situations.">
+              <option value="50">50 Packets</option>
+              <option value="100">100 Packets</option>
+              <option value="150">150 Packets</option>
+              <option value="200">200 Packets</option>
+              </select>
+            </div>
+          <div class="form-group  {{viewFilterValidation}}">
+            <label for="packetFilter" style="margin-left: 10px;" class="control-label">Filter:</label>
+            <input id="packetFilter" ng-model="viewFilter" type="text" size="40"
+               class="form-control"
+               placeholder="data.action === 'get'"
+               tooltip-placement="bottom" tooltip="A boolean expression evaluator to filter packets by.
+                   The filter's scope is the packet object.
+                   Example: data.action === 'get' will show only packets with a 'get' action">
+            <button class="btn btn-primary" ng-disabled="filterError" ng-click="updateFilter(viewFilter)">Apply
+            </button>
+            <span>{{filterError}}</span>
+          </div>
+    </form>
 </div>
-<pre class="col-md-12 traffic-snooper-packet">{{selectedPacket | json}}</pre>
+<div class="app-content">
+    <div class="scrollOver traffic-snooper-table">
+      <table class="table table-striped table-bordered td-compact ">
+      <thead><tr>
+              <th class="dateString">Time</th>
+              <th class="srcPeer">Src Peer</th>
+              <th class="sequence">Sequence</th>
+              <th class="dst">Destination</th>
+              <th class="src">Source</th>
+              <th class="msgId">Message ID</th>
+              <th class="replyTo">Reply To</th>
+              <th class="action">Action</th>
+              <th class="response">Response</th>
+              <th class="resource">Resource</th>
+              <th class="contentType">Content Type</th>
+          </tr></thead><tbody>
+          <tr ng-repeat="packet in packets | filter:logicalFilter() | limitTo:-maxShown" ng-click="setSelectedPacket(packet)">
+              <td class="dateString">{{::packet.data.time | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
+              <td class="srcPeer">{{::packet.srcPeer}}</td>
+              <td class="sequence">{{::packet.sequence}}</td>
+              <td class="dst">{{::packet.data.dst}}</td>
+              <td class="src">{{::packet.data.src}}</td>
+              <td class="msgId">{{::packet.data.msgId}}</td>
+              <td class="replyTo">{{::packet.data.replyTo}}</td>
+              <td class="action">{{::packet.data.action}}</td>
+              <td class="response">{{::packet.data.response}}</td>
+              <td class="resource">{{::packet.data.resource}}</td>
+              <td class="contentType">{{::packet.data.contentType}}</td>
+          </tr>
+      </tbody></table>
+    </div>
+</div>
+<div class="app-details">
+    <label for="packetPre">Packet Contents</label>
+    <pre id="packetPre">{{selectedPacket | json}}</pre>
+</div>

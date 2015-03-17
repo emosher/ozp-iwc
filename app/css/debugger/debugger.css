@@ -147,29 +147,45 @@ text-align:left;
     color: #2b3036;
 }
 
-.app-pane {
-    padding:25px;
-    margin-left:120px;
-    background-color: #FFFFFF;
-}
-
-.tab-content {
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    padding: 10px;
-}
-
 .nav-tabs {
     margin-bottom: 0;
 }
 
+.app-pane {
+    margin-left:120px;
+    background-color: #FFFFFF;
+    height: 100%;
+}
+
+.app-toolbar, .app-content, .app-details, .app-tab {
+    padding:25px;
+    overflow-y: hidden;
+}
+.app-toolbar {
+}
+
+.app-content {
+    height: 50vh;
+}
+.app-tab .tab-content {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 25px;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.app-details {
+    height: 30vh;
+}
+
+
 .appView, .scrollOver {
-    margin-top:20px;
-    height: 75vh;
+    /*margin-top:20px;*/
+    /*height: 75vh;*/
 }
 .scrollOver {
-    overflow-y:auto;
 }
 
 .link-cursor {
