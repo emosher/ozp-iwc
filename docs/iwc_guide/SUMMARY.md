@@ -34,14 +34,13 @@
     * Comparison of OWF 7 to IWC
 * [IWC App Integration Guide](additional_guides/app_integration_guide/README.md)
     * [Adding an IWC Client to an Application](additional_guides/app_integration_guide/adding_an_iwc_client_to_an_application.md)
-    * [Connecting to the Bus](additional_guides/app_integration_guide/connecting_to_the_bus.md)
+    * [Connecting to the Bus](additional_guides/app_integration_guide/connecting_iwc_client_to_an_iwc_bus.md)
     * [Making IWC API Calls](additional_guides/app_integration_guide/making_iwc_api_calls.md)
     * [IWC Client Files](additional_guides/app_integration_guide/iwc_client_files.md)
-    * [Making IWC API Calls Recurring Asynchronous Responses](additional_guides/app_integration_guide/making_iwc_api_calls_asynchronous_responses.md)
+    * [Making IWC API Calls Recurring Asynchronous Responses](additional_guides/app_integration_guide/making_iwc_api_calls_recurring_asynchronous_responses.md)
 * [IWC Backend Integration Guide](additional_guides/iwc_backend_integration_guide/README.md)
     * [Versioning Tool](additional_guides/iwc_backend_integration_guide/versioning_tool.md)
     * [IWC Components](additional_guides/iwc_backend_integration_guide/iwc_components.md)
     * [iframe Peer HTML](additional_guides/iwc_backend_integration_guide/iframe_peer_html.md)
     * [Gathering IWC Components to Host](additional_guides/iwc_backend_integration_guide/gathering_iwc_components_to_host.md)
     * [Debugger HTML](additional_guides/iwc_backend_integration_guide/debugger_html.md)
-
