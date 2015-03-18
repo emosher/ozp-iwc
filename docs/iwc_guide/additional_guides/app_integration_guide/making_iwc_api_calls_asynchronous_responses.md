@@ -13,7 +13,7 @@ Response:
 }
 ```
 
-Although, if making the `set` and `get` calls one after another, it is not guaranteed that the `set` finishes before the `get`. With the help of promises the order of operations can be enforced:
+Although, if making `set` and `get` calls one after another, it is not guaranteed that the `set` finishes before the `get`. With the help of promises the order of operations can be enforced:
 ```
 client.data().set("/buz",{
     entity: {

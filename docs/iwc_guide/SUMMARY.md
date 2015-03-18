@@ -37,6 +37,7 @@
     * [Connecting to the Bus](additional_guides/app_integration_guide/connecting_iwc_client_to_an_iwc_bus.md)
     * [Making IWC API Calls](additional_guides/app_integration_guide/making_iwc_api_calls.md)
     * [IWC Client Files](additional_guides/app_integration_guide/iwc_client_files.md)
+    * [Making IWC API Calls with Asynchronous Responses](additional_guides/app_integration_guide/making_iwc_api_calls_asynchronous_responses.md)
     * [Making IWC API Calls Recurring Asynchronous Responses](additional_guides/app_integration_guide/making_iwc_api_calls_recurring_asynchronous_responses.md)
 * [IWC Backend Integration Guide](additional_guides/iwc_backend_integration_guide/README.md)
     * [Versioning Tool](additional_guides/iwc_backend_integration_guide/versioning_tool.md)
