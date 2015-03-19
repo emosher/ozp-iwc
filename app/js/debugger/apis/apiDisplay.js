@@ -18,8 +18,24 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         var action = apiDat.apis[scope.api].actions[i].action;
         scope.clickActions.push(action);
     }
-
     scope.keys=[];
+    var columnDefs =  [
+        {field:'resource', displayName:'Resource'},
+        {field:'contentType', displayName:'Content Type'},
+        {field:'contentType', displayName:'Content Type'},
+        {field:'permissions', displayName:'Permissions'},
+        {field:'entity', displayName:'Entity'},
+        {field: 'children', displayName: 'Children'}
+    ];
+    scope.gridOptions = {
+        data : 'keys',
+        columnDefs: columnDefs,
+        rowHeight: 20,
+        onRegisterApi: function( gridApi ) {
+            scope.gridApi = gridApi;
+            scope.gridApi.core.handleWindowResize();
+        }
+    };
     scope.loadKey = function (key) {
         client.api(scope.api).get(key.resource).then(function(response) {
             for (i in response) {
@@ -43,6 +59,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         })["catch"](function (error) {
             console.log('Error in loadKey: ' + JSON.stringify(error));
         });
+        scope.gridApi.core.handleWindowResize();
     };
 
     scope.validAction = function(action,contentType) {
@@ -85,6 +102,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         });
 
         client.connect().then(function(){
+            scope.ready = true;
             scope.actions = client.apiMap[scope.api].actions;
         });
 

@@ -1,5 +1,6 @@
 var debuggerModule=angular.module("ozpIwc.debugger",[
     'ui.bootstrap',
+    'ui.grid',
     'ui.router'
 ]).config(function($stateProvider, $urlRouterProvider) {
       // For any unmatched url, redirect to General

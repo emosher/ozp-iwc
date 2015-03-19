@@ -63,11 +63,13 @@ module.exports = function(grunt) {
                 'bower_components/vis/dist/vis.js',
                 'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
                 'bower_components/angular-ui-router/release/angular-ui-router.js',
+                'bower_components/angular-ui-grid/ui-grid.js',
                 'app/js/debugger/debugger.js',
                 'app/js/debugger/**/*.js'
             ],
             debuggerCss: [
                 'bower_components/bootstrap/dist/css/bootstrap.css',
+                'bower_components/angular-ui-grid/ui-grid.css',
                 'bower_components/vis/dist/vis.css',
                 'app/css/debugger/**/*.css'
             ],
@@ -166,7 +168,15 @@ module.exports = function(grunt) {
                         cwd: 'bower_components/bootstrap/dist/fonts',
                         expand: true,
                         nonull:true
-                    },{
+                    },
+                    {
+                        src: ['*.eot','*.svg','*.ttf','*.woff'],
+                        dest: './dist/css',
+                        cwd: 'bower_components/angular-ui-grid',
+                        expand: true,
+                        nonull:true
+                    },
+                    {
                         src: ['**/*.tpl.html'],
                         dest: './dist/templates',
                         cwd: 'app/js/debugger',

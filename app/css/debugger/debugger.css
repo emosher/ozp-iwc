@@ -184,3 +184,6 @@ text-align:left;
 .link-cursor {
     cursor: pointer;
 }
+.grid {
+    width:100%;
+}
