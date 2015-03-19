@@ -12,7 +12,10 @@
         </div>
     </form>
 </div>
-<div id="grid1" ui-grid="gridOptions" ui-grid-auto-resize class="grid" ng-if="ready"></div>
+<div class="app-content">
+<div id="grid1" ui-grid="gridOptions" class="grid" external-scopes="states" ng-if="ready"></div>
+</div>
+
 <!--<div class="container-fluid">-->
     <!--<table class="table table-striped table-bordered">-->
         <!--<thead><tr>-->

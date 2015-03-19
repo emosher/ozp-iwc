@@ -19,18 +19,20 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         scope.clickActions.push(action);
     }
     scope.keys=[];
+
+    var statusTemplate = "<pre class='preWrap'>{{COL_FIELD}}</pre>";
     var columnDefs =  [
-        {field:'resource', displayName:'Resource'},
-        {field:'contentType', displayName:'Content Type'},
-        {field:'contentType', displayName:'Content Type'},
-        {field:'permissions', displayName:'Permissions'},
-        {field:'entity', displayName:'Entity'},
-        {field: 'children', displayName: 'Children'}
+        {field:'resource', displayName:'Resource', cellClass: 'grid-text', width: "15%"},
+        {field:'contentType', displayName:'Content Type', cellClass: 'grid-text', width: "15%"},
+        {field:'permissions', displayName:'Permissions', cellTemplate: statusTemplate, cellClass: 'grid-pre', width: "15%"},
+        {field:'entity', displayName:'Entity', cellTemplate: statusTemplate, cellClass: 'grid-pre', width: "40%"},
+        {field: 'children', displayName: 'Children', cellTemplate: statusTemplate, cellClass: 'grid-pre', width: "15%"}
     ];
     scope.gridOptions = {
         data : 'keys',
         columnDefs: columnDefs,
-        rowHeight: 20,
+        rowHeight: 120,
+        enableColumnResizing: false,
         onRegisterApi: function( gridApi ) {
             scope.gridApi = gridApi;
             scope.gridApi.core.handleWindowResize();
@@ -39,13 +41,13 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
     scope.loadKey = function (key) {
         client.api(scope.api).get(key.resource).then(function(response) {
             for (i in response) {
-                key[i] = response[i];
+                key[i] = JSON.stringify(response[i],null,2);
             }
             key.isLoaded = true;
             if(scope.hasChildren){
                 client.api(scope.api).list(key.resource).then(function(response) {
                     if (response.response === "ok") {
-                        key.children = response.entity;
+                        key.children = JSON.stringify(response.entity,null,2);
                     } else {
                         key.children = "Not Supported: " + response.response;
                     }
@@ -59,7 +61,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         })["catch"](function (error) {
             console.log('Error in loadKey: ' + JSON.stringify(error));
         });
-        scope.gridApi.core.handleWindowResize();
     };
 
     scope.validAction = function(action,contentType) {
@@ -104,6 +105,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         client.connect().then(function(){
             scope.ready = true;
             scope.actions = client.apiMap[scope.api].actions;
+            scope.gridApi.core.handleWindowResize();
         });
 
     };
@@ -113,7 +115,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             client.api(scope.api).watch(key.resource,function(response) {
                 if(response.response === 'changed') {
                     scope.$evalAsync(function() {
-                        key.entity=response.entity.newValue;
+                        key.entity=JSON.stringify(response.entity.newValue,null,2);
                         key.permissions=response.permissions;
                         key.contentType=response.contentType;
                     });

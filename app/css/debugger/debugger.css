@@ -186,4 +186,25 @@ text-align:left;
 }
 .grid {
     width:100%;
+    height: 100%;
+}
+
+.ui-grid-viewport {
+    overflow: auto !important;
+}
+.ui-grid-cell-contents{
+    height: auto !important;
+    white-space: normal;
+    overflow: auto;
+}
+
+.preWrap {
+    box-sizing: content-box;
+    white-space: pre-wrap;
+    /* overflow: scroll; */
+    margin: 3px;
+    height: 90%;
+    font-size: 0.8em;
+    width: 95%;
+    padding: 2px;
 }
