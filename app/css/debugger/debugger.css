@@ -181,13 +181,6 @@ text-align:left;
 }
 
 
-.appView, .scrollOver {
-    /*margin-top:20px;*/
-    /*height: 75vh;*/
-}
-.scrollOver {
-}
-
 .link-cursor {
     cursor: pointer;
 }
