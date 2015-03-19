@@ -1,7 +1,7 @@
 {
   "author": "Ozone Developers",
   "name": "ozpIwc",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "repository": "https://github.com/ozone-development/ozp-iwc",
   "devDependencies": {
     "grunt": "0.4.x",

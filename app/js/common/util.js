@@ -198,7 +198,7 @@ ozpIwc.util.determineOrigin=function(url) {
      * Other browsers seem to drop the port if it's the default, so we'll do the same.
     */
    
-    if(ozpIwc.util.protocolPorts[a.protocol] !== a.port) {
+    if(a.port && ozpIwc.util.protocolPorts[a.protocol] !== a.port) {
         origin+= ":" + a.port;
     }
     return origin;

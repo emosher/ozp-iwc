@@ -7,7 +7,7 @@
     "dist/js/defaultWiring.js",
     "dist/iframe_peer.html"
   ],
-  "version": "0.2.3",
+  "version": "0.2.4",
   "homepage": "https://github.com/ozone-development/ozp-iwc",
   "authors": [
     "Ozone Developers"
