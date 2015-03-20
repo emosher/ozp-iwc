@@ -1,0 +1,7 @@
+<label for="metricList">Metrics</label>
+<div id="metricList" style="height:100%;font-size: 0.7em; overflow-y:scroll">
+    <label ng-repeat="metric in metrics | orderBy:'name' | filter:viewFilter" style="white-space: nowrap; display: block;">
+        <input type="checkbox" ng-model="metric.visible">
+        {{::metric.name}}
+    </label>
+</div>

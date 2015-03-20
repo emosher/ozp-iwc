@@ -87,3 +87,17 @@ debuggerModule.directive( "trafficSnooper", [function() {
         templateUrl: 'templates/trafficSnooper.tpl.html'
     };
 }]);
+
+debuggerModule.directive( "trafficSnooperToolbar", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/trafficSnooperToolbar.tpl.html'
+    };
+}]);
+
+debuggerModule.directive( "trafficSnooperContent", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/trafficSnooperContent.tpl.html'
+    };
+}]);

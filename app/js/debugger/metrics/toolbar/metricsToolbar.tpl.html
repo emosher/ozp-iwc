@@ -1,0 +1,43 @@
+<form class="form-inline">
+    <div class="btn-group">
+            <button class="btn" ng-class="{true:'btn-danger',false:'btn-primary'}[updateActive]"
+                    btn-checkbox ng-model="updateActive"
+                    tooltip-placement="bottom" tooltip="Start/Stop continuous metrics updates.">
+                {{ updateActive ? 'Enabled' : 'Disabled' }}({{metricsActive}})
+            </button>
+            <button class="btn btn-primary" ng-click="refresh()">Gather</button>
+            <button class="btn btn-primary" ng-click="$broadcast('timeSeriesClear')"
+                    tooltip-placement="bottom" tooltip="Clear the timeline.">
+                Clear
+            </button>
+            </span>
+    </div>
+    <div class="form-group">
+        <select ng-model="updateFrequency" tooltip-placement="bottom" class="form-control"
+                tooltip="How often to update the metrics.">
+            <option value="1000">Every second</option>
+            <option value="2000">Every 2 seconds</option>
+            <option value="5000">Every 5 seconds</option>
+            <option value="15000">Every 15 seconds</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <select ng-model="metricWindow" tooltip-placement="bottom" class="form-control"
+                tooltip="How long to retain metric data.">
+            <option value="60000">1 minute</option>
+            <option value="120000">2 minutes</option>
+            <option value="300000">5 minutes</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="packetFilter" style="margin-left: 10px;">Filter:</label>
+        <input ng-model="viewFilter" type="text" size="40" class="form-control"
+               placeholder="filter metrics..." id="packetFilter"
+               tooltip-placement="bottom" tooltip="Search for metric...">
+        </input>
+    </div>
+    <div class="btn-group">
+        <button class="btn btn-primary" ng-click="selectAllFilteredItems(true)">Select Filtered</button>
+        <button class="btn btn-primary" ng-click="selectAllFilteredItems(false)">Deselect Filtered</button>
+    </div>
+</form>

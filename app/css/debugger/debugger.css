@@ -1,7 +1,13 @@
+
 html,body {
     width:100%;
     height: 100%;
 }
+
+.link-cursor {
+    cursor: pointer;
+}
+
 
 .traffic-snooper-table {
   border-collapse: collapse;
@@ -147,33 +153,39 @@ text-align:left;
     color: #2b3036;
 }
 
-.nav-tabs {
-    margin-bottom: 0;
+.tabset, .tab-content, .tab-pane, .tabbable {
+    height:100%;
+}
+
+.tab-pane {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    max-height:80vh;
+}
+
+.ui-grid-viewport {
+    overflow-x: auto !important;
+}
+.ui-grid-cell-contents{
+    height: auto !important;
+    white-space: normal;
+    overflow: auto;
 }
 
 .app-pane {
     margin-left:120px;
     background-color: #FFFFFF;
     height: 100%;
+    padding: 25px;
 }
 
 .app-toolbar, .app-content, .app-details, .app-tab {
     padding:25px;
-    overflow-y: hidden;
-}
-.app-toolbar {
 }
 
 .app-content {
-    height: 50vh;
-}
-.app-tab .tab-content {
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    padding: 25px;
-    overflow-y: auto;
-    max-height: 80vh;
+    height: 40vh;
 }
 
 .app-details {
@@ -181,21 +193,15 @@ text-align:left;
 }
 
 
-.link-cursor {
-    cursor: pointer;
-}
+
+
+
 .grid {
-    width:100%;
-    height: 100%;
+    max-height:80vh;
 }
 
-.ui-grid-viewport {
-    overflow: auto !important;
-}
-.ui-grid-cell-contents{
-    height: auto !important;
-    white-space: normal;
-    overflow: auto;
+.grid-wrapper {
+    background-color : #E8E8E8;
 }
 
 .preWrap {

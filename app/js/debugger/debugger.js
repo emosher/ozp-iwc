@@ -29,7 +29,10 @@ var debuggerModule=angular.module("ozpIwc.debugger",[
         })
         .state('data-api', {
             url: "/data-api",
-            templateUrl: "templates/dataApiState.tpl.html"
+            templateUrl: "templates/dataApiState.tpl.html",
+            controller: function ($scope) {
+              $scope.active = function() { return true; };
+            }
         })
         .state('intents-api', {
             url: "/intents-api",

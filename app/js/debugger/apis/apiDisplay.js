@@ -1,5 +1,7 @@
+
+
 /* global debuggerModule */
-debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","apiSettingService",function(scope, attrs, client, apiDat) {
+debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","apiSettingService", "uiGridConstants", "$filter",function(scope, attrs, client, apiDat, uiGridConstants) {
     // IWC message parameters
     scope.msg = {
       api: 'data.api',  // data.api, system.api, etc
@@ -19,20 +21,68 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         scope.clickActions.push(action);
     }
     scope.keys=[];
+    console.log(uiGridConstants);
 
-    var statusTemplate = "<pre class='preWrap'>{{COL_FIELD}}</pre>";
-    var columnDefs =  [
-        {field:'resource', displayName:'Resource', cellClass: 'grid-text', width: "15%"},
-        {field:'contentType', displayName:'Content Type', cellClass: 'grid-text', width: "15%"},
-        {field:'permissions', displayName:'Permissions', cellTemplate: statusTemplate, cellClass: 'grid-pre', width: "15%"},
-        {field:'entity', displayName:'Entity', cellTemplate: statusTemplate, cellClass: 'grid-pre', width: "40%"},
-        {field: 'children', displayName: 'Children', cellTemplate: statusTemplate, cellClass: 'grid-pre', width: "15%"}
-    ];
+
+    var statusTemplate = "<pre class='preWrap'>{{COL_FIELD | json}}</pre>";
+    var containsFilterGen = function(){
+        return {
+            condition: function (searchTerm, cellValue) {
+                return cellValue.match(searchTerm);
+            },
+            placeholder: 'contains'
+        };
+    };
+
+    var containsFilterJSONGen = function(){
+        return {
+            condition: function (searchTerm, cellValue) {
+                return JSON.stringify(cellValue).match(searchTerm);
+            },
+            placeholder: 'contains'
+        };
+
+    };
+
+    var columnDefs =  [{
+            field:'resource',
+            displayName:'Resource',
+            cellClass: 'grid-text',
+            filter: containsFilterGen(),
+            width: "15%"
+        },{
+            field:'contentType',
+            displayName:'Content Type',
+            cellClass: 'grid-text',
+            filter: containsFilterGen(),
+            width: "15%"
+        },{
+            field:'entity',
+            displayName:'Entity',
+            cellTemplate: statusTemplate,
+            cellClass: 'grid-pre',
+            filter: containsFilterJSONGen(),
+            width: "40%"
+        },{
+            field:'permissions',
+            displayName:'Permissions',
+            cellTemplate: statusTemplate,
+            cellClass: 'grid-pre',
+            filter: containsFilterJSONGen(),
+            width: "15%"
+        },{
+            field: 'children',
+            displayName: 'Children',
+            cellTemplate:  statusTemplate,
+            cellClass: 'grid-pre',
+            filter: containsFilterJSONGen(),
+            width: "15%"
+        }];
     scope.gridOptions = {
         data : 'keys',
         columnDefs: columnDefs,
         rowHeight: 120,
-        enableColumnResizing: false,
+        enableFiltering: true,
         onRegisterApi: function( gridApi ) {
             scope.gridApi = gridApi;
             scope.gridApi.core.handleWindowResize();
@@ -41,13 +91,13 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
     scope.loadKey = function (key) {
         client.api(scope.api).get(key.resource).then(function(response) {
             for (i in response) {
-                key[i] = JSON.stringify(response[i],null,2);
+                key[i] = response[i];
             }
             key.isLoaded = true;
             if(scope.hasChildren){
                 client.api(scope.api).list(key.resource).then(function(response) {
                     if (response.response === "ok") {
-                        key.children = JSON.stringify(response.entity,null,2);
+                        key.children = response.entity;
                     } else {
                         key.children = "Not Supported: " + response.response;
                     }
@@ -192,6 +242,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             }
         });
 }]);
+
 
 debuggerModule.directive( "apiDisplay", function() {
     return {

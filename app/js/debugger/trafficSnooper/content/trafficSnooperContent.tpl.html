@@ -1,0 +1,30 @@
+<div class="scrollOver traffic-snooper-table">
+    <table class="table table-striped table-bordered td-compact ">
+        <thead><tr>
+            <th class="dateString">Time</th>
+            <th class="srcPeer">Src Peer</th>
+            <th class="sequence">Sequence</th>
+            <th class="dst">Destination</th>
+            <th class="src">Source</th>
+            <th class="msgId">Message ID</th>
+            <th class="replyTo">Reply To</th>
+            <th class="action">Action</th>
+            <th class="response">Response</th>
+            <th class="resource">Resource</th>
+            <th class="contentType">Content Type</th>
+        </tr></thead><tbody>
+    <tr ng-repeat="packet in packets | filter:logicalFilter() | limitTo:-maxShown" ng-click="setSelectedPacket(packet)">
+        <td class="dateString">{{::packet.data.time | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
+        <td class="srcPeer">{{::packet.srcPeer}}</td>
+        <td class="sequence">{{::packet.sequence}}</td>
+        <td class="dst">{{::packet.data.dst}}</td>
+        <td class="src">{{::packet.data.src}}</td>
+        <td class="msgId">{{::packet.data.msgId}}</td>
+        <td class="replyTo">{{::packet.data.replyTo}}</td>
+        <td class="action">{{::packet.data.action}}</td>
+        <td class="response">{{::packet.data.response}}</td>
+        <td class="resource">{{::packet.data.resource}}</td>
+        <td class="contentType">{{::packet.data.contentType}}</td>
+    </tr>
+    </tbody></table>
+</div>

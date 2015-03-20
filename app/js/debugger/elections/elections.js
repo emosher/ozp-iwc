@@ -284,3 +284,17 @@ debuggerModule.directive( "elections", [function() {
         templateUrl: 'templates/elections.tpl.html'
     };
 }]);
+
+debuggerModule.directive( "electionsContent", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/electionsContent.tpl.html'
+    };
+}]);
+
+debuggerModule.directive( "electionsToolbar", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/electionsToolbar.tpl.html'
+    };
+}]);

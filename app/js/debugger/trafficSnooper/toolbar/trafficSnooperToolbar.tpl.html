@@ -1,0 +1,33 @@
+<form class="form-inline">
+    <div class="btn-group">
+            <button class="btn" ng-class="{true:'btn-danger',false:'btn-primary'}[logging]"
+                    btn-checkbox ng-model="logging"
+                    tooltip-placement="bottom" tooltip="Start/Stop packet capture.">
+                {{ logging ? 'Enabled' : 'Disabled' }}({{packets.length}})
+            </button>
+              <button class="btn btn-primary" ng-disabled="packets.length === 0"
+                      ng-click="packets=[]"> Clear
+              </button>
+    </div>
+    <div class="form-group">
+        <select ng-model="maxShown" tooltip-placement="bottom" class="form-control" style="margin-left: 10px;"
+                tooltip="Number of packets to display.  Higher numbers may reduce browser performance in high packets/second situations.">
+            <option value="50">50 Packets</option>
+            <option value="100">100 Packets</option>
+            <option value="150">150 Packets</option>
+            <option value="200">200 Packets</option>
+        </select>
+    </div>
+    <div class="form-group  {{viewFilterValidation}}">
+        <label for="packetFilter" style="margin-left: 10px;" class="control-label">Filter:</label>
+        <input id="packetFilter" ng-model="viewFilter" type="text" size="40"
+               class="form-control"
+               placeholder="data.action === 'get'"
+               tooltip-placement="bottom" tooltip="A boolean expression evaluator to filter packets by.
+                   The filter's scope is the packet object.
+                   Example: data.action === 'get' will show only packets with a 'get' action">
+        <button class="btn btn-primary" ng-disabled="filterError" ng-click="updateFilter(viewFilter)">Apply
+        </button>
+        <span>{{filterError}}</span>
+    </div>
+</form>

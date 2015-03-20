@@ -85,3 +85,25 @@ debuggerModule.directive( "metrics", [function() {
         templateUrl: 'templates/metrics.tpl.html'
     };
 }]);
+
+
+debuggerModule.directive( "metricsToolbar", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/metricsToolbar.tpl.html'
+    };
+}]);
+
+debuggerModule.directive( "metricsContent", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/metricsContent.tpl.html'
+    };
+}]);
+
+debuggerModule.directive( "metricsDetail", [function() {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/metricsDetail.tpl.html'
+    };
+}]);
