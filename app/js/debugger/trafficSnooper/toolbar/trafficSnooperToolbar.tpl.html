@@ -6,7 +6,7 @@
                 {{ logging ? 'Enabled' : 'Disabled' }}({{packets.length}})
             </button>
               <button class="btn btn-primary" ng-disabled="packets.length === 0"
-                      ng-click="packets=[]"> Clear
+                      ng-click="clear()"> Clear
               </button>
     </div>
     <div class="form-group">

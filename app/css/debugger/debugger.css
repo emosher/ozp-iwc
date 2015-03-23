@@ -181,11 +181,13 @@ text-align:left;
 }
 
 .app-toolbar, .app-content, .app-details, .app-tab {
-    padding:25px;
+    padding:10px;
 }
 
 .app-content {
-    height: 40vh;
+    max-height: 40vh;
+    height:100%;
+    margin-bottom: 20px;
 }
 
 .app-details {

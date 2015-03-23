@@ -1,7 +1,7 @@
 
 
 /* global debuggerModule */
-debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","apiSettingService", "uiGridConstants", "$filter",function(scope, attrs, client, apiDat, uiGridConstants) {
+debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","apiSettingService", "$filter",function(scope, attrs, client, apiDat) {
     // IWC message parameters
     scope.msg = {
       api: 'data.api',  // data.api, system.api, etc
@@ -21,7 +21,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         scope.clickActions.push(action);
     }
     scope.keys=[];
-    console.log(uiGridConstants);
 
 
     var statusTemplate = "<pre class='preWrap'>{{COL_FIELD | json}}</pre>";
@@ -70,14 +69,17 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             cellClass: 'grid-pre',
             filter: containsFilterJSONGen(),
             width: "15%"
-        },{
+        }];
+    if(scope.hasChildren){
+        columnDefs.push({
             field: 'children',
             displayName: 'Children',
             cellTemplate:  statusTemplate,
             cellClass: 'grid-pre',
             filter: containsFilterJSONGen(),
             width: "15%"
-        }];
+        });
+    }
     scope.gridOptions = {
         data : 'keys',
         columnDefs: columnDefs,
