@@ -2,6 +2,9 @@
 debuggerModule.directive( "jsonPre", [function() {
     return {
         restrict: 'E',
-        templateUrl: 'templates/jsonPre.tpl.html'
+        templateUrl: 'templates/jsonPre.tpl.html',
+        scope: {
+            data: "="
+        }
     };
 }]);

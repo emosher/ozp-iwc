@@ -1,7 +1,5 @@
-
-
 /* global debuggerModule */
-debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","apiSettingService", "$filter",function(scope, attrs, client, apiDat) {
+debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","apiSettingService",function(scope, attrs, client, apiDat) {
     // IWC message parameters
     scope.msg = {
       api: 'data.api',  // data.api, system.api, etc
@@ -20,6 +18,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         var action = apiDat.apis[scope.api].actions[i].action;
         scope.clickActions.push(action);
     }
+
     scope.keys=[];
 
 
@@ -43,13 +42,20 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
 
     };
 
-    var columnDefs =  [{
-            field:'resource',
-            displayName:'Resource',
+    var columnDefs =  [
+        {
+            field: 'actions',
+            displayName: "actions",
             headerCellTemplate: 'templates/headerTemplate.tpl.html',
             cellTemplate: 'templates/resourceTemplate.tpl.html',
+            width: "8%"
+
+        },{
+            field:'resource',
+            displayName:'Resource',
+            //cellTemplate: 'templates/resourceTemplate.tpl.html',
             filter: containsFilterGen(),
-            width: "15%"
+            width: "12%"
         },{
             field:'contentType',
             displayName:'Content Type',
@@ -61,7 +67,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             cellTemplate: statusTemplate,
             cellClass: 'grid-pre',
             filter: containsFilterJSONGen(),
-            width: "40%"
+            width: "35%"
         },{
             field:'permissions',
             displayName:'Permissions',
@@ -156,7 +162,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         });
 
         client.connect().then(function(){
-            scope.ready = true;
             scope.actions = client.apiMap[scope.api].actions;
             scope.gridApi.core.handleWindowResize();
         });
@@ -245,7 +250,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             }
         });
 }]);
-
 
 debuggerModule.directive( "apiDisplay", function() {
     return {

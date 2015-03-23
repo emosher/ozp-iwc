@@ -4,11 +4,10 @@ debuggerModule.controller("packetLogController",["$scope", "$filter",function(sc
     scope.viewFilter="";
     scope.viewFilterValidation="";
     scope.packets=[];
+    scope.maxShown = 50;
     scope.filteredPackets=[];
     scope.filterError="";
     scope.selectedPacket=null;
-    scope.maxShown = 200;
-
     var filterFunction=function() {
         return true;
     };
@@ -29,7 +28,6 @@ debuggerModule.controller("packetLogController",["$scope", "$filter",function(sc
             }
         }        
     };
-
 
     scope.updateFilteredPackets = function(packets) {
       scope.filteredPackets = packets.filter(scope.logicalFilter);
@@ -99,7 +97,6 @@ debuggerModule.controller("packetLogController",["$scope", "$filter",function(sc
             scope.updateFilteredPackets(scope.packets);
         });
     };
-
 
     var columnDefs =  [{
         field:'data.time',

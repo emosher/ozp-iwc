@@ -8,73 +8,6 @@ html,body {
     cursor: pointer;
 }
 
-
-.traffic-snooper-table {
-  border-collapse: collapse;
-  border: 1px solid black;
-}
-
-
-table {
-  /*padding-top: 15px;*/
-  margin-top: 15px;
-  /*border-collapse: collapse;*/
-  /*border: 1px solid black;*/
-  width: 100%;
-  max-width: 100%;
-}
-table td {
-  /*border: 1px solid black;*/
-  box-sizing: content-box;
-}
-
-.td-compact td {
-    border-collapse: collapse;
-    white-space: nowrap;
-    margin-right: 5px;
-    font-size: 0.9em;
-}
-
-
-table.hidden-rows tr:nth-child(4n+1),table#messages tr:nth-child(4n+2) {
-	background-color: #F3F5F7;
-}
-
-td pre {
-    box-sizing: content-box;
-    white-space: pre-wrap;
-/*    overflow: scroll;*/
-    margin: 0px;
-    height: 100%;
-    max-height: 20em;
-    width: 95%;
-    max-width: 60em;
-    padding: 4px;
-}
-table#keyValueTable tr:nth-child(2n+1) {
-	background-color: #F3F5F7;
-}
-
-.scrollable {
-	height: 50%;
-	width: 100%;
-	overflow: scroll;
-}
-
-.expander {
-	font-weight: bold;
-	font-size: large;
-	border: 1px solid blue;
-}
-
-tr.packet {
-	display:none;
-}
-
-.hidden {
-	display: none;
-}
-
 span.address {
 	text-decoration: underline;
 	color: blue;
@@ -173,6 +106,14 @@ text-align:left;
     overflow: auto;
 }
 
+.grid {
+    max-height:80vh;
+}
+
+.grid-cell-tmpl{
+    padding:5px;
+}
+
 .app-pane {
     margin-left:120px;
     background-color: #FFFFFF;
@@ -193,22 +134,25 @@ text-align:left;
 .app-details {
     height: 30vh;
 }
-
-.grid {
-    max-height:80vh;
+.packet-pre, .preWrap {
+    box-sizing: content-box;
+    white-space: pre-wrap;
+    font-size: 0.8em;
 }
 
-.grid-cell-tmpl{
-    padding:5px;
+.packet-pre {
+    height: 100%;
 }
 
 .preWrap {
-    box-sizing: content-box;
-    white-space: pre-wrap;
-    /* overflow: scroll; */
     margin: 3px;
     height: 90%;
-    font-size: 0.8em;
-    width: 95%;
     padding: 2px;
+}
+
+#metricList{
+    height:100%;
+    font-size: 0.8em;
+    overflow-y:scroll;
+    border: 1px solid #ddd;
 }

@@ -109,18 +109,18 @@ debuggerModule.directive('visTimeline', function() {
                     var electionMsg = $scope.$parent.selectedElection.packets[properties.items[0]];
                     if(electionMsg){
                         $scope.$apply(function() {
-                            $scope.$parent.packetContents = JSON.stringify(electionMsg, null, 2);
+                            $scope.$parent.packetContents = electionMsg;
                         });
                     } else{
                         var storageEvent = $scope.$parent.selectedElection.storageEvents[properties.items[0]];
                         $scope.$apply(function() {
-                            $scope.$parent.packetContents = JSON.stringify(storageEvent, null, 2);
+                            $scope.$parent.packetContents = storageEvent;
                         });
                     }
 
                 } else {
                     $scope.$apply(function(){
-                        $scope.$parent.packetContents = "";
+                        $scope.$parent.packetContents = null;
                     });
                 }
 

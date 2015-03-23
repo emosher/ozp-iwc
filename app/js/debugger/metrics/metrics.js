@@ -86,7 +86,6 @@ debuggerModule.directive( "metrics", [function() {
     };
 }]);
 
-
 debuggerModule.directive( "metricsToolbar", [function() {
     return {
         restrict: 'E',
