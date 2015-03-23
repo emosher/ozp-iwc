@@ -46,13 +46,13 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
     var columnDefs =  [{
             field:'resource',
             displayName:'Resource',
-            cellClass: 'grid-text',
+            headerCellTemplate: 'templates/headerTemplate.tpl.html',
+            cellTemplate: 'templates/resourceTemplate.tpl.html',
             filter: containsFilterGen(),
             width: "15%"
         },{
             field:'contentType',
             displayName:'Content Type',
-            cellClass: 'grid-text',
             filter: containsFilterGen(),
             width: "15%"
         },{
@@ -90,6 +90,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             scope.gridApi.core.handleWindowResize();
         }
     };
+
     scope.loadKey = function (key) {
         client.api(scope.api).get(key.resource).then(function(response) {
             for (i in response) {
@@ -167,7 +168,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             client.api(scope.api).watch(key.resource,function(response) {
                 if(response.response === 'changed') {
                     scope.$evalAsync(function() {
-                        key.entity=JSON.stringify(response.entity.newValue,null,2);
+                        key.entity=response.entity.newValue;
                         key.permissions=response.permissions;
                         key.contentType=response.contentType;
                     });

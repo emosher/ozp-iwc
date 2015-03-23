@@ -194,16 +194,12 @@ text-align:left;
     height: 30vh;
 }
 
-
-
-
-
 .grid {
     max-height:80vh;
 }
 
-.grid-wrapper {
-    background-color : #E8E8E8;
+.grid-cell-tmpl{
+    padding:5px;
 }
 
 .preWrap {

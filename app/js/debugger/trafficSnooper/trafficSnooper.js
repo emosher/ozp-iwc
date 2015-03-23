@@ -103,48 +103,37 @@ debuggerModule.controller("packetLogController",["$scope", "$filter",function(sc
 
     var columnDefs =  [{
         field:'data.time',
-        displayName:'Time',
-        cellClass: 'grid-text'
+        displayName:'Time'
     },{
         field:'srcPeer',
-        displayName:'Src Peer',
-        cellClass: 'grid-text'
+        displayName:'Src Peer'
     },{
         field:'sequence',
-        displayName:'Sequence',
-        cellClass: 'grid-text'
+        displayName:'Sequence'
     },{
         field:'data.dst',
-        displayName:'Destination',
-        cellClass: 'grid-text'
+        displayName:'Destination'
     },{
         field:'data.src',
-        displayName:'Source',
-        cellClass: 'grid-text'
+        displayName:'Source'
     },{
         field:'data.msgId',
-        displayName:'Message ID',
-        cellClass: 'grid-text'
+        displayName:'Message ID'
     },{
         field:'data.replyTo',
-        displayName:'Reply To',
-        cellClass: 'grid-text'
+        displayName:'Reply To'
     },{
         field:'data.action',
-        displayName:'Action',
-        cellClass: 'grid-text'
+        displayName:'Action'
     },{
         field:'data.response',
-        displayName:'Response',
-        cellClass: 'grid-text'
+        displayName:'Response'
     },{
         field:'data.resource',
-        displayName:'Resource',
-        cellClass: 'grid-text'
+        displayName:'Resource'
     },{
         field:'data.contentType',
-        displayName:'Content Type',
-        cellClass: 'grid-text'
+        displayName:'Content Type'
     }];
 
     scope.gridOptions = {
