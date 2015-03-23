@@ -21,7 +21,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
 
     scope.keys=[];
 
-
     var statusTemplate = "<pre class='preWrap'>{{COL_FIELD | json}}</pre>";
     var containsFilterGen = function(){
         return {
