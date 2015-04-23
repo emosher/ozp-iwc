@@ -158,6 +158,6 @@ ozpIwc.util.alert = function (message, errorObject) {
  *
  * @returns {Array}
  */
-ozpIwc.util.ensureArray=function(obj) { 
+ozpIwc.util.ensureArray=function(obj) {
 	return Array.isArray(obj)?obj:[obj];
 };

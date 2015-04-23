@@ -138,7 +138,7 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
         .then(function() {
              self.transitionToLeader();
         },function(e) {
-            ozpIwc.log.error("Failed to load data due to ",e);
+            ozpIwc.log.error(self.logPrefix+"Failed to load data due to ",e);
             self.shutdown();
         });
 };
@@ -232,7 +232,7 @@ ozpIwc.ApiBase.prototype.checkAuthorization=function(node,context,packet,action)
  */
 ozpIwc.ApiBase.prototype.matchingNodes=function(prefix) {
     return ozpIwc.object.values(this.data, function(k,node) { 
-        return node.resource.indexOf(prefix) >=0;
+        return node.resource.indexOf(prefix) ===0;
     });
 };
 
@@ -294,9 +294,9 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
 ozpIwc.ApiBase.prototype.resolveChangedNodes=function() {
     ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot) {
         var node=this.data[resource];
-        var watcherList=this.watchers[resource];
+        var watcherList=this.watchers[resource] || [];
         
-        if(!node || !watcherList) {
+        if(!node) {
             return;
         }
         
@@ -314,7 +314,9 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function() {
             oldValue: changes.oldValue.entity,
             newValue: changes.newValue.entity
         };
-
+        
+        this.events.trigger("changed",node,entity);
+        
         watcherList.forEach(function(watcher) {
             // @TODO allow watchers to changes notifications if they have permission to either the old or new, not just both
             this.participant.send({

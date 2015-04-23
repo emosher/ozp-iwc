@@ -23,13 +23,22 @@ ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
             method: 'DELETE'
         });        
     } else {
+        var entity=node.serializedEntity();
+        if(typeof(entity) !== "string") {
+            entity=JSON.stringify(entity);
+        }
+        console.log("PUT " + node.self,entity);
         return ozpIwc.util.ajax({
             href:  node.self,
             method: 'PUT',
-            data: node.serializedEntity(),
+            data: entity,
             headers: {
                 "Content-Type": node.serializedContentType()
             }
+        }).then(function(result) {
+            console.log("  saving to " + node.self,result);
+        },function(error) {
+            console.log("  FAILED saving to " + node.self,error);
         });
     }
 }; 

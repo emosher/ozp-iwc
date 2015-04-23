@@ -28,7 +28,7 @@ ozpIwc.NamesApi = ozpIwc.createApi(function(config) {
         var len=address.length;
         ozpIwc.object.eachEntry(self.data,function(k,v) {
             if(k.substr(-len) === address) {
-                self.markAsChanged(v);
+                self.markForChange(v);
                 v.markAsDeleted();
             }
         });

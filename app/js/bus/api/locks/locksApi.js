@@ -48,7 +48,7 @@ ozpIwc.LocksApi.prototype.makeValue = function(packet) {
 
 ozpIwc.LocksApi.prototype.updateLock=function(node,newOwner) {
     if(!newOwner) {
-        console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
+//        console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
         return;
     }
     console.log("[locks.api] New lock owner on " + node.resource + ": ",newOwner);
@@ -71,7 +71,7 @@ ozpIwc.LocksApi.prototype.handleLock=function(node,packetContext) {
 };
 
 ozpIwc.LocksApi.prototype.handleUnlock=function(node,packetContext) {
-    console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
+//    console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
     this.updateLock(node,node.unlock({
         src: packetContext.packet.src,
         msgId: packetContext.packet.msgId
@@ -87,7 +87,7 @@ ozpIwc.LocksApi.prototype.handleEventChannelDisconnectImpl = function (packetCon
 
     for(var key in this.data) {
         var node=this.data[key];
-        console.log("Unlocking " + node.resource + " due to shutdown of " + packetContext.packet.entity.address,packetContext.packet);
+//        console.log("Unlocking " + node.resource + " due to shutdown of " + packetContext.packet.entity.address,packetContext.packet);
         this.updateLock(node,node.unlock({
             src: packetContext.packet.entity.address
         }));

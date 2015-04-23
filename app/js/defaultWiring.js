@@ -50,7 +50,7 @@ if(typeof ozpIwc.enableDefault === "undefined" || ozpIwc.enableDefault) {
         ozpIwc.defaultRouter.registerParticipant(ozpIwc.locksApi.participant);
 
         ozpIwc.namesApi = new ozpIwc.NamesApi({'name': "names.api"});
-
+        ozpIwc.dataApi = new ozpIwc.DataApi({'name': "data.api"});
 //        ozpIwc.dataApi = new ozpIwc.DataApi({
 //            'participant': new ozpIwc.LeaderGroupParticipant({
 //                'name': "data.api",
