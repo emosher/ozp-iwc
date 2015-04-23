@@ -146,7 +146,8 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
     scope.refresh=function() {
         client.send({
             'dst': scope.api,
-            'action': "list"
+            'action': "list",
+            'resource': "/"
         },function(response,done) {
             scope.keys=response.entity.map(function(k) {
                 var key={

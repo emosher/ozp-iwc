@@ -42,12 +42,7 @@ ozpIwc.ClientParticipant.prototype.sendImpl=ozpIwc.Participant.prototype.send;
 ozpIwc.ClientParticipant.prototype.receiveFromRouterImpl=function(packetContext) {
     var packet=packetContext.packet;
     if(!this.routeToReplies(packet)) {
-        if (packet.dst === "$bus.multicast"){
-            this.events.trigger("receiveEventChannelPacket",packetContext);
-        } else {
-            this.events.trigger("receive",packetContext);
-        }
-        return; // dummy statement to help with breakpoints
+        this.events.trigger("receive",packetContext);
     }    
 };
 

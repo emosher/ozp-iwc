@@ -105,6 +105,8 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
  * @return {Promise} a promise that resolves when all data is loaded.
  */
 ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
+    console.log(this.logPrefix+"initializing data");
+
     deathScream=deathScream || { watchers: {}, data: []};
     this.watchers=deathScream.watchers;
     deathScream.data.forEach(function(packet) {
@@ -130,6 +132,7 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
     if(this.leaderState !== "member") {
         return;
     }
+    console.log(self.logPrefix+" loading from the server");
     this.leaderState="loading";
     return this.initializeData(this.deathScream)
         .then(function() {
@@ -148,6 +151,8 @@ ozpIwc.ApiBase.prototype.transitionToLeader=function() {
     if(this.leaderState !== "loading") {
         return;
     }
+    console.log(this.logPrefix+"becoming leader");
+
     this.leaderState = "leader";
     this.broadcastLeaderReady();
     this.deliverRequestQueue();
@@ -345,10 +350,26 @@ ozpIwc.ApiBase.prototype.receivePacketContext=function(packetContext) {
 
     if(packetContext.packet.dst===this.coordinationAddress) {
         return this.receiveCoordinationPacket(packetContext);
+    } else if (packetContext.packet.dst === "$bus.multicast"){
+        return this.receiveBusPacket(packetContext);
     } else {
         return this.receiveRequestPacket(packetContext);
     }
 };
+
+ozpIwc.ApiBase.prototype.receiveBusPacket=function(packetContext) {
+    var packet=packetContext.packet;
+    switch(packet.action) {
+        case "connect":
+            this.events.trigger("addressConnects",packet.entity.address,packet);
+            break;
+        case "disconnect":
+            this.events.trigger("addressDisconnects",packet.entity.address,packet);
+            break;
+    }
+    return Promise.resolve();
+};
+
 
 //===============================================================
 // API Request Handling
@@ -403,6 +424,8 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
  * @param {ozpIwc.TransportPacketContext} context
  */
 ozpIwc.ApiBase.prototype.defaultRoute=function(packet,context) {
+    console.log(this.logPrefix+"Could not route due to " + context.defaultRouteCause,packet);
+
     switch(context.defaultRouteCause) {
         case "nonRoutablePacket": // packet doesn't have an action/resource, so ignore it
             return;

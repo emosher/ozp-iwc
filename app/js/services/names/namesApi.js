@@ -23,10 +23,21 @@ ozpIwc.NamesApi = ozpIwc.createApi(function(config) {
             contentType: 'application/vnd.ozp-iwc-api-v1+json'
         });
     }
+    var self=this;
+    this.on("addressDisconnects",function(address) {
+        var len=address.length;
+        ozpIwc.object.eachEntry(self.data,function(k,v) {
+            if(k.substr(-len) === address) {
+                self.markAsChanged(v);
+                v.markAsDeleted();
+            }
+        });
+    });
 });
 
 // Default handlers are fine for list, bulkGet, watch, and unwatch with any properly formed resource
-ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"/{c:(?:api|address|multicast|router).*}");
+ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"{c:/}");
+ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"{c:/(?:api|address|multicast|router).*}");
 
 //====================================================================
 // Address, Multicast, and Router endpoints
