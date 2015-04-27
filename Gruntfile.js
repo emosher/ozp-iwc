@@ -147,9 +147,6 @@ module.exports = function(grunt) {
                 dest: '<%= output.metricsJs %>'
             },
             debugger: {
-                options: {
-                    sourcesContent: false
-                },
                 src: '<%= src.debugger %>',
                 dest: '<%= output.debuggerJs %>'
             },

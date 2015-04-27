@@ -69,7 +69,7 @@ ozpIwc.ApiBase=function(config) {
     });
 };
 //===============================================================
-// State transitions to be overriden by subclasses
+// Default methods that can be overriden by subclasses
 //===============================================================
 /**
  * Create the data that needs to be handed off to the new leader.
@@ -116,6 +116,24 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
     return Promise.resolve();
 };
 
+/**
+ * Creates a node appropriate for the given config.  This does
+ * NOT add the node to this.data.  Default implementation returns
+ * a plain ozpIwc.ApiNode.
+ * 
+ * __Intended to be overridden by subclasses__
+ * 
+ * Subsclasses can override this for custom node types that may vary
+ * from resource to resource.
+ * 
+ * @method createNode
+ * @param {Object} config The ApiNode configuration.
+ * @param {string} config.resource The resource path to create.
+ * @return {ozpIwc.ApiNode}
+ */
+ozpIwc.ApiBase.prototype.createNode=function(config) {
+    return new ozpIwc.ApiNode(config);
+};
 
 
 //===============================================================

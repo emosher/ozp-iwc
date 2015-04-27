@@ -9,11 +9,10 @@ ozpIwc.apiFilter={
      * @param {type} next
      * @returns {unresolved}
      */
-    createResource: function(NodeClass) {
-        NodeClass=NodeClass || ozpIwc.ApiNode;
+    createResource: function() {
         return function(packet,context,pathParams,next) {
             if(!context.node) {
-                context.node=this.data[packet.resource]=new NodeClass({
+                context.node=this.data[packet.resource]=this.createNode({
                     resource: packet.resource
                 });
             }
