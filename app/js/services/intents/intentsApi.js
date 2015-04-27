@@ -13,12 +13,10 @@ ozpIwc.IntentsApi.declareRoute({
     // ozpIwc.BadActionError.
     switch (packet.entity.state) {
         case "new":
-            throw new ozpIwc.BadActionError
-            break;
+            throw new ozpIwc.BadActionError();
         case "choosing":
             this.handleInFlightChoose(context.node, context);
             return {response: "ok"};
-            break;
         case "delivering":
             // shouldn't be set externally
             context.replyTo({'response': 'badAction'});
@@ -26,18 +24,15 @@ ozpIwc.IntentsApi.declareRoute({
         case "running":
             this.handleInFlightRunning(context.node, context);
             return {response: "ok"};
-            break;
         case "fail":
             this.handleInFlightFail(context.node, context);
             return {response: "ok"};
-            break;
         case "complete":
             this.handleInFlightComplete(context.node, context);
             return {response: "ok"};
-            break;
         default:
             if (context.node.acceptedStates.indexOf(packet.entity.state) < 0) {
-                throw new ozpIwc.BadActionError
+                throw new ozpIwc.BadActionError();
             }
             return {response: "ok"};
     }
@@ -45,13 +40,14 @@ ozpIwc.IntentsApi.declareRoute({
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["register"],
-    resource: ["/{major}/{minor}/{action}/{handlerId}"],
+    resource: "/{major}/{minor}/{action}/{handlerId}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
     var key = this.createKey(context.node.resource + "/");
 
     // This needs some work.  We shouldn't be porting over the findOrMakeValue.
     // var childNode = this.findOrMakeValue({'resource': key});
+    var childNode=this.createNode({resource:key});
     var clone = ozpIwc.util.clone(childNode);
     clone.permissions = childNode.permissions.getAll();
     packet.entity.invokeIntent = packet.entity.invokeIntent || {};
@@ -73,7 +69,7 @@ ozpIwc.IntentsApi.declareRoute({
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["invoke"],
-    resource: ["/{major}/{minor}/{action}", "/{major}/{minor}/{action}/{handler}"],
+    resource: "/{major}/{minor}/{action}", // Does not support array of resources "/{major}/{minor}/{action}/{handler}"],
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
     var resource = this.createKey("/ozpIntents/invocations/");

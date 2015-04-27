@@ -9,15 +9,26 @@ ozpIwc.apiFilter={
      * @param {type} next
      * @returns {unresolved}
      */
-    createResource: function() {
-        return function(packet,context,pathParams,next) {
-            if(!context.node) {
-                context.node=this.data[packet.resource]=this.createNode({
-                    resource: packet.resource
-                });
-            }
-            return next();
-        };
+    createResource: function(NodeType) {
+        if(NodeType) {
+            return function(packet,context,pathParams,next) {
+                if(!context.node) {
+                    context.node=this.data[packet.resource]=new NodeType({
+                        resource: packet.resource
+                    });
+                }
+                return next();
+            };
+        } else {
+            return function(packet,context,pathParams,next) {
+                if(!context.node) {
+                    context.node=this.data[packet.resource]=this.createNode({
+                        resource: packet.resource
+                    });
+                }
+                return next();
+            };
+        }
     },
     
     /**
