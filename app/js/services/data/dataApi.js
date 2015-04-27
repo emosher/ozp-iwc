@@ -3,15 +3,13 @@
  */
 
 /**
- * The Names Api. Collects information about current IWC state, Manages names, aliases, and permissions through the IWC.
+ * The Data Api. 
  * Subclasses the {{#crossLink "ozpIwc.ApiBase"}}{{/crossLink}}.
  *
- * @class NamesApi
+ * @class DataApi
  * @namespace ozpIwc
  * @extends ozpIwc.ApiBase
  * @constructor
- *
- * @type {Function}
  */
 ozpIwc.DataApi = ozpIwc.createApi(function(config) {
     this.persistenceQueue=config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
@@ -21,16 +19,18 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
     },this);
 });
 
+ozpIwc.DataApi.prototype.createNode=function(config) {
+    return new ozpIwc.DataNode(config);
+};
+
 ozpIwc.DataApi.prototype.deserializeNode=function(item) {
     var key="/"+item.key;
-    console.log(this.logPrefix+"deserializing node " + key);
     var node=this.data[key];
     if(!node) {
-        node=this.data[key]=new ozpIwc.ApiNode({resource: key});
+        node=this.data[key]=this.createNode({resource: key});
     }
-    this.markForChange(node);
-    node.deserialize(item);
-    console.log("       --",node);
+    node.deserializedEntity(item);
+    return node;
 };
 
 ozpIwc.DataApi.prototype.initializeData=function() {
@@ -40,7 +40,6 @@ ozpIwc.DataApi.prototype.initializeData=function() {
         return endpoint.get("/");
     }).then(function(data) {
         // load all the embedded items
-        console.log(self.logPrefix+"received data, parsing _embedded",data.response);
         if (data.response._embedded && data.response._embedded.item) {
             var items = ozpIwc.util.ensureArray(data.response._embedded.item);
             items.forEach(function(i) {
@@ -48,27 +47,19 @@ ozpIwc.DataApi.prototype.initializeData=function() {
             });
         }
         var unknownLinks=[];
-        console.log(self.logPrefix+"    parsing _links");
         if (data.response._links && data.response._links.item) {
             // prune out any links we already know about
             var knownLinks=ozpIwc.object.eachEntry(self.data,function(k,n) { 
                 return n.self;
             });
-            console.log(self.logPrefix+"   knownLinks:",knownLinks);
             unknownLinks=ozpIwc.util.ensureArray(data.response._links.item).filter(function(l) {
                 return knownLinks.indexOf(l.href) >= 0;
             });
-            console.log(self.logPrefix+"   unknownLinks:",unknownLinks);
-
         }
-        console.log(self.logPrefix+"    fetching _links");
         // empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
-            console.log(self.logPrefix+" fetching unresolved data " + l.href);
             return endpoint.get(l.href).then(function(data) {
                 self.deserializeNode(data.response);
-            }).catch(function(error) {
-                console.log(self.logPrefix+"failed to load " + l.href + " because ",error);
             });
         }));
 

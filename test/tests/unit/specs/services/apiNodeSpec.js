@@ -11,9 +11,9 @@ describe("ApiNode",function() {
 	});
     
     it("deserializes and serializes with the same outcome",function() {
-        var serialized=apiNode.serialize();
+        var serialized=apiNode.serializeLive();
         var node2=new ozpIwc.ApiNode({resource:"/foo"});
-        node2.deserialize(serialized);
+        node2.deserializeLive(serialized);
         expect(node2).toEqual(apiNode);     
     });
     

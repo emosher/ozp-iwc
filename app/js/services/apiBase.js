@@ -86,7 +86,7 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
     return {
         watchers: this.watchers,
         data: ozpIwc.object.eachEntry(this.data,function(k,v) {
-            return v.serialize();
+            return v.serializeLive();
         })
     };
 };
@@ -110,8 +110,8 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
     deathScream=deathScream || { watchers: {}, data: []};
     this.watchers=deathScream.watchers;
     deathScream.data.forEach(function(packet) {
-        this.data[packet.resource]=new ozpIwc.ApiNode({resource: packet.resource});
-        this.data[packet.resource].deserialize(packet);
+        this.data[packet.resource]=this.createNode({resource: packet.resource});
+        this.data[packet.resource].deserializeLive(packet);
     },this);
     return Promise.resolve();
 };
