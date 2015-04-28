@@ -88,7 +88,7 @@ ozpIwc.Participant=function() {
 
     // Handle leaving Event Channel
     var self=this;
-    window.addEventListener("beforeunload",function() {
+    ozpIwc.util.addEventListener("beforeunload",function() {
         // Unload events can't use setTimeout's. Therefore make all sending happen with normal execution
         self.send = function(originalPacket,callback) {
             var packet=this.fixPacket(originalPacket);

@@ -16,12 +16,24 @@ var getStackTrace = function() {
  */
 ozpIwc.log=ozpIwc.log || {
     // syslog levels
+    NONE: { logLevel: true, severity: 0, name: "NONE"},
+    DEFAULT: { logLevel: true, severity: 1, name: "DEFAULT"},
     ERROR: { logLevel: true, severity: 3, name: "ERROR"},
     INFO: { logLevel: true, severity: 6, name: "INFO"},
     DEBUG: { logLevel: true, severity: 7, name: "DEBUG"},
-    DEFAULT: { logLevel: true, severity: 0, name: "DEFAULT"},
+    ALL: { logLevel: true, severity: 10, name: "ALL"},
     
     threshold: 3,
+    
+    setThreshold: function(level) {
+        if(typeof(level)==="number") {
+            ozpIwc.log.threshold=level;
+        } else if(typeof(level.severity) === "number") {
+            ozpIwc.log.threshold=level.severity;
+        } else {
+            throw new TypeError("Threshold must be a number or one of the ozpIwc.log constants.  Instead got" + level);
+        }
+    },
     
     /**
      * A wrapper for log messages. Forwards to console.log if available.
@@ -41,7 +53,6 @@ ozpIwc.log=ozpIwc.log || {
             return;
         }
 
-        var console = window.console;
         // if no console, no logs.
         if(!console || !console.log){
             return;

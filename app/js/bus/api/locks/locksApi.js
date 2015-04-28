@@ -51,7 +51,7 @@ ozpIwc.LocksApi.prototype.updateLock=function(node,newOwner) {
 //        console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
         return;
     }
-    console.log("[locks.api] New lock owner on " + node.resource + ": ",newOwner);
+//    console.log("[locks.api] New lock owner on " + node.resource + ": ",newOwner);
     var pkt={
         'dst'   : newOwner.src,
         'src'   : this.participant.name,

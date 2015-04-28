@@ -38,7 +38,7 @@ ozpIwc.DataNode.prototype.serializedContentType=function() {
 };
 
 ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    console.log("SerializedForm is ",serializedForm);
+    ozpIwc.log.debug("SerializedForm is ",serializedForm);
     if(typeof(serializedForm) === "string") {
         serializedForm=JSON.parse(serializedForm);
     }
