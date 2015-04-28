@@ -1,6 +1,5 @@
 ozpIwc.ApiNode= function(config) {
  	config = config || {};
-    if(!config.resource) { throw new Error("ApiNode requires a resource");}
 
     /**
      * @property resource
@@ -31,10 +30,7 @@ ozpIwc.ApiNode= function(config) {
      * @type Object
      * @default {}
      */
-	this.permissions=new ozpIwc.policyAuth.SecurityAttribute();
-    for(var i in config.permissions){
-        this.permissions.pushIfNotExist(i, config.permissions[i]);
-    }
+	this.permissions={};
 
     /**
      * @property version
@@ -62,6 +58,12 @@ ozpIwc.ApiNode= function(config) {
      * @type String
      */
     this.self=config.self;
+    
+    if(config.serializedEntity) {
+        this.deserializedEntity(config.serializedEntity,config.serializedContentType);
+    }
+    
+    if(!this.resource) { throw new Error("ApiNode requires a resource");}
 };
 
 /**
@@ -98,6 +100,9 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
     if(serializedForm._links && serializedForm._links.self) {
         this.self=serializedForm._links.self.href;
     }
+    if(!this.resource && serializedForm.resource) {
+        this.resource=serializedForm.resource;
+    }
     this.deleted = serializedForm.deleted;
     this.persist=serializedForm.persist;
     this.allowedContentTypes=serializedForm.allowedContentTypes;
@@ -112,7 +117,7 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
  * @return {String} a string serialization of the object
  */
 ozpIwc.ApiNode.prototype.serializedEntity=function() {
-    return JSON.stringify(this.entity);
+    return JSON.stringify(this.serializeLive());
 };
 
 /**
@@ -124,7 +129,7 @@ ozpIwc.ApiNode.prototype.serializedEntity=function() {
  * @return {String} the content type of the serialized data
  */
 ozpIwc.ApiNode.prototype.serializedContentType=function() {
-    return this.contentType || "application/json";
+    return "application/json";
 };
 
 /**
@@ -137,11 +142,7 @@ ozpIwc.ApiNode.prototype.serializedContentType=function() {
  * @param {String} contentType The contentType of the object
  */
 ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    if(contentType.indexof("json") >= 0) {
-        serializedForm=JSON.parse(serializedForm);
-    }
-    this.entity=serializedForm;
-    this.contentType=serializedForm;
+    return this.deserializeLive(JSON.parse(serializedForm));
 };
 
 
@@ -156,7 +157,7 @@ ozpIwc.ApiNode.prototype.toPacket=function(base) {
 	base = base || {};
 	base.entity=ozpIwc.util.clone(this.entity);
 	base.contentType=this.contentType;
-	base.permissions=ozpIwc.util.clone(this.permissions.getAll());
+	base.permissions=this.permissions;
 	base.eTag=this.version;
 	base.resource=this.resource;
 	return base;

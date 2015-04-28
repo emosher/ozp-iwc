@@ -48,7 +48,9 @@ ozpIwc.log=ozpIwc.log || {
         }
         
         var msg=args.reduce(function(acc, val) {
-            if(typeof(val) === "object") {
+            if(val instanceof Error) {
+                return acc + val.toString() + (val.stack?(" -- " +val.stack):""); //"[" + val.name + ":" + val.message;
+            }else if(typeof(val) === "object") {
                 return acc + JSON.stringify(val,null,2);
             }
             return acc + val;

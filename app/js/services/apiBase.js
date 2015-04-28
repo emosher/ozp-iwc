@@ -113,7 +113,15 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
         this.data[packet.resource]=this.createNode({resource: packet.resource});
         this.data[packet.resource].deserializeLive(packet);
     },this);
-    return Promise.resolve();
+    
+    if(this.endpoints) {
+        var self=this;
+        return Promise.all(this.endpoints.map(function(u) {
+            return self.loadFromEndpoint(ozpIwc.endpoint(u));
+        }));    
+    } else {
+        return Promise.resolve();
+    }
 };
 
 /**
@@ -150,7 +158,6 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
     if(this.leaderState !== "member") {
         return;
     }
-    console.log(self.logPrefix+" loading from the server");
     this.leaderState="loading";
     return this.initializeData(this.deathScream)
         .then(function() {
@@ -522,6 +529,58 @@ ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
 };
 
 //===============================================================
+// Load data from the server
+//===============================================================
+
+/**
+ * Loads data from the provided endpoint.  The endpoint must point to a HAL JSON document
+ * that embeds or links to all resources for this api.
+ * 
+ * @method loadFromEndpoint
+ * @param {ozpIwc.Endpoint} endpoint
+ * @return {Promise} resolved when all data has been loaded.
+ */
+ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
+    var self=this;
+    return endpoint.get("/").then(function(data) {
+        var response=data.response;
+        var embeddedItems=ozpIwc.util.ensureArray((response._embedded && response._embedded.item) || []);
+        var linkedItems=ozpIwc.util.ensureArray((response._links && response._links.item) || []);
+
+        // load all the embedded items
+        embeddedItems.forEach(function(i) {
+            var n=self.createNode({
+                serializedEntity: i
+            });
+//            console.log(self.logPrefix+" loading ",n.resource);
+            self.data[n.resource]=n;
+        });
+
+        var unknownLinks=linkedItems.map(function(i) { return i.href;});
+        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
+        unknownLinks=unknownLinks.filter(function(href) {
+                return ozpIwc.object.values(self.data,function(k,node) {
+                    return node.self !== href;
+                }).length;
+            });
+        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
+        // empty array resolves immediately, so no check needed
+        return Promise.all(unknownLinks.map(function(l) {
+            console.log(self.logPrefix+"fetching link: " + l);
+            return endpoint.get(l).then(function(data) {
+                console.log(self.logPrefix+" retrieved data: ",data);
+                var n=self.createNode({
+                    serializedEntity: data.response
+                });
+                self.data[n.resource]=n;
+            });
+        }));
+
+    });
+};
+
+
+//===============================================================
 // Default Routes and Subclass Helpers
 //===============================================================
 
@@ -582,6 +641,13 @@ ozpIwc.ApiBase.defaultHandler={
         return { response: "ok" };
     }
 };
+
+/**
+ * A list of all of the default actions.
+ * @property allActions
+ * @static
+ * @type {String[]}
+ */
 ozpIwc.ApiBase.allActions=Object.keys(ozpIwc.ApiBase.defaultHandler);
 
 /**
