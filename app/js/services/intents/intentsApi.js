@@ -1,46 +1,30 @@
-ozpIwc.IntentsApiInFlightIntent = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
-    // Whatever we'd do for "super" is fine here.
+ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
+    this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
+    this.endpoints = [
+        ozpIwc.linkRelPrefix + ":intent"
+    ];
 
-    // Used when handling the failure case in the state machine.  Probably have
-    // to add this into a setter function in order to have it be anything other
-    // than null.
-    this.invokePacket = config.invokePacket;
+    this.on("changed", function(node) {
+        console.log("Persisting " + node.resource);
+        this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
+    }, this);
 });
-ozpIwc.IntentsApiInFlightIntent.prototype.acceptedStates = ["new", "choosing", "delivering", "running", "error", "complete"];
 
-ozpIwc.IntentsApi = ozpIwc.createApi();
+ozpIwc.IntentsApi.prototype.createNode = function(config) {
+    return new ozpIwc.IntentsNode(config);
+};
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["set"],
     resource: "/inFlightIntent/{id}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsApiInFlightIntent, "application/vnd.ozp-iwc-intent-invocation-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsInFlightNode, "application/vnd.ozp-iwc-intent-invocation-v1+json")
 }, function(packet, context, pathParams) {
-    if (ozpIwc.IntentsApiInFlightIntent.acceptedStates.indexOf(packet.entity.state) > -1 &&
+    if (ozpIwc.IntentsInFlightNode.acceptedStates.indexOf(packet.entity.state) > -1 &&
             (packet.entity.state !== "new" && packet.entity.state !== "delivering")) {
-        // Notes on implementation:
-        // packet.entity.state is the desired "new" state of the context node.
-        // In all that follows, the serialize call turns the node into a packet
-        // which can then be manipulated and passed to the set function in
-        // order to update state.
+
+        context.node.set(packet);
         switch (packet.entity.state) {
             case "choosing":
-                // We'll take the current node and update it immediately to the
-                // delivering state and then invoke whatever intent was selected
-                // by the user.
-                //
-                // Question: Can't we just do a 'set' on the node based on the
-                // packet and achieve the same result, for "free?"
-                // Something like:
-                //      packet.entity.state = "delivering";
-                //      context.node.set(packet);
-                var updateNodeEntity = context.node.serialize();
-                updateNodeEntity.entity.handlerChosen = {
-                    'resource': packet.entity.resource,
-                    'reason': packet.entity.reason
-                };
-                updateNodeEntity.entity.state = "delivering";
-                context.node.set(updateNodeEntity);
-
                 // Seems that we might have to port this over from the old API. It
                 // also seems that we could simplify the call to have just the
                 // packet.resource and the context.node as parameters.
@@ -48,34 +32,9 @@ ozpIwc.IntentsApi.declareRoute({
                 // this.invokeIntentHandler(updateNodeEntity.resource, context, updateNodeEntity);
                 break;
 
-            case "running":
-                // Same question arises here as in the choosing branch.  What's
-                // so special about serializing the current node, setting some
-                // stuff from the packet and then deserializing back?  Could not
-                // the set work directly?  Should not?
-                var updateNodeEntity = context.node.serialize();
-                updateNodeEntity.entity.state = "running";
-                updateNodeEntity.entity.handler.address = packet.entity.address;
-                updateNodeEntity.entity.handler.resource = packet.entity.resource;
-                context.node.set(updateNodeEntity);
-                break;
-
             case "fail":
-                // Does this apply?
                 var invokePacket = context.node.invokePacket;
-                // Ditto earlier remarks here.
-                var updateNodeEntity = context.node.serialize();
-                updateNodeEntity.entity.state = packet.entity.state;
-                updateNodeEntity.entity.reply.contentType = packet.entity.reply.contentType;
-                updateNodeEntity.entity.reply.entity = packet.entity.reply.entity;
-                context.node.set(updateNodeEntity);
-
-                // This seems interesting:  re-serialize it so that we have the
-                // current state of the packet in order to mark the packet as
-                // deleted.
                 var snapshot = context.node.snapshot();
-                context.node.markAsDeleted(snapshot);
-
                 // What to do regarding these next two calls?
                 // this.notifyWatchers(node, node.changesSince(snapshot));
 
@@ -93,14 +52,8 @@ ozpIwc.IntentsApi.declareRoute({
 
             case "complete":
                 var invokePacket = context.node.invokePacket;
-                var updateNodeEntity = context.node.serialize();
-                updateNodeEntity.entity.state = packet.entity.state;
-                updateNodeEntity.entity.reply.contentType = packet.entity.reply.contentType;
-                updateNodeEntity.entity.reply.entity = packet.entity.reply.entity;
-                context.node.set(updateNodeEntity);
-
                 var snapshot = context.node.snapshot();
-                context.node.markAsDeleted(snapshot);
+
                 // this.notifyWatchers(node, node.changesSince(snapshot));
 
                 /*this.participant.send({
@@ -113,15 +66,8 @@ ozpIwc.IntentsApi.declareRoute({
                  }
                  });*/
                 break;
-
-            default:
-                // We would only get here if we added a state and forgot to manage
-                // it with one of the cases.  In which case you deserve the
-                // exception you get.
-                throw new ozpIwc.BadActionError;
         }
         return {response: "ok"};
-
     }
     else {
         throw new ozpIwc.BadActionError;
@@ -145,11 +91,11 @@ ozpIwc.IntentsApi.declareRoute({
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["invoke"],
-    resource: "/{major}/{minor}/{action}", // Does not support array of resources "/{major}/{minor}/{action}/{handler}"],
+    resource: "/{major}/{minor}/{action}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
     var resource = this.createKey("/ozpIntents/invocations/");
-    var inflightPacket = new ozpIwc.IntentsApiInFlightIntent({
+    var inflightPacket = new ozpIwc.IntentsInFlightNode({
         resource: resource,
         invokePacket: packet,
         contentType: context.node.contentType,
@@ -182,10 +128,10 @@ ozpIwc.IntentsApi.declareRoute({
             response: "ok",
             entity: {
                 "type": pathParams.major + "/" + pathParams.minor,
-"actions": this.matchingNodes(packet.resource).map(function(n) {
-    return n.entity.action;
+                "actions": this.matchingNodes(packet.resource).map(function(n) {
+                    return n.entity.action;
                 })
-    }
+            }
         };
     }
 });
