@@ -1,45 +1,130 @@
-ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
+ozpIwc.IntentsApiInFlightIntent = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
+    // Whatever we'd do for "super" is fine here.
 
+    // Used when handling the failure case in the state machine.  Probably have
+    // to add this into a setter function in order to have it be anything other
+    // than null.
+    this.invokePacket = config.invokePacket;
 });
+ozpIwc.IntentsApiInFlightIntent.prototype.acceptedStates = ["new", "choosing", "delivering", "running", "error", "complete"];
+
+ozpIwc.IntentsApi = ozpIwc.createApi();
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["set"],
     resource: "/inFlightIntent/{id}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsApiInFlightIntent, "application/vnd.ozp-iwc-intent-invocation-v1+json")
 }, function(packet, context, pathParams) {
-    // SO:  Seems like what we want to say in a lot of this code is more along
-    // the lines of context.node.set(packet); or context.node.delete(packet);,
-    // followed by a return of an OK response or a throw of the
-    // ozpIwc.BadActionError.
-    switch (packet.entity.state) {
-        case "new":
-            throw new ozpIwc.BadActionError
-            break;
-        case "choosing":
-            this.handleInFlightChoose(context.node, context);
-            return {response: "ok"};
-            break;
-        case "delivering":
-            // shouldn't be set externally
-            context.replyTo({'response': 'badAction'});
-            break;
-        case "running":
-            this.handleInFlightRunning(context.node, context);
-            return {response: "ok"};
-            break;
-        case "fail":
-            this.handleInFlightFail(context.node, context);
-            return {response: "ok"};
-            break;
-        case "complete":
-            this.handleInFlightComplete(context.node, context);
-            return {response: "ok"};
-            break;
-        default:
-            if (context.node.acceptedStates.indexOf(packet.entity.state) < 0) {
-                throw new ozpIwc.BadActionError
-            }
-            return {response: "ok"};
+    if (ozpIwc.IntentsApiInFlightIntent.acceptedStates.indexOf(packet.entity.state) > -1 &&
+            (packet.entity.state !== "new" && packet.entity.state !== "delivering")) {
+        // Notes on implementation:
+        // packet.entity.state is the desired "new" state of the context node.
+        // In all that follows, the serialize call turns the node into a packet
+        // which can then be manipulated and passed to the set function in
+        // order to update state.
+        switch (packet.entity.state) {
+            case "choosing":
+                // We'll take the current node and update it immediately to the
+                // delivering state and then invoke whatever intent was selected
+                // by the user.
+                //
+                // Question: Can't we just do a 'set' on the node based on the
+                // packet and achieve the same result, for "free?"
+                // Something like:
+                //      packet.entity.state = "delivering";
+                //      context.node.set(packet);
+                var updateNodeEntity = context.node.serialize();
+                updateNodeEntity.entity.handlerChosen = {
+                    'resource': packet.entity.resource,
+                    'reason': packet.entity.reason
+                };
+                updateNodeEntity.entity.state = "delivering";
+                context.node.set(updateNodeEntity);
+
+                // Seems that we might have to port this over from the old API. It
+                // also seems that we could simplify the call to have just the
+                // packet.resource and the context.node as parameters.
+                //
+                // this.invokeIntentHandler(updateNodeEntity.resource, context, updateNodeEntity);
+                break;
+
+            case "running":
+                // Same question arises here as in the choosing branch.  What's
+                // so special about serializing the current node, setting some
+                // stuff from the packet and then deserializing back?  Could not
+                // the set work directly?  Should not?
+                var updateNodeEntity = context.node.serialize();
+                updateNodeEntity.entity.state = "running";
+                updateNodeEntity.entity.handler.address = packet.entity.address;
+                updateNodeEntity.entity.handler.resource = packet.entity.resource;
+                context.node.set(updateNodeEntity);
+                break;
+
+            case "fail":
+                // Does this apply?
+                var invokePacket = context.node.invokePacket;
+                // Ditto earlier remarks here.
+                var updateNodeEntity = context.node.serialize();
+                updateNodeEntity.entity.state = packet.entity.state;
+                updateNodeEntity.entity.reply.contentType = packet.entity.reply.contentType;
+                updateNodeEntity.entity.reply.entity = packet.entity.reply.entity;
+                context.node.set(updateNodeEntity);
+
+                // This seems interesting:  re-serialize it so that we have the
+                // current state of the packet in order to mark the packet as
+                // deleted.
+                var snapshot = context.node.snapshot();
+                context.node.markAsDeleted(snapshot);
+
+                // What to do regarding these next two calls?
+                // this.notifyWatchers(node, node.changesSince(snapshot));
+
+                /*this.participant.send({
+                 replyTo: invokePacket.msgId,
+                 dst: invokePacket.src,
+                 response: 'ok',
+                 entity: {
+                 response: node.entity.reply,
+                 invoked: false
+                 }
+                 });*/
+
+                break;
+
+            case "complete":
+                var invokePacket = context.node.invokePacket;
+                var updateNodeEntity = context.node.serialize();
+                updateNodeEntity.entity.state = packet.entity.state;
+                updateNodeEntity.entity.reply.contentType = packet.entity.reply.contentType;
+                updateNodeEntity.entity.reply.entity = packet.entity.reply.entity;
+                context.node.set(updateNodeEntity);
+
+                var snapshot = context.node.snapshot();
+                context.node.markAsDeleted(snapshot);
+                // this.notifyWatchers(node, node.changesSince(snapshot));
+
+                /*this.participant.send({
+                 replyTo: invokePacket.msgId,
+                 dst: invokePacket.src,
+                 response: 'ok',
+                 entity: {
+                 response: node.entity.reply,
+                 invoked: true
+                 }
+                 });*/
+                break;
+
+            default:
+                // We would only get here if we added a state and forgot to manage
+                // it with one of the cases.  In which case you deserve the
+                // exception you get.
+                throw new ozpIwc.BadActionError;
+        }
+        return {response: "ok"};
+
+    }
+    else {
+        throw new ozpIwc.BadActionError;
     }
 });
 
@@ -48,27 +133,14 @@ ozpIwc.IntentsApi.declareRoute({
     resource: ["/{major}/{minor}/{action}/{handlerId}"],
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
-    var key = this.createKey(context.node.resource + "/");
-
-    // This needs some work.  We shouldn't be porting over the findOrMakeValue.
-    // var childNode = this.findOrMakeValue({'resource': key});
-    var clone = ozpIwc.util.clone(childNode);
-    clone.permissions = childNode.permissions.getAll();
-    packet.entity.invokeIntent = packet.entity.invokeIntent || {};
-    packet.entity.invokeIntent.dst = packet.src;
-    packet.entity.invokeIntent.replyTo = packet.msgId;
-
-    for (var i in packet.entity) {
-        clone.entity[i] = packet.entity[i];
-    }
-    childNode.set(clone);
-
-    context.replyTo({
+    var childNode = this.createNode({'resource': key});
+    childNode.set(packet);
+    return {
         'response': 'ok',
         'entity': {
             'resource': childNode.resource
         }
-    });
+    };
 });
 
 ozpIwc.IntentsApi.declareRoute({
@@ -88,10 +160,9 @@ ozpIwc.IntentsApi.declareRoute({
     });
 
     this.data[inflightPacket.resource] = inflightPacket;
-    return inflightPacket;
+    return inflightPacket.toPacket();
 });
 
-// The handleXYZ from old API should be mapped onto actions at.
 ozpIwc.IntentsApi.declareRoute({
     action: ["set", "delete"],
     resource: "/{major}/{minor}",
@@ -104,100 +175,21 @@ ozpIwc.IntentsApi.declareRoute({
     resource: "/{major}/{minor}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
-    // List of actions
+    if (context.node) {
+        return context.node.toPacket();
+    } else {
+        return {
+            response: "ok",
+            entity: {
+                "type": pathParams.major + "/" + pathParams.minor,
+"actions": this.matchingNodes(packet.resource).map(function(n) {
+    return n.entity.action;
+                })
+    }
+        };
+    }
 });
 
 // Defaults are fine except for the routes registered above.
 ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list", "delete", "watch", "unwatch"]);
 ozpIwc.IntentsApi.useDefaultRoute(["get", "set", "bulkGet", "list", "delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
-
-
-
-
-// Might there be a better way to deal with this, rather than making these
-// functions available to every instance of the API?  Seems more private to
-// route for invocation than something we want on the API itself.
-ozpIwc.IntentsApi.prototype.handleDelete = function(node, packetContext) {
-    delete this.data[node.resource];
-    packetContext.replyTo({'response': 'ok'});
-};
-
-ozpIwc.IntentsApi.prototype.handleInFlightChoose = function(node, packetContext) {
-    if (node.entity.state !== "choosing") {
-        return null;
-    }
-
-    var handlerNode = this.data[packetContext.packet.entity.resource];
-    if (!handlerNode) {
-        return null;
-    }
-
-    if (node.acceptedReasons.indexOf(packetContext.packet.entity.reason) < 0) {
-        return null;
-    }
-
-    var updateNodeEntity = node.serialize();
-
-    updateNodeEntity.entity.handlerChosen = {
-        'resource': packetContext.packet.entity.resource,
-        'reason': packetContext.packet.entity.reason
-    };
-    updateNodeEntity.entity.state = "delivering";
-    node.set(updateNodeEntity);
-
-    this.invokeIntentHandler(handlerNode, packetContext, node);
-};
-
-ozpIwc.IntentsApi.prototype.handleInFlightRunning = function(node, packetContext) {
-    var updateNodeEntity = node.serialize();
-    updateNodeEntity.entity.state = "running";
-    updateNodeEntity.entity.handler.address = packetContext.packet.entity.address;
-    updateNodeEntity.entity.handler.resource = packetContext.packet.entity.resource;
-    node.set(updateNodeEntity);
-};
-
-ozpIwc.IntentsApi.prototype.handleInFlightFail = function(node, packetContext) {
-    var invokePacket = node.invokePacket;
-    var updateNodeEntity = node.serialize();
-
-    updateNodeEntity.entity.state = packetContext.packet.entity.state;
-    updateNodeEntity.entity.reply.contentType = packetContext.packet.entity.reply.contentType;
-    updateNodeEntity.entity.reply.entity = packetContext.packet.entity.reply.entity;
-
-    node.set(updateNodeEntity);
-    var snapshot = node.snapshot();
-    this.handleDelete(node, packetContext);
-    this.notifyWatchers(node, node.changesSince(snapshot));
-    this.participant.send({
-        replyTo: invokePacket.msgId,
-        dst: invokePacket.src,
-        response: 'ok',
-        entity: {
-            response: node.entity.reply,
-            invoked: false
-        }
-    });
-};
-
-ozpIwc.IntentsApi.prototype.handleInFlightComplete = function(node, packetContext) {
-    var invokePacket = node.invokePacket;
-    var updateNodeEntity = node.serialize();
-
-    updateNodeEntity.entity.state = packetContext.packet.entity.state;
-    updateNodeEntity.entity.reply.contentType = packetContext.packet.entity.reply.contentType;
-    updateNodeEntity.entity.reply.entity = packetContext.packet.entity.reply.entity;
-
-    node.set(updateNodeEntity);
-    var snapshot = node.snapshot();
-    this.handleDelete(node, packetContext);
-    this.notifyWatchers(node, node.changesSince(snapshot));
-    this.participant.send({
-        replyTo: invokePacket.msgId,
-        dst: invokePacket.src,
-        response: 'ok',
-        entity: {
-            response: node.entity.reply,
-            invoked: true
-        }
-    });
-};
