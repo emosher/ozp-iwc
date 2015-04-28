@@ -1,6 +1,5 @@
 ozpIwc.ApiNode= function(config) {
  	config = config || {};
-    if(!config.resource) { throw new Error("ApiNode requires a resource");}
 
     /**
      * @property resource
@@ -31,10 +30,7 @@ ozpIwc.ApiNode= function(config) {
      * @type Object
      * @default {}
      */
-	this.permissions=new ozpIwc.policyAuth.SecurityAttribute();
-    for(var i in config.permissions){
-        this.permissions.pushIfNotExist(i, config.permissions[i]);
-    }
+	this.permissions={};
 
     /**
      * @property version
@@ -62,10 +58,24 @@ ozpIwc.ApiNode= function(config) {
      * @type String
      */
     this.self=config.self;
+    
+    if(config.serializedEntity) {
+        this.deserializedEntity(config.serializedEntity,config.serializedContentType);
+    }
+    
+    if(!this.resource) { throw new Error("ApiNode requires a resource");}
 };
 
-
-ozpIwc.ApiNode.prototype.serialize=function() {
+/**
+ * Serialize the node to a form that conveys both persistent and
+ * ephemeral state of the object to be handed off to a new API
+ * leader.
+ * 
+ * __Intended to be overridden by subclasses__
+ * @method serializeLive
+ * @returns {Object}
+ */
+ozpIwc.ApiNode.prototype.serializeLive=function() {
     return this.toPacket({
         deleted: this.deleted,
         persist: this.persist,
@@ -76,23 +86,65 @@ ozpIwc.ApiNode.prototype.serialize=function() {
     });
 };
 
-ozpIwc.ApiNode.prototype.deserialize=function(packet) {
-    if(packet._links && packet._links.self) {
-        this.self=packet._links.self.href;
+/**
+ * Set the node using the state returned by serializeLive.
+ *
+ * __Intended to be overridden by subclasses__
+ * 
+ * @method deserializeLive
+ * @param {Object} serializedForm The data returned from serializeLive
+ * @return {Object} the content type of the serialized data
+ */
+ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
+    this.set(serializedForm);
+    if(serializedForm._links && serializedForm._links.self) {
+        this.self=serializedForm._links.self.href;
     }
-    this.deleted = packet.deleted;
-    this.persist=packet.persist;
-    this.allowedContentTypes=packet.allowedContentTypes;
-    this.set(packet);
+    if(!this.resource && serializedForm.resource) {
+        this.resource=serializedForm.resource;
+    }
+    this.deleted = serializedForm.deleted;
+    this.persist=serializedForm.persist;
+    this.allowedContentTypes=serializedForm.allowedContentTypes;
 };
 
+/**
+ * Serializes the node for persistence to the server.
+ *
+ * __Intended to be overridden by subclasses__
+ * 
+ * @method serializedEntity
+ * @return {String} a string serialization of the object
+ */
 ozpIwc.ApiNode.prototype.serializedEntity=function() {
-    //TODO: umm... something something something...
-    return this.entity;
+    return JSON.stringify(this.serializeLive());
 };
+
+/**
+ * The content type of the data returned by serializedEntity()
+ *
+ * __Intended to be overridden by subclasses__
+ * 
+ * @method serializedContentType
+ * @return {String} the content type of the serialized data
+ */
 ozpIwc.ApiNode.prototype.serializedContentType=function() {
     return "application/json";
 };
+
+/**
+ * Serializes the node for persistence to the server.
+ *
+ * __Intended to be overridden by subclasses__
+ * 
+ * @method serializedEntity
+ * @param {String} serializedForm A string serialization of the object
+ * @param {String} contentType The contentType of the object
+ */
+ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType) {
+    return this.deserializeLive(JSON.parse(serializedForm));
+};
+
 
 /**
  * Turns this value into a packet.
@@ -105,7 +157,7 @@ ozpIwc.ApiNode.prototype.toPacket=function(base) {
 	base = base || {};
 	base.entity=ozpIwc.util.clone(this.entity);
 	base.contentType=this.contentType;
-	base.permissions=ozpIwc.util.clone(this.permissions.getAll());
+	base.permissions=this.permissions;
 	base.eTag=this.version;
 	base.resource=this.resource;
 	return base;

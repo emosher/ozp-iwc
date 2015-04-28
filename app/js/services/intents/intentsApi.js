@@ -130,7 +130,7 @@ ozpIwc.IntentsApi.declareRoute({
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["register"],
-    resource: ["/{major}/{minor}/{action}/{handlerId}"],
+    resource: "/{major}/{minor}/{action}/{handlerId}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
     var childNode = this.createNode({'resource': key});
@@ -145,7 +145,7 @@ ozpIwc.IntentsApi.declareRoute({
 
 ozpIwc.IntentsApi.declareRoute({
     action: ["invoke"],
-    resource: ["/{major}/{minor}/{action}", "/{major}/{minor}/{action}/{handler}"],
+    resource: "/{major}/{minor}/{action}", // Does not support array of resources "/{major}/{minor}/{action}/{handler}"],
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
     var resource = this.createKey("/ozpIntents/invocations/");
