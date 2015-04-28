@@ -169,7 +169,7 @@ ozpIwc.Client=function(config) {
     this.constructApiFunctions();
     var self=this;
     this.unloadHandler=function() { self.disconnect();};
-    window.addEventListener('beforeunload',this.unloadHandler);
+    ozpIwc.util.addEventListener('beforeunload',this.unloadHandler);
 
     if(this.autoConnect) {
         this.connect();
@@ -487,8 +487,8 @@ ozpIwc.Client.prototype.off=function(event,callback) {
 ozpIwc.Client.prototype.disconnect=function() {
     this.promiseCallbacks={};
     this.registeredCallbacks={};
-    window.removeEventListener("message",this.postMessageHandler,false);
-    window.removeEventListener("unload",this.unloadHandler);
+    ozpIwc.util.removeEventListener("message",this.postMessageHandler);
+    ozpIwc.util.removeEventListener("unload",this.unloadHandler);
     
     this.connectPromise = null;
     if(this.iframe) {
@@ -545,7 +545,7 @@ ozpIwc.Client.prototype.connect=function() {
                 }
             };
             // receive postmessage events
-            window.addEventListener("message", this.postMessageHandler, false);
+            ozpIwc.util.addEventListener("message", this.postMessageHandler);
             return self.send({dst: "$transport"});
         }).then(function(message) {
             self.address = message.dst;
@@ -620,7 +620,7 @@ ozpIwc.Client.prototype.createIframePeer=function() {
         if(document.readyState === 'complete' ) {
             createIframeShim();
         } else {
-            window.addEventListener("load",createIframeShim,false);
+            ozpIwc.util.addEventListener("load",createIframeShim);
         }
     });
 };

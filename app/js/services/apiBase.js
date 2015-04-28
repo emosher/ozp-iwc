@@ -105,7 +105,7 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
  * @return {Promise} a promise that resolves when all data is loaded.
  */
 ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
-    console.log(this.logPrefix+"initializing data");
+//    console.log(this.logPrefix+"initializing data");
 
     deathScream=deathScream || { watchers: {}, data: []};
     this.watchers=deathScream.watchers;
@@ -176,7 +176,7 @@ ozpIwc.ApiBase.prototype.transitionToLeader=function() {
     if(this.leaderState !== "loading") {
         return;
     }
-    console.log(this.logPrefix+"becoming leader");
+//    console.log(this.logPrefix+"becoming leader");
 
     this.leaderState = "leader";
     this.broadcastLeaderReady();
@@ -451,7 +451,7 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
  * @param {ozpIwc.TransportPacketContext} context
  */
 ozpIwc.ApiBase.prototype.defaultRoute=function(packet,context) {
-    console.log(this.logPrefix+"Could not route due to " + context.defaultRouteCause,packet);
+//    console.log(this.logPrefix+"Could not route due to " + context.defaultRouteCause,packet);
 
     switch(context.defaultRouteCause) {
         case "nonRoutablePacket": // packet doesn't have an action/resource, so ignore it
@@ -557,18 +557,18 @@ ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
         });
 
         var unknownLinks=linkedItems.map(function(i) { return i.href;});
-        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
+//        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
         unknownLinks=unknownLinks.filter(function(href) {
                 return ozpIwc.object.values(self.data,function(k,node) {
                     return node.self !== href;
                 }).length;
             });
-        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
+//        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
         // empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
-            console.log(self.logPrefix+"fetching link: " + l);
+//            console.log(self.logPrefix+"fetching link: " + l);
             return endpoint.get(l).then(function(data) {
-                console.log(self.logPrefix+" retrieved data: ",data);
+  //              console.log(self.logPrefix+" retrieved data: ",data);
                 var n=self.createNode({
                     serializedEntity: data.response
                 });

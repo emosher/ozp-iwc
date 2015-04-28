@@ -25,7 +25,7 @@ ozpIwc.testUtil.BrowsingContext = function(onLoad,msgHandler,id){
     };
 
     var scripts = [ 'var ozpIwc = ozpIwc || {}; ozpIwc.enableDefault=false; var msgHandler = ' + msgHandler.toString() + ';' +
-        'window.addEventListener("message",'+msgEvent.toString()+',false);',
+        'window.addEventListener("message",'+msgEvent.toString()+');',
             '('+onLoad.toString()+')();'];
 
     this.iframe = document.createElement("iframe");

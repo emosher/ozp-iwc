@@ -27,7 +27,7 @@ ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
         if(typeof(entity) !== "string") {
             entity=JSON.stringify(entity);
         }
-        console.log("PUT " + node.self,entity);
+        ozpIwc.log.debug("PUT " + node.self,entity);
         return ozpIwc.util.ajax({
             href:  node.self,
             method: 'PUT',
@@ -36,9 +36,9 @@ ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
                 "Content-Type": node.serializedContentType()
             }
         }).then(function(result) {
-            console.log("  saving to " + node.self,result);
+            ozpIwc.log.debug("  saving to " + node.self,result);
         },function(error) {
-            console.log("  FAILED saving to " + node.self,error);
+            ozpIwc.log.error("  FAILED saving to " + node.self,error);
         });
     }
 }; 

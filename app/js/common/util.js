@@ -20,6 +20,35 @@ ozpIwc.util.now=function() {
     return new Date().getTime();
 };
 
+ozpIwc.util.eventListeners={};
+    
+ozpIwc.util.addEventListener=function(type,listener) {
+    var l=ozpIwc.util.eventListeners[type];
+    if(!l) {
+        l=ozpIwc.util.eventListeners[type]=[];
+    }
+    l.push(listener);
+    window.addEventListener(type,listener);
+};
+
+ozpIwc.util.removeEventListener=function(type,listener,useCapture) {
+    var l=ozpIwc.util.eventListeners[type];
+    if(l) {
+        ozpIwc.util.eventListeners[type]=l.filter(function(v) { return v!==listener;});
+    }
+    window.removeEventListener(type,listener);
+};
+
+ozpIwc.util.purgeEventListeners=function(type,listener,useCapture) {
+    ozpIwc.object.eachEntry(ozpIwc.util.eventListeners,function(type,listenerList) {
+        listenerList.forEach(function(listener) {
+            window.removeEventListener(type,listener);
+        });
+    });
+    ozpIwc.util.eventListeners={};
+};
+
+
 /**
  * Create a class with the given parent in it's prototype chain.
  *

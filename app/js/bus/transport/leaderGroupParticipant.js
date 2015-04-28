@@ -258,7 +258,7 @@ ozpIwc.LeaderGroupParticipant=ozpIwc.util.extend(ozpIwc.InternalParticipant,func
 
     // Handle passing of state on unload
     var self=this;
-	window.addEventListener("beforeunload",function() {
+	ozpIwc.util.addEventListener("beforeunload",function() {
         //Priority has to be the minimum possible
         self.priority=-Number.MAX_VALUE;
 

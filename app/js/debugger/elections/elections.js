@@ -269,9 +269,9 @@ debuggerModule.controller('ElectionCtrl',['$scope',function($scope){
     $scope.toggle = function(){
         $scope.enableOrNot = !$scope.enableOrNot;
         if ($scope.enableOrNot){
-            $scope.evtListener = window.addEventListener("storage",storeEvt);
+            $scope.evtListener = ozpIwc.util.addEventListener("storage",storeEvt);
         } else {
-            window.removeEventListener("storage",$scope.evtListener);
+            ozpIwc.util.removeEventListener("storage",$scope.evtListener);
         }
         ozpIwc.defaultPeer.on("receive",logPacket);
         ozpIwc.defaultPeer.on("send",logPacket);
