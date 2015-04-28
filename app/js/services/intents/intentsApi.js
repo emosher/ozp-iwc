@@ -15,70 +15,75 @@ ozpIwc.IntentsApi.prototype.createNode = function(config) {
 };
 
 ozpIwc.IntentsApi.declareRoute({
-    action: ["set"],
+    action: "set",
     resource: "/inFlightIntent/{id}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsInFlightNode, "application/vnd.ozp-iwc-intent-invocation-v1+json")
 }, function(packet, context, pathParams) {
+    var invokePacket, snapshot;
+
     if (ozpIwc.IntentsInFlightNode.acceptedStates.indexOf(packet.entity.state) > -1 &&
             (packet.entity.state !== "new" && packet.entity.state !== "delivering")) {
 
         context.node.set(packet);
         switch (packet.entity.state) {
             case "choosing":
-                // Seems that we might have to port this over from the old API. It
-                // also seems that we could simplify the call to have just the
-                // packet.resource and the context.node as parameters.
-                //
-                // this.invokeIntentHandler(updateNodeEntity.resource, context, updateNodeEntity);
+                var handlerNode = this.data[packet.entity.resource];
+                if (handlerNode === null) {
+                    return;
+                }
+                this.invokeIntentHandler(handlerNode, context, context.node);
                 break;
 
             case "fail":
-                var invokePacket = context.node.invokePacket;
-                var snapshot = context.node.snapshot();
-                // What to do regarding these next two calls?
+                invokePacket = context.node.invokePacket;
+                snapshot = context.node.snapshot();
+
+                // What to do regarding this next call?
                 // this.notifyWatchers(node, node.changesSince(snapshot));
 
-                /*this.participant.send({
-                 replyTo: invokePacket.msgId,
-                 dst: invokePacket.src,
-                 response: 'ok',
-                 entity: {
-                 response: node.entity.reply,
-                 invoked: false
-                 }
-                 });*/
+                this.participant.send({
+                    replyTo: invokePacket.msgId,
+                    dst: invokePacket.src,
+                    response: 'ok',
+                    entity: {
+                        response: context.node.entity.reply,
+                        invoked: false
+                    }
+                });
 
                 break;
 
             case "complete":
-                var invokePacket = context.node.invokePacket;
-                var snapshot = context.node.snapshot();
+                invokePacket = context.node.invokePacket;
+                snapshot = context.node.snapshot();
 
+                // What to do regarding this next call?
                 // this.notifyWatchers(node, node.changesSince(snapshot));
 
-                /*this.participant.send({
-                 replyTo: invokePacket.msgId,
-                 dst: invokePacket.src,
-                 response: 'ok',
-                 entity: {
-                 response: node.entity.reply,
-                 invoked: true
-                 }
-                 });*/
+                this.participant.send({
+                    replyTo: invokePacket.msgId,
+                    dst: invokePacket.src,
+                    response: 'ok',
+                    entity: {
+                        response: context.node.entity.reply,
+                        invoked: true
+                    }
+                });
                 break;
         }
         return {response: "ok"};
     }
     else {
-        throw new ozpIwc.BadActionError;
+        throw new ozpIwc.BadActionError(packet);
     }
 });
 
 ozpIwc.IntentsApi.declareRoute({
-    action: ["register"],
+    action: "register",
     resource: "/{major}/{minor}/{action}/{handlerId}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
+    var key = this.createKey(context.node.resource + "/");
     var childNode = this.createNode({'resource': key});
     childNode.set(packet);
     return {
@@ -90,7 +95,7 @@ ozpIwc.IntentsApi.declareRoute({
 });
 
 ozpIwc.IntentsApi.declareRoute({
-    action: ["invoke"],
+    action: "invoke",
     resource: "/{major}/{minor}/{action}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
@@ -117,7 +122,7 @@ ozpIwc.IntentsApi.declareRoute({
     throw new ozpIwc.NoPermissionError(packet);
 });
 ozpIwc.IntentsApi.declareRoute({
-    action: ["get"],
+    action: "get",
     resource: "/{major}/{minor}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
@@ -139,3 +144,46 @@ ozpIwc.IntentsApi.declareRoute({
 // Defaults are fine except for the routes registered above.
 ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list", "delete", "watch", "unwatch"]);
 ozpIwc.IntentsApi.useDefaultRoute(["get", "set", "bulkGet", "list", "delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
+
+/**
+ * Invokes an intent handler based on the given context.
+ */
+ozpIwc.IntentsApi.prototype.invokeIntentHandler = function(handlerNode, packetContext, inFlightIntent) {
+    inFlightIntent = inFlightIntent || {};
+
+    var packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
+    packet.entity = packet.entity || {};
+    packet.entity.inFlightIntent = inFlightIntent.resource;
+    packet.entity.inFlightIntentEntity = inFlightIntent.entity;
+    packet.src = this.participant.name;
+    var self = this;
+    this.participant.send(packet, function(response, done) {
+        var blacklist = ['src', 'dst', 'msgId', 'replyTo'];
+        var packet = {};
+        for (var k in response) {
+            if (blacklist.indexOf(k) === -1) {
+                packet[k] = response[k];
+            }
+        }
+        self.participant.send({
+            replyTo: packet.msgId,
+            dst: packet.src,
+            response: 'ok',
+            entity: packet
+        });
+        packetContext.replyTo(packet);
+        done();
+    });
+};
+
+/**
+ * Produces a modal for the user to select a handler from the given list of 
+ * intent handlers.
+ */
+ozpIwc.IntentsApi.prototype.chooseIntentHandler = function(inflightPacket) {
+    inflightPacket.entity.state = "choosing";
+    ozpIwc.util.openWindow("intentsChooser.html", {
+        "ozpIwc.peer": ozpIwc.BUS_ROOT,
+        "ozpIwc.intentSelection": "intents.api" + inflightPacket.resource
+    });
+};

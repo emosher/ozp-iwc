@@ -77,6 +77,6 @@ ozpIwc.IntentsInFlightNode.prototype.set = function(packet) {
             // We would only get here if we added a state and forgot to manage
             // it with one of the cases.  In which case we deserve the resulting
             // exception.
-            throw new ozpIwc.BadActionError;
+            throw new ozpIwc.BadActionError(packet);
     }
 };
