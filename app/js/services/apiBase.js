@@ -557,13 +557,14 @@ ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
         });
 
         var unknownLinks=linkedItems.map(function(i) { return i.href;});
-//        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
+        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
         unknownLinks=unknownLinks.filter(function(href) {
                 return ozpIwc.object.values(self.data,function(k,node) {
-                    return node.self !== href;
-                }).length;
+                    console.log(self.logPrefix+" comparing " + node.self + "===" + href);
+                    return node.self === href;
+                }).length === 0;
             });
-//        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
+        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
         // empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
 //            console.log(self.logPrefix+"fetching link: " + l);

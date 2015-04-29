@@ -31,5 +31,5 @@ ozpIwc.DataApi.prototype.createNode=function(config) {
     return new ozpIwc.DataNode(config);
 };
 
-// Default handlers are fine for list, bulkGet, watch, and unwatch with any properly formed resource
+// Default handlers are fine anything
 ozpIwc.DataApi.useDefaultRoute(ozpIwc.ApiBase.allActions);
