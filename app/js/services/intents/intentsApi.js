@@ -8,6 +8,22 @@ ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
         console.log("Persisting " + node.resource);
         this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
     }, this);
+
+    this.makeInvocationNode = function(packet, context) {
+        var resource = this.createKey("/ozpIntents/invocations/");
+        var inflightPacket = new ozpIwc.IntentsInFlightNode({
+            resource: resource,
+            invokePacket: packet,
+            contentType: context.node.contentType,
+            type: context.node.entity.type,
+            action: context.node.entity.action,
+            entity: packet.entity,
+            handlerChoices: context.node.getHandlers(context)
+        });
+
+        this.data[inflightPacket.resource] = inflightPacket;
+        return inflightPacket;
+    };
 });
 
 ozpIwc.IntentsApi.prototype.createNode = function(config) {
@@ -99,19 +115,34 @@ ozpIwc.IntentsApi.declareRoute({
     resource: "/{major}/{minor}/{action}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode, "application/vnd.ozp-iwc-intent-invocation-list-v1+json")
 }, function(packet, context, pathParams) {
-    var resource = this.createKey("/ozpIntents/invocations/");
-    var inflightPacket = new ozpIwc.IntentsInFlightNode({
-        resource: resource,
-        invokePacket: packet,
-        contentType: context.node.contentType,
-        type: context.node.entity.type,
-        action: context.node.entity.action,
-        entity: packet.entity,
-        handlerChoices: context.node.getHandlers(context)
-    });
+    var flyingNode = this.makeInvocationNode(packet, context);
+    var handlers = this.matchingNodes(packet.resource);
+    var updateInFlightEntity = flyingNode.toPacket();
+    if (handlers.length === 1) {
+        // Only one option, fire it.
+        updateInFlightEntity.entity.handlerChosen = {
+            'resource': handlers[0].resource,
+            'reason': "onlyOne"
+        };
+        updateInFlightEntity.entity.state = "delivering";
+        flyingNode.set(updateInFlightEntity);
 
-    this.data[inflightPacket.resource] = inflightPacket;
-    return inflightPacket.toPacket();
+        this.invokeIntentHandler(handlers[0], context, flyingNode);
+    }
+    else {
+        // Choose.
+        var handler = this.chooseIntentHandler(context.node, context, flyingNode);
+        updateInFlightEntity.entity.handlerChosen = {
+            'resource': handler.resource,
+            'reason': "user"
+        };
+        updateInFlightEntity.entity.state = "delivering";
+        flyingNode.set(updateInFlightEntity);
+
+        this.invokeIntentHandler(handler, context, flyingNode);
+    }
+
+    return flyingNode.toPacket();
 });
 
 ozpIwc.IntentsApi.declareRoute({
