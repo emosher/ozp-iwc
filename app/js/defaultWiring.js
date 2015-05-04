@@ -51,6 +51,7 @@ if(typeof ozpIwc.enableDefault === "undefined" || ozpIwc.enableDefault) {
 
         ozpIwc.namesApi = new ozpIwc.NamesApi({'name': "names.api"});
         ozpIwc.dataApi = new ozpIwc.DataApi({'name': "data.api"});
+        ozpIwc.intentsApi = new ozpIwc.IntentsApi({'name': "intents.api"});
 //        ozpIwc.dataApi = new ozpIwc.DataApi({
 //            'participant': new ozpIwc.LeaderGroupParticipant({
 //                'name': "data.api",

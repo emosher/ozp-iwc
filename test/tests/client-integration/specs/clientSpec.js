@@ -19,11 +19,11 @@ describe("IWC Client", function() {
     afterEach(function() {
         if (client) {
             client.disconnect();
-            client=null;
+            client = null;
         }
         if (participant) {
             participant.close();
-            participant=null;
+            participant = null;
         }
     });
 
@@ -31,7 +31,7 @@ describe("IWC Client", function() {
         client = new ozpIwc.Client({
             'peerUrl': "http://" + window.location.hostname + ":14002"
         });
-        
+
         return client.send({
             'dst': "names.api",
             'action': "get",
@@ -53,13 +53,13 @@ describe("IWC Client", function() {
             });
 
             var gate = ozpIwc.testUtil.doneSemaphore(2, done);
-            participant.on("connected", function(){
+            participant.on("connected", function() {
                 gate();
             });
-            client.connect().then(function(){
+            client.connect().then(function() {
                 gate();
-            }).catch(function(e){
-                console.error("IWC Client failed to connect due to ",e);
+            }).catch(function(e) {
+                console.error("IWC Client failed to connect due to ", e);
             });
         });
 
@@ -133,10 +133,10 @@ describe("IWC Client", function() {
             });
         });
     });
-    describe("api Mappings", function(){
+    describe("api Mappings", function() {
 
-        it("has its apiMap at construction based on the ozpIwc.apiMap",function(){
-            client=new ozpIwc.Client({
+        it("has its apiMap at construction based on the ozpIwc.apiMap", function() {
+            client = new ozpIwc.Client({
                 'peerUrl': "http://" + window.location.hostname + ":14002",
                 autoConnect: false
             });
@@ -161,8 +161,8 @@ describe("IWC Client", function() {
             expect(client.apiMap['system.api'].actions.length).toBeGreaterThan(0);
         });
 
-        it("creates api function calls on creation",function(){
-            client=new ozpIwc.Client({
+        it("creates api function calls on creation", function() {
+            client = new ozpIwc.Client({
                 'peerUrl': "http://" + window.location.hostname + ":14002",
                 autoConnect: false
             });
@@ -178,134 +178,135 @@ describe("IWC Client", function() {
         });
     });
 
-    describe("launch parameters",function() {
-        var testPeerUrl="http://" + window.location.hostname + ":14002";
+    describe("launch parameters", function() {
+        var testPeerUrl = "http://" + window.location.hostname + ":14002";
 
-        
-        it("when peerUrl is a string, it directly connects",function(done) {
-             client=new ozpIwc.Client({
-                 peerUrl: testPeerUrl,
-                 autoConnect: false
-             });
-             client.connect().then(function() {
+
+        it("when peerUrl is a string, it directly connects", function(done) {
+            client = new ozpIwc.Client({
+                peerUrl: testPeerUrl,
+                autoConnect: false
+            });
+            client.connect().then(function() {
                 expect(client.peerUrl).toEqual(testPeerUrl);
                 done();
-             })['catch'](function(error) {
-                 console.log("Error " ,error);
-                 expect(JSON.strinfigy(error)).toEqual("did not happen");
-                 done();
-             });
+            })['catch'](function(error) {
+                console.log("Error ", error);
+                expect(JSON.strinfigy(error)).toEqual("did not happen");
+                done();
+            });
         });
-        it("when peerUrl is an array, the first is chosen",function(done) {
-             client=new ozpIwc.Client({
-                 peerUrl: [testPeerUrl,"http://ozp.example.com"],
-                 autoConnect: false
-             });
-             client.connect().then(function() {
+        it("when peerUrl is an array, the first is chosen", function(done) {
+            client = new ozpIwc.Client({
+                peerUrl: [testPeerUrl, "http://ozp.example.com"],
+                autoConnect: false
+            });
+            client.connect().then(function() {
                 expect(client.peerUrl).toEqual(testPeerUrl);
                 done();
-             })['catch'](function(error) {
-                 console.log("Error " ,error);
-                 expect(error).toEqual("did not happen");
-                 done();
-             });
+            })['catch'](function(error) {
+                console.log("Error ", error);
+                expect(error).toEqual("did not happen");
+                done();
+            });
         });
-        
-        xit("DISABLED PENDING INTENTS.API REFACTOR --fetches the mailbox when passed ozpIwc.mailbox",function(done) {
-             window.name="ozpIwc.inFlightIntent=\"/ozpIntents/invocations/123\"";
-             client=new ozpIwc.Client({
-                 peerUrl: "http://" + window.location.hostname + ":14002",
-                 autoConnect: false
-             });
-             window.name="";
-             spyOn(client,"send").and.callThrough();
-             client.connect().then(function() {
-                expect(client.send).toHaveBeenCalledWith(jasmine.objectContaining({
-                    'dst': "intents.api",
-                    'resource' : "/ozpIntents/invocations/123",
-                    'action' : "get"
-                }));
-                 done();
-             })['catch'](function(error) {
-                 console.log("Error " ,error);
-                 expect(error).toEqual("did not happen");
-                 done();
-             });
-        });
-        xdescribe("",function() {
-            var originalHref=window.location.href;
-            var baseUrl=window.location.protocol + "//" + window.location.host+window.location.pathname;
 
-            afterEach(function() {
-                history.replaceState({},"page",originalHref);
-            });
-            
-            it("when ozpIwc.peer is in the query params and whitelisted in the array, choose it",function(done) {
-                history.replaceState({}, "page 2", baseUrl + "?ozpIwc.peer=\"" + testPeerUrl + "\"");
-                client=new ozpIwc.Client({
-                    peerUrl: ["http://ozp.example.com",testPeerUrl],
-                    autoConnect: false
-                });
-                client.connect().then(function() {
-                   expect(client.peerUrl).toEqual(testPeerUrl);
-                   done();
-                })['catch'](function(error) {
-                    console.log("Error " ,error);
-                    expect(error).toEqual("did not happen");
-                    done();
-                });
-            });
-            it("when ozpIwc.peer is in the hash and whitelisted in the array, choose it",function(done) {
-                history.replaceState({}, "page 2", baseUrl + "#ozpIwc.peer=\"" + testPeerUrl + "\"");
-                client=new ozpIwc.Client({
-                    peerUrl: ["http://ozp.example.com",testPeerUrl],
-                    autoConnect: false
-                });
-                client.connect().then(function() {
-                   expect(client.peerUrl).toEqual(testPeerUrl);
-                   done();
-                })['catch'](function(error) {
-                    console.log("Error " ,error);
-                    expect(error).toEqual("did not happen");
-                    done();
-                });
-            });
-            it("when ozpIwc.peer is in the query params, pass it to the function to be validated",function(done) {
-                history.replaceState({}, "page 2", baseUrl + "?ozpIwc.peer=\"" + testPeerUrl + "\"");
-                client=new ozpIwc.Client({
-                    peerUrl: function(url,resolve) { 
-                        expect(url).toEqual(testPeerUrl);
-                        resolve(testPeerUrl);
-                    },
-                    autoConnect: false
-                });
-                client.connect().then(function() {
-                   expect(client.peerUrl).toEqual(testPeerUrl);
-                   done();
-                })['catch'](function(error) {
-                    console.log("Error " ,error);
-                    expect(error).toEqual("did not happen");
-                    done();
-                });
-            });
-            it("when ozpIwc.peer is in the hash, pass it to the function to be validated",function(done) {
-                history.replaceState({}, "page 2", baseUrl + "#ozpIwc.peer=\"" + testPeerUrl + "\"");
-                client=new ozpIwc.Client({
-                    peerUrl: function(url,resolve) { 
-                        expect(url).toEqual(testPeerUrl);
-                        resolve(testPeerUrl);
-                    },
-                    autoConnect: false
-                });
-                client.connect().then(function() {
-                   expect(client.peerUrl).toEqual(testPeerUrl);
-                   done();
-                })['catch'](function(error) {
-                    console.log("Error " ,error);
-                    expect(error).toEqual("did not happen");
-                    done();
-                });
-            });            
-        });
+//        it("fetches the mailbox when passed ozpIwc.mailbox", function(done) {
+//            window.name = "ozpIwc.inFlightIntent=\"/ozpIntents/invocations/123\"";
+//            client = new ozpIwc.Client({
+//                peerUrl: "http://" + window.location.hostname + ":14002",
+//                autoConnect: false
+//            });
+//            window.name = "";
+//            spyOn(client, "send").and.callThrough();
+//            client.connect().then(function() {
+//                expect(client.send).toHaveBeenCalledWith(jasmine.objectContaining({
+//                    'dst': "intents.api",
+//                    'resource': "/ozpIntents/invocations/123",
+//                    'action': "get"
+//                }));
+//                done();
+//            })['catch'](function(error) {
+//                console.log("Error ", error);
+//                expect(error).toEqual("did not happen");
+//                done();
+//            });
+//        });
     });
+
+//    describe("", function() {
+//        var originalHref = window.location.href;
+//        var baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+//
+//        afterEach(function() {
+//            history.replaceState({}, "page", originalHref);
+//        });
+//
+//        it("when ozpIwc.peer is in the query params and whitelisted in the array, choose it", function(done) {
+//            history.replaceState({}, "page 2", baseUrl + "?ozpIwc.peer=\"" + testPeerUrl + "\"");
+//            client = new ozpIwc.Client({
+//                peerUrl: ["http://ozp.example.com", testPeerUrl],
+//                autoConnect: false
+//            });
+//            client.connect().then(function() {
+//                expect(client.peerUrl).toEqual(testPeerUrl);
+//                done();
+//            })['catch'](function(error) {
+//                console.log("Error ", error);
+//                expect(error).toEqual("did not happen");
+//                done();
+//            });
+//        });
+//        it("when ozpIwc.peer is in the hash and whitelisted in the array, choose it", function(done) {
+//            history.replaceState({}, "page 2", baseUrl + "#ozpIwc.peer=\"" + testPeerUrl + "\"");
+//            client = new ozpIwc.Client({
+//                peerUrl: ["http://ozp.example.com", testPeerUrl],
+//                autoConnect: false
+//            });
+//            client.connect().then(function() {
+//                expect(client.peerUrl).toEqual(testPeerUrl);
+//                done();
+//            })['catch'](function(error) {
+//                console.log("Error ", error);
+//                expect(error).toEqual("did not happen");
+//                done();
+//            });
+//        });
+//        it("when ozpIwc.peer is in the query params, pass it to the function to be validated", function(done) {
+//            history.replaceState({}, "page 2", baseUrl + "?ozpIwc.peer=\"" + testPeerUrl + "\"");
+//            client = new ozpIwc.Client({
+//                peerUrl: function(url, resolve) {
+//                    expect(url).toEqual(testPeerUrl);
+//                    resolve(testPeerUrl);
+//                },
+//                autoConnect: false
+//            });
+//            client.connect().then(function() {
+//                expect(client.peerUrl).toEqual(testPeerUrl);
+//                done();
+//            })['catch'](function(error) {
+//                console.log("Error ", error);
+//                expect(error).toEqual("did not happen");
+//                done();
+//            });
+//        });
+//        it("when ozpIwc.peer is in the hash, pass it to the function to be validated", function(done) {
+//            history.replaceState({}, "page 2", baseUrl + "#ozpIwc.peer=\"" + testPeerUrl + "\"");
+//            client = new ozpIwc.Client({
+//                peerUrl: function(url, resolve) {
+//                    expect(url).toEqual(testPeerUrl);
+//                    resolve(testPeerUrl);
+//                },
+//                autoConnect: false
+//            });
+//            client.connect().then(function() {
+//                expect(client.peerUrl).toEqual(testPeerUrl);
+//                done();
+//            })['catch'](function(error) {
+//                console.log("Error ", error);
+//                expect(error).toEqual("did not happen");
+//                done();
+//            });
+//        });
+//    });
 });
