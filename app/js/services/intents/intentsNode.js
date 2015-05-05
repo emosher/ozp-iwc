@@ -1,10 +1,5 @@
 ozpIwc.IntentsNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
     ozpIwc.ApiNode.apply(this, arguments);
-
-    this.entity = {
-        type: config.type,
-        action: config.action
-    };
 });
 
 ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
