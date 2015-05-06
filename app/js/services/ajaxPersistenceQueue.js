@@ -1,3 +1,4 @@
+
 /**
  * @class AjaxPersistenceQueue
  * @param {Object} config

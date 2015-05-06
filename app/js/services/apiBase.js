@@ -1,4 +1,11 @@
 
+
+/**
+ * Service API classes of the bus.
+ * @module bus.service
+ * @submodule bus.service.Type
+ */
+
 /**
  * The base class for APIs. Use {{#crossLink "ozpIwc.createApi"}}{{/crossLink}} to subclass
  * this.

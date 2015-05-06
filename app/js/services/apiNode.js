@@ -1,12 +1,12 @@
 /**
- * @submodule bus.api.Value
+ * Service API Value classes of the bus.
+ * @module bus.service
+ * @submodule bus.service.Value
  */
-
 /**
  *
  * @class ApiNode
  * @namespace ozpIwc
- * @extends ozpIwc.ApiNode
  * @constructor
  * @param {Object} config
  * @param {String} config.resource

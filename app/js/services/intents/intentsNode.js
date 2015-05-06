@@ -1,5 +1,5 @@
 /**
- * @submodule bus.api.Value
+ * @submodule bus.service.Value
  */
 
 /**
