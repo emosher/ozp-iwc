@@ -80,7 +80,7 @@ describe("Data API", function () {
         client.api('data.api').watch(packet.resource,function(reply) {
             if(reply.response==="changed") {
                 expect(reply.entity.newValue).toEqual(packet.entity);
-                expect(reply.entity.oldValue).toEqual({});
+                expect(reply.entity.oldValue).toBeUndefined();
                 done();
             }
             return true;
@@ -115,8 +115,8 @@ describe("Data API", function () {
                 expect(reply.entity).toEqual({"foo": 2});
                 client.data().delete('/test').then(function (reply) {
                     expect(reply.response).toEqual("ok");
-                    client.data().get('/test').then(function (reply) {
-                        expect(reply.entity).toBeUndefined();
+                    client.data().get('/test')['catch'](function(error){
+                        expect(error.response).toEqual("noResource");
                         done();
                     });
                 });
@@ -125,14 +125,10 @@ describe("Data API", function () {
     });
 
     it('Integration bus cleans up after every run',function(done) {
-        client.api('data.api').get('/test')
-            .then(function(reply) {
-                expect(reply.entity).toEqual({});
-                done();
-            })
-            ['catch'](function(error) {
-                expect(error).toEqual('');
-            });
+        client.data().get('/test')['catch'](function(error) {
+            expect(error.response).toEqual("noResource");
+            done();
+        });
     });
 
     xit('can list children added by another client',function(done) {
@@ -159,7 +155,7 @@ describe("Data API", function () {
 
         it ('Gets the contents of the data api', function(done) {
             var called = false;
-            client.api('data.api').get('dashboards/12345')
+            client.data().get('/dashboard/12345')
                 .then(function (packet) {
                     expect(packet.response).toEqual('ok');
                     if (!called) {
