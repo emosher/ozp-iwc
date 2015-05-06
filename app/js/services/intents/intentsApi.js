@@ -13,26 +13,13 @@
  */
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
     this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
+//    this.endpoints = this.endpoints || [];
 //    this.endpoints.push(ozpIwc.linkRelPrefix + ":intent");
 
     this.on("changed", function(node) {
         console.log("Persisting " + node.resource);
         this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
     }, this);
-    this.makeInvocationNode = function(packet, context) {
-        var resource = this.createKey("/inFlightIntent/");
-        var inflightPacket = new ozpIwc.IntentsInFlightNode({
-            resource: resource,
-            invokePacket: packet,
-            contentType: context.node.contentType,
-            type: context.node.entity.type,
-            action: context.node.entity.action,
-            entity: packet.entity,
-            handlerChoices: []
-        });
-        this.data[inflightPacket.resource] = inflightPacket;
-        return inflightPacket;
-    };
 });
 
 /**
@@ -322,4 +309,25 @@ ozpIwc.IntentsApi.prototype.chooseIntentHandler = function(inflightPacket) {
         "ozpIwc.peer": ozpIwc.BUS_ROOT,
         "ozpIwc.intentSelection": "intents.api" + inflightPacket.resource
     });
+};
+
+/**
+ * @method makeInvocationNode
+ * @param {ozpIwc.TransportPacket} packet
+ * @param context
+ * @returns {ozpIwc.IntentsInFlightNode}
+ */
+ozpIwc.IntentsApi.prototype.makeInvocationNode = function(packet, context) {
+    var resource = this.createKey("/inFlightIntent/");
+    var inflightPacket = new ozpIwc.IntentsInFlightNode({
+        resource: resource,
+        invokePacket: packet,
+        contentType: context.node.contentType,
+        type: context.node.entity.type,
+        action: context.node.entity.action,
+        entity: packet.entity,
+        handlerChoices: []
+    });
+    this.data[inflightPacket.resource] = inflightPacket;
+    return inflightPacket;
 };
