@@ -1,13 +1,27 @@
+/**
+ * A collection of filter generation functions.
+ *
+ * @class apiFilter
+ * @namespace ozpIwc
+ * @static
+ */
+
+/**
+ * @class ozpIwc.apiFilter.Function
+ * @type {Function}
+ * @param {type} packet
+ * @param {type} context
+ * @param {type} pathParams
+ * @param {type} next
+ * @returns {Function} a call to the next filter
+ */
 
 ozpIwc.apiFilter={
     /**
+     * Returns a filter function with the following features:
      * Stores the resource in context.node, creating it via the api's
-     * createResource function if it doesn't exist.
-     * @param {type} packet
-     * @param {type} context
-     * @param {type} pathParams
-     * @param {type} next
-     * @returns {unresolved}
+     * @method createResource
+     * @returns {ozpIwc.apiFilter.Function}
      */
     createResource: function(NodeType) {
         if(NodeType) {
@@ -30,43 +44,55 @@ ozpIwc.apiFilter={
             };
         }
     },
-    
+
     /**
+     * Returns a filter function with the following features:
      * Stores the resource in context.node or throws NoResourceError if it does not exist.
-     * @param {type} packet
-     * @param {type} context
-     * @param {type} pathParams
-     * @param {type} next
-     * @returns {unresolved}
+     * @method requireResource
+     * @returns {ozpIwc.apiFilter.Function}
      */
-    requireResource: function() { 
+    requireResource: function() {
         return function(packet,context,pathParams,next) {
-        if(!context.node || context.node.deleted) {
-            throw new ozpIwc.NoResourceError(packet);
-        }
-        return next();
-    };},
-    
+            if(!context.node || context.node.deleted) {
+                throw new ozpIwc.NoResourceError(packet);
+            }
+            return next();
+        };
+    },
+
     /**
-     * Checks that the subject within the context is authorized for the action
-     * on the resource node.
-     * 
-     * @param {type} packet
-     * @param {type} context
-     * @param {type} pathParams
-     * @param {type} next
-     * @returns {unresolved}
+     * Returns a filter function with the following features:
+     * Checks that the subject within the context is authorized for the action on the resource node.
+     * @method checkAuthorization
+     * @returns {ozpIwc.apiFilter.Function}
      */
-    
     checkAuthorization: function(action) {
         return function(packet,context,pathParams,next) {
             this.checkAuthorization(context.node,context,packet,action || packet.action);
             return next();
         };
     },
+
+    /**
+     * An empty filter
+     *
+     * @method nullFilter
+     * @param packet
+     * @param context
+     * @param pathParams
+     * @param next
+     * @returns {Function} a call to the next filter
+     */
     nullFilter: function(packet,context,pathParams,next) {
         return next();
     },
+
+    /**
+     * Returns a filter function with the following features:
+     * Checks that the content type is one that is authorized for the api resource.
+     * @method checkContentType
+     * @returns {ozpIwc.apiFilter.Function}
+     */
     checkContentType: function(contentType) {
         if(!contentType) {
             return ozpIwc.apiFilter.nullFilter;
@@ -85,13 +111,28 @@ ozpIwc.apiFilter={
                 });
             }
             return next();
-    };},
+        };
+    },
+
+    /**
+     * Returns a filter function with the following features:
+     * Marks the resource as changed.
+     * @method markResourceAsChanged
+     * @returns {ozpIwc.apiFilter.Function}
+     */
     markResourceAsChanged: function() { 
         return function(packet,context,pathParams,next) {
             this.markForChange(packet);
             return next();
-    };},
-    
+        };
+    },
+
+    /**
+     * Returns a filter function with the following features:
+     * Checks the version of the packet against the context.
+     * @method checkVersion
+     * @returns {ozpIwc.apiFilter.Function}
+     */
     checkVersion: function() { 
         return function(packet,context,pathParams,next) {
         // if there is no resource node, then let the request through
@@ -104,14 +145,32 @@ ozpIwc.apiFilter={
         return next();
     };}
 };
-//=======================================================================
-// Wrappers that return the list of filters for a standard action
-//=======================================================================
 
+/**
+ * Wrappers that return the list of filters for a standard action
+ *
+ * @class standardApiFilters
+ * @namespace ozpIwc
+ * @static
+ */
 ozpIwc.standardApiFilters={
+    /**
+     * Returns the filter collection generator for the given action.
+     * @method forAction
+     * @param {String} a
+     * @returns {Function}
+     */
     forAction: function(a) {
         return ozpIwc.standardApiFilters[a+"Filters"];
     },
+
+    /**
+     * Filters for the set action.
+     * @method setFilters
+     * @param nodeType
+     * @param contentType
+     * @returns {Function[]} array of filters
+     */
     setFilters: function(nodeType,contentType) {
         return [
             ozpIwc.apiFilter.createResource(nodeType),
@@ -121,6 +180,12 @@ ozpIwc.standardApiFilters={
             ozpIwc.apiFilter.markResourceAsChanged()
         ];
     },
+
+    /**
+     * Filters for the delete action.
+     * @method deleteFilters
+     * @returns {Function[]} array of filters
+     */
     deleteFilters: function() {
         return [
             ozpIwc.apiFilter.checkAuthorization(),
@@ -128,6 +193,12 @@ ozpIwc.standardApiFilters={
             ozpIwc.apiFilter.markResourceAsChanged()
         ];
     },
+
+    /**
+     * Filters for the get action.
+     * @method getFilters
+     * @returns {Function[]} array of filters
+     */
     getFilters: function() {
         return [
             ozpIwc.apiFilter.requireResource(),

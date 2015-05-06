@@ -20,8 +20,22 @@ ozpIwc.util.now=function() {
     return new Date().getTime();
 };
 
+/**
+ * A record of event listeners used in the given IWC context. Grouped by type.
+ *
+ * @property eventListeners
+ * @static
+ * @type {Object}
+ */
 ozpIwc.util.eventListeners={};
-    
+
+/**
+ * Adds an event listener to the window and stores its listener in ozpIwc.util.eventListeners.
+ *
+ * @method addEventListener
+ * @param {String} type the event to listen to
+ * @param {Function} listener the callback to be used upon the event being emitted
+ */
 ozpIwc.util.addEventListener=function(type,listener) {
     var l=ozpIwc.util.eventListeners[type];
     if(!l) {
@@ -31,7 +45,12 @@ ozpIwc.util.addEventListener=function(type,listener) {
     window.addEventListener(type,listener);
 };
 
-ozpIwc.util.removeEventListener=function(type,listener,useCapture) {
+/**
+ * Removes an event listener from the window and from ozpIwc.util.eventListeners
+ * @param {String} type the event to remove the listener from
+ * @param {Function} listener the callback to unregister
+ */
+ozpIwc.util.removeEventListener=function(type,listener) {
     var l=ozpIwc.util.eventListeners[type];
     if(l) {
         ozpIwc.util.eventListeners[type]=l.filter(function(v) { return v!==listener;});
@@ -39,7 +58,16 @@ ozpIwc.util.removeEventListener=function(type,listener,useCapture) {
     window.removeEventListener(type,listener);
 };
 
-ozpIwc.util.purgeEventListeners=function(type,listener,useCapture) {
+/**
+ * Removes all event listeners registered in ozpIwc.util.eventListeners
+ * @param {String} type the event to remove the listener from
+ * @param {Function} listener the callback to unregister
+ * @param {Boolean} [useCapture] if true all events of the specified type will be dispatched to the registered listener
+ *                             before being dispatched to any EventTarget beneath it in the DOM tree. Events which
+ *                             are bubbling upward through the tree will not trigger a listener designated to use
+ *                             capture.
+ */
+ozpIwc.util.purgeEventListeners=function() {
     ozpIwc.object.eachEntry(ozpIwc.util.eventListeners,function(type,listenerList) {
         listenerList.forEach(function(listener) {
             window.removeEventListener(type,listener);

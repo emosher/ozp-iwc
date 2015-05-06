@@ -106,6 +106,18 @@ ozpIwc.TransportPacketContext=function(config) {
     }
 };
 
+/**
+ * Formats a response packet,
+ *
+ * method makeReplyTo
+ * @param {Object} response
+ * @param {Number} [response.ver]
+ * @param {Number} [response.time]
+ * @param {String} [response.replyTo]
+ * @param {String} [response.src]
+ * @param {String} [response.dst]
+ * @returns {Object}
+ */
 ozpIwc.TransportPacketContext.prototype.makeReplyTo=function(response){
     var now=new Date().getTime();
     response.ver = response.ver || 1;
@@ -117,6 +129,7 @@ ozpIwc.TransportPacketContext.prototype.makeReplyTo=function(response){
 };
 
 /**
+ * Sends the given response to the sender of this context.
  * @method replyTo
  * @param {ozpIwc.TransportPacket} response
  *

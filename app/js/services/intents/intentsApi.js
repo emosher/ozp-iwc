@@ -1,3 +1,16 @@
+/**
+ * @submodule bus.api.Type
+ */
+
+/**
+ * The Intents Api.
+ * Subclasses the {{#crossLink "ozpIwc.ApiBase"}}{{/crossLink}}.
+ *
+ * @class IntentsApi
+ * @namespace ozpIwc
+ * @extends ozpIwc.ApiBase
+ * @constructor
+ */
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
     this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
 //    this.endpoints.push(ozpIwc.linkRelPrefix + ":intent");
@@ -21,12 +34,34 @@ ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
         return inflightPacket;
     };
 });
+
+/**
+ * Override the default node type to be an IntentsNode.
+ * @method createNode
+ * @param config
+ * @returns {ozpIwc.IntentsNode}
+ */
 ozpIwc.IntentsApi.prototype.createNode = function(config) {
     return new ozpIwc.IntentsNode(config);
 };
+
+/**
+ * Returns true if the resource exists in the api.
+ * @TODO should this be in the apiBase?
+ * @method hasKey
+ * @param resource
+ * @returns {boolean}
+ */
 ozpIwc.IntentsApi.prototype.hasKey = function(resource) {
     return resource in this.data;
 };
+
+/**
+ * Generates a unique key with the given prefix.
+ * @TODO should this be in the apiBase?
+ * @param prefix
+ * @returns {*}
+ */
 ozpIwc.IntentsApi.prototype.createKey = function(prefix) {
     prefix = prefix || "";
     var key;
@@ -35,6 +70,10 @@ ozpIwc.IntentsApi.prototype.createKey = function(prefix) {
     } while (this.hasKey(key));
     return key;
 };
+
+/**
+ * A route for in flight intent resources.
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "set",
     resource: "/inFlightIntent/{id}",
@@ -92,6 +131,10 @@ ozpIwc.IntentsApi.declareRoute({
         throw new ozpIwc.BadActionError(packet);
     }
 });
+
+/**
+ * A route for intent handler registrations.
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
@@ -108,6 +151,11 @@ ozpIwc.IntentsApi.declareRoute({
         }
     };
 });
+
+/**
+ * A route for intent action invocations.
+ * Will launch direct for user input if multiple options.
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "invoke",
     resource: "/{major}/{minor}/{action}",
@@ -140,6 +188,11 @@ ozpIwc.IntentsApi.declareRoute({
 
     return flyingNode.toPacket();
 });
+
+/**
+ * A route for intent handler invocations.
+ * Invokes a specific handler directly
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "invoke",
     resource: "/{major}/{minor}/{action}/{handlerId}",
@@ -149,6 +202,10 @@ ozpIwc.IntentsApi.declareRoute({
     this.invokeIntentHandler(context.node, context, flyingNode);
     return flyingNode.toPacket();
 });
+
+/**
+ * A route for setting & deleting Intent Types (/{major}/{minor})
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: ["set", "delete"],
     resource: "/{major}/{minor}",
@@ -156,6 +213,10 @@ ozpIwc.IntentsApi.declareRoute({
 }, function(packet, context, pathParams) {
     throw new ozpIwc.NoPermissionError(packet);
 });
+
+/**
+ * A route for getting Intent Types (/{major}/{minor})
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "get",
     resource: "/{major}/{minor}",
@@ -177,7 +238,11 @@ ozpIwc.IntentsApi.declareRoute({
         };
     }
 });
-// Is the following truly required?
+
+/**
+ * A route for getting Intent Actions (/{major}/{minor})
+ * @TODO Is the following truly required?
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "get",
     resource: "/{major}/{minor}/{action}",
@@ -196,11 +261,26 @@ ozpIwc.IntentsApi.declareRoute({
         };
     }
 });
-// Defaults are fine except for the routes registered above.
+
+/**
+ * A route for the following actions not handled by other routes: bulkGet, list, delete, watch, and unwatch.
+ * Default route used.
+ */
 ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list", "delete", "watch", "unwatch"]);
+
+/**
+ * A route for Intent handler actions not handled by other routes: bulkGet, list, delete, watch, and unwatch.
+ * Default route used
+ */
 ozpIwc.IntentsApi.useDefaultRoute(["get", "set", "bulkGet", "list", "delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
+
 /**
  * Invokes an intent handler based on the given context.
+ *
+ * @method invokeIntentHandler
+ * @param {ozpIwc.IntentsNode} handlerNode
+ * @param {ozpIwc.TransportPacket} packetContext
+ * @param {ozpIwc.IntentsInFlightNode} inFlightIntent
  */
 ozpIwc.IntentsApi.prototype.invokeIntentHandler = function(handlerNode, packetContext, inFlightIntent) {
     inFlightIntent = inFlightIntent || {};
@@ -228,9 +308,13 @@ ozpIwc.IntentsApi.prototype.invokeIntentHandler = function(handlerNode, packetCo
         done();
     });
 };
+
 /**
  * Produces a modal for the user to select a handler from the given list of 
  * intent handlers.
+ *
+ * @method chooseIntentHandler
+ * @param {ozpIwc.IntentsInFlightNode} inflightPacket
  */
 ozpIwc.IntentsApi.prototype.chooseIntentHandler = function(inflightPacket) {
     inflightPacket.entity.state = "choosing";

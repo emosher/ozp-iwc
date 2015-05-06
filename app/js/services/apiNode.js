@@ -1,3 +1,23 @@
+/**
+ * @submodule bus.api.Value
+ */
+
+/**
+ *
+ * @class ApiNode
+ * @namespace ozpIwc
+ * @extends ozpIwc.ApiNode
+ * @constructor
+ * @param {Object} config
+ * @param {String} config.resource
+ * @param {String[]} config.allowedContentTypes
+ * @param {Object} config.entity
+ * @param {String} config.contentType
+ * @param {Number} config.version
+ * @param {String} config.self
+ * @param {String} config.serializedEntity
+ * @param {String} config.serializedContentType
+ */
 ozpIwc.ApiNode= function(config) {
  	config = config || {};
 
@@ -133,13 +153,14 @@ ozpIwc.ApiNode.prototype.serializedContentType=function() {
 };
 
 /**
- * Serializes the node for persistence to the server.
+ * Sets the api node from the serialized form.
  *
  * __Intended to be overridden by subclasses__
  * 
  * @method serializedEntity
  * @param {String} serializedForm A string serialization of the object
  * @param {String} contentType The contentType of the object
+ * @return {Object}
  */
 ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType) {
     return this.deserializeLive(JSON.parse(serializedForm));
@@ -164,6 +185,13 @@ ozpIwc.ApiNode.prototype.toPacket=function(base) {
 };
 
 
+/**
+ * Sets a data based upon the content of the packet.  Automatically updates the content type,
+ * permissions, entity, and updates the version.
+ *
+ * @method set
+ * @param {ozpIwc.TransportPacket} packet
+ */
 ozpIwc.ApiNode.prototype.set=function(packet) {
     if(!Array.isArray(packet.permissions)){
         for(var i in packet.permissions) {
@@ -181,16 +209,32 @@ ozpIwc.ApiNode.prototype.set=function(packet) {
     }
 };
 
+/**
+ * Clears the entity of the node and marks as deleted.
+ * @method markAsDeleted
+ * @param {ozpIwc.TransportPacket} packet @TODO unused?
+ */
 ozpIwc.ApiNode.prototype.markAsDeleted=function(packet) {
     this.version++;
     this.deleted=true;
     this.entity=null;
 };
 
+/**
+ * Adds a new watcher based upon the contents of the packet.
+ *
+ * @method addWatch
+ * @param {ozpIwc.TransportPacket} watch
+ */
 ozpIwc.ApiNode.prototype.addWatch=function(watch) {
     this.watchers.push(watch);
 };
 
+/*
+ * Removes all watchers who's packet matches that which is passed in.
+ * @method removeWatch
+ * @param {ozpIwc.TransportPacket} filter
+ */
 ozpIwc.ApiNode.prototype.removeWatch=function(filter) {
     this.watchers=this.watchers.filter(filter);
 };

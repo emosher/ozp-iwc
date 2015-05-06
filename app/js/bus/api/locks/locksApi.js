@@ -3,7 +3,7 @@
  */
 
 /**
- * The Names Api. Collects information about current IWC state, Manages names, aliases, and permissions through the IWC.
+ * The Locks Api. Treats each node as an individual mutex, creating a queue to access/own the resource.
  * Subclasses the {{#crossLink "ozpIwc.CommonApiBase"}}{{/crossLink}}. Utilizes the
  * {{#crossLink "ozpIwc.LocksApiValue"}}{{/crossLink}} which subclasses the
  * {{#crossLink "ozpIwc.CommonApiValue"}}{{/crossLink}}.
@@ -46,6 +46,13 @@ ozpIwc.LocksApi.prototype.makeValue = function(packet) {
     });
 };
 
+/**
+ * Notifies the owner of the node's lock/unlock.
+ *
+ * @method updateLock
+ * @param {ozpIwc.LocksApiValue} node
+ * @param {Object} newOwner
+ */
 ozpIwc.LocksApi.prototype.updateLock=function(node,newOwner) {
     if(!newOwner) {
 //        console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
@@ -63,6 +70,13 @@ ozpIwc.LocksApi.prototype.updateLock=function(node,newOwner) {
     this.participant.send(pkt);
 };
 
+/**
+ * Adds the packet's sender to the given node's mutex queue. The sender will be notified when it takes ownership.
+ *
+ * @method handleLock
+ * @param {ozpIwc.LocksApiValue} node
+ * @param {ozpIwc.TransportPacket} packetContext
+ */
 ozpIwc.LocksApi.prototype.handleLock=function(node,packetContext) {
     this.updateLock(node,node.lock({
         src: packetContext.packet.src,
@@ -70,6 +84,14 @@ ozpIwc.LocksApi.prototype.handleLock=function(node,packetContext) {
     }));
 };
 
+/**
+ * Removes the packet's sender from the given node's mutex queue. The next leader (if exists) will be notified of its
+ * ownership.
+ *
+ * @method handleUnlock
+ * @param {ozpIwc.LocksApiValue} node
+ * @param {ozpIwc.TransportPacket} packetContext
+ */
 ozpIwc.LocksApi.prototype.handleUnlock=function(node,packetContext) {
 //    console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
     this.updateLock(node,node.unlock({
@@ -77,11 +99,12 @@ ozpIwc.LocksApi.prototype.handleUnlock=function(node,packetContext) {
         msgId: packetContext.packet.msgId
     }));
 };
+
 /**
  * Handles removing participant addresses from the names api.
  *
  * @method handleEventChannelDisconnectImpl
- * @param packetContext
+ * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleEventChannelDisconnectImpl = function (packetContext) {
 
@@ -94,6 +117,13 @@ ozpIwc.LocksApi.prototype.handleEventChannelDisconnectImpl = function (packetCon
     }
 };
 
+/**
+ * Handles the set action for the Locks Api. Locks Api does not allow set actions.
+ *
+ * @method handleSet
+ * @param {ozpIwc.LocksApiValue} node
+ * @param {ozpIwc.TransportPacket} packetContext
+ */
 ozpIwc.LocksApi.prototype.handleSet = function(node,packetContext) {
     packetContext.replyTo({
         'response': 'badAction',
@@ -104,6 +134,13 @@ ozpIwc.LocksApi.prototype.handleSet = function(node,packetContext) {
     });
 };
 
+/**
+ * Handles the delete action for the Locks Api. Locks Api does not allow delete actions.
+ *
+ * @method handleDelete
+ * @param {ozpIwc.LocksApiValue} node
+ * @param {ozpIwc.TransportPacket} packetContext
+ */
 ozpIwc.LocksApi.prototype.handleDelete = function(node,packetContext) {
     packetContext.replyTo({
         'response': 'badAction',

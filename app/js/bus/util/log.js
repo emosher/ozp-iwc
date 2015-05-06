@@ -24,7 +24,13 @@ ozpIwc.log=ozpIwc.log || {
     ALL: { logLevel: true, severity: 10, name: "ALL"},
     
     threshold: 3,
-    
+
+    /**
+     * Sets the threshold for the IWC's logger.
+     * @method setThreshold
+     * @param {Number|Object} level
+     * @param {Number} [level.severity]
+     */
     setThreshold: function(level) {
         if(typeof(level)==="number") {
             ozpIwc.log.threshold=level;
@@ -48,6 +54,12 @@ ozpIwc.log=ozpIwc.log || {
         }
 	},
 
+    /**
+     * Logs the given message if the severity is above the threshold.
+     * @method logMsg
+     * @param {Number} level
+     * @param {Arguments} args
+     */
     logMsg: function(level,args) {
         if(level.severity > ozpIwc.log.threshold) {
             return;

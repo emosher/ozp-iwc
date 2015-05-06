@@ -37,7 +37,7 @@ ozpIwc.PostMessageParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(con
 
     /**
      * @property credentials
-     * @type
+     * @type {Object}
      */
     this.credentials=config.credentials;
 

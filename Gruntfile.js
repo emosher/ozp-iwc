@@ -62,7 +62,11 @@ module.exports = function(grunt) {
             ],
             testUnit: [
                 'test/tests/unit/mockObject.js',
-                'test/tests/unit/**/*.js'
+                'test/tests/unit/**/*.js',
+                '!test/tests/unit/specs/api/intent*.js', //When these tests get deleted delete this too
+                '!test/tests/unit/specs/api/system*.js',
+                '!test/tests/unit/specs/api/data*.js'
+
             ],
             testIntegrationClient: [
                 'test/tests/client-integration/**/*.js'

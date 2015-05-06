@@ -1,3 +1,9 @@
+/**
+ * @class AjaxPersistenceQueue
+ * @param {Object} config
+ * @param {Number} config.poolSize
+ * @constructor
+ */
 ozpIwc.AjaxPersistenceQueue=function(config) {
     config=config || {};
     this.poolSize=config.poolSize || 4;
@@ -16,6 +22,12 @@ ozpIwc.AjaxPersistenceQueue=function(config) {
     this.queuedSyncs={};
 };
 
+/**
+ * @method doSync
+ * param {String} iwcUri @TODO unused
+ * @param {ozpIwc.ApiNode} node
+ * @returns {*}
+ */
 ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
     if(node.deleted) {
        return ozpIwc.util.ajax({
@@ -43,18 +55,26 @@ ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
     }
 }; 
 
-// FIXME: it's possible to have poolSize updates in flight for a rapidly changing node when the pool is lightly utilized.
-// The duplicate call will occur when all of these conditions are met:
-//   * An ajax request for the node is still active.
-//   * queueNode(n) is called
-//   * the new sync promise reaches the head of its pool queue
-// Example with poolSize=3 and node "n"
-//   queueNode(n) -> assigns n to pool 1
-//      pool 1 -> starts AJAX call and clears queuedSyncs[n]
-//   queueNode(n) -> n is not queued, so assigns n to pool 2
-//      pool 2 -> starts AJAX call and clears queuedSyncs[n]
-//   queueNode(n) -> n is not queued, so assigns n to pool 3
-//      pool 3 -> starts AJAX call and clears queuedSyncs[n]
+/**
+ * FIXME: it's possible to have poolSize updates in flight for a rapidly changing node when the pool is lightly utilized.
+ *    The duplicate call will occur when all of these conditions are met:
+ *     * An ajax request for the node is still active.
+ *     * queueNode(n) is called
+ *     * the new sync promise reaches the head of its pool queue
+ *   Example with poolSize=3 and node "n"
+ *     queueNode(n) -> assigns n to pool 1
+ *        pool 1 -> starts AJAX call and clears queuedSyncs[n]
+ *     queueNode(n) -> n is not queued, so assigns n to pool 2
+ *        pool 2 -> starts AJAX call and clears queuedSyncs[n]
+ *     queueNode(n) -> n is not queued, so assigns n to pool 3
+ *        pool 3 -> starts AJAX call and clears queuedSyncs[n]
+ *
+ *
+ * @method queueNode
+ * @param {String} iwcUri
+ * @param {ozpIwc.ApiNode} node
+ * @returns {*}
+ */
 ozpIwc.AjaxPersistenceQueue.prototype.queueNode=function(iwcUri,node) {
     var self=this;
     // the value of node is captured immediately before it is saved to the backend

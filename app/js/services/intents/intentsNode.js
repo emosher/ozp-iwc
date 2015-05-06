@@ -1,3 +1,13 @@
+/**
+ * @submodule bus.api.Value
+ */
+
+/**
+ * @class IntentsNode
+ * @namespace ozpIwc
+ * @extends ozpIwc.ApiNode
+ * @constructor
+ */
 ozpIwc.IntentsNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
     ozpIwc.ApiNode.apply(this, arguments);
 
@@ -7,6 +17,12 @@ ozpIwc.IntentsNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
     };
 });
 
+/**
+ * @class IntentsInFlightNode
+ * @namespace ozpIwc
+ * @extends ozpIwc.ApiNode
+ * @constructor
+ */
 ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
     // Take the supplied data for anything that matches in the super class,
     // such as resource.
@@ -39,7 +55,21 @@ ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config)
     };
     this.invokePacket = config.invokePacket;
 });
+
+/**
+ * Valid states for an IntentsInFlightNode.
+ *
+ * @property acceptedStates
+ * @type {String[]}
+ */
 ozpIwc.IntentsInFlightNode.prototype.acceptedStates = ["new", "choosing", "delivering", "running", "error", "complete"];
+
+/**
+ * Set action for an IntentsInflightNode.
+ *
+ * @method set
+ * @param {ozpIwc.TransportPacket} packet
+ */
 ozpIwc.IntentsInFlightNode.prototype.set = function(packet) {
     // Invoke the default behaviors, but leave the entity intact as we'll
     // manipulate that further down, depending on the state.

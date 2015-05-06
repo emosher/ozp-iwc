@@ -119,7 +119,9 @@ ozpIwc.policyAuth.PIP.prototype.grantParent = function (subjectId,parentId){
 /**
  * For the given attribute name, figure out what the value of that attribute should be 
  * given the two values.
- * @FIXME Currently, this just promotes the two scalars to a bag
+ * @TODO Currently, this just promotes the two scalars to a bag
+ *
+ * @method combineAttributeValues
  * @param {type} attributeName
  * @param {type} value1
  * @param {type} value2
@@ -131,6 +133,8 @@ ozpIwc.policyAuth.PIP.prototype.combineAttributeValues=function(attributeName,va
 
 /**
  * Creates an attribute set that's the union of the two given attribute sets
+ *
+ * @method attributeUnion
  * @param {object} attr1
  * @param {object} attr2
  * @returns {object}

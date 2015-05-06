@@ -10,8 +10,6 @@
  * @namespace ozpIwc
  * @extends ozpIwc.ApiBase
  * @constructor
- *
- * @type {Function}
  */
 ozpIwc.NamesApi = ozpIwc.createApi(function(config) {
     for(var key in ozpIwc.apiMap){
