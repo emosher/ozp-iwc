@@ -9,15 +9,15 @@ describe("Intents API", function() {
         client = new ozpIwc.Client({
             peerUrl: "http://" + window.location.hostname + ":14002"
         });
-//        participant=new ozpIwc.test.MockParticipant({
-//            clientUrl: "http://localhost:14001",
-//            'client': client
-//        });
+        participant = new ozpIwc.test.MockParticipant({
+            clientUrl: "http://localhost:14001",
+            'client': client
+        });
 
-        var gate = ozpIwc.testUtil.doneSemaphore(1, done);
+        var gate = ozpIwc.testUtil.doneSemaphore(2, done);
 
-//        participant.on("connected",gate);
-        client.on("connected", gate);
+        participant.on("connected", gate);
+        client.connect().then(gate, gate);
     });
 
     afterEach(function() {

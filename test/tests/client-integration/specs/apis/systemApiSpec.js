@@ -5,25 +5,25 @@
 
 describe("System API", function() {
     var client;
-//    var participant;
+    var participant;
     beforeEach(function(done) {
         client = new ozpIwc.Client({
             peerUrl: "http://" + window.location.hostname + ":14002"
         });
-//        participant = new ozpIwc.test.MockParticipant({
-//            clientUrl: "http://" + window.location.hostname + ":14001",
-//            'client': client
-//        });
-//
-//        var gate = ozpIwc.testUtil.doneSemaphore(2, done);
-//
-//        participant.on("connected", gate);
-        client.on("connected", done);
+        participant = new ozpIwc.test.MockParticipant({
+            clientUrl: "http://localhost:14001",
+            'client': client
+        });
+
+        var gate = ozpIwc.testUtil.doneSemaphore(2, done);
+
+        participant.on("connected", gate);
+        client.connect().then(gate, gate);
     });
 
     afterEach(function() {
         client.disconnect();
-//        participant.close();
+        participant.close();
     });
 
     it("has pretty name and email in /user", function(done) {

@@ -17,7 +17,6 @@ ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
 //    this.endpoints.push(ozpIwc.linkRelPrefix + ":intent");
 
     this.on("changed", function(node) {
-        console.log("Persisting " + node.resource);
         this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
     }, this);
 });
