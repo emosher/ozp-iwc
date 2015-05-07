@@ -15,10 +15,35 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
     // The stock initializeData should do fine for us here as we're not using
     // any special subclasses for these items.  Might have to revisit this at
     // some point.
-    this.endpoints = this.endpoints || [];
-    this.endpoints.push(ozpIwc.linkRelPrefix + ":application");
-    this.endpoints.push(ozpIwc.linkRelPrefix + ":user");
-    this.endpoints.push(ozpIwc.linkRelPrefix + ":system");
+//    this.endpoints = this.endpoints || [];
+//    this.endpoints.push(ozpIwc.linkRelPrefix + ":application");
+//    this.endpoints.push(ozpIwc.linkRelPrefix + ":user");
+//    this.endpoints.push(ozpIwc.linkRelPrefix + ":system");
 });
 
-ozpIwc.SystemApi.useDefaultRoute(["bulkGet", "list", "delete", "watch", "unwatch"]);
+ozpIwc.SystemApi.declareRoute({
+    action: ["set", "delete"],
+    resource: "/application/{id}",
+    filters: []
+}, function(packet, context, pathParams) {
+    throw new ozpIwc.BadActionError(packet);
+});
+
+ozpIwc.SystemApi.declareRoute({
+    action: ["set", "delete"],
+    resource: "/user",
+    filters: []
+}, function(packet, context, pathParams) {
+    throw new ozpIwc.BadActionError(packet);
+});
+
+ozpIwc.SystemApi.declareRoute({
+    action: ["set", "delete"],
+    resource: "/system",
+    filters: []
+}, function(packet, context, pathParams) {
+    throw new ozpIwc.BadActionError(packet);
+});
+
+ozpIwc.SystemApi.useDefaultRoute(["get", "bulkGet", "list", "watch", "unwatch"]);
+
