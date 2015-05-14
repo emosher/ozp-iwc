@@ -21,6 +21,25 @@ ozpIwc.util.now=function() {
 };
 
 /**
+ * Applies the template using the supplied object for values
+ *
+ * @method resolveUriTemplate
+ * @param {string} template The template to use
+ * @param {Object} obj The object to get template paramters from
+ * @param {Object} fallback A secondary object for parameters not contained by the first
+ * @returns {Number}
+ */
+ozpIwc.util.resolveUriTemplate=function(template,obj,fallback) {
+	var converters={
+		"+": function(a) { return a;},
+		"": function(a) { return encodeURIComponent(a);}
+	}
+	return template.replace(/\{([\+\#\.\/\;\?\&]?)(.+?)\}/g,function(match,type,name) {
+			return converters[type](obj[name] || fallback[name]);
+		});
+};
+
+/**
  * A record of event listeners used in the given IWC context. Grouped by type.
  *
  * @property eventListeners

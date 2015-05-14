@@ -544,5 +544,28 @@ describe("General Utilities", function() {
 			expect(ozpIwc.util.ensureArray(testlist)).toEqual(testlist);
 		});
 	});
-    
+  describe("URI Template",function() {
+		var scenarios={
+			"http://example.com/{foo}": {
+				"http://example.com/foo": { foo: "foo" },
+				"http://example.com/foo2": { foo: "foo2",bar: "bar" },
+				"http://example.com/bar": { foo: "bar" },
+				"http://example.com/foo%2Fbar": { foo: "foo/bar" }
+			},
+			"http://example.com/{+foo}": {
+				"http://example.com/foo": { foo: "foo" },
+				"http://example.com/foo2": { foo: "foo2",bar: "bar" },
+				"http://example.com/bar": { foo: "bar" },
+				"http://example.com/foo/bar": { foo: "foo/bar" }
+			}
+		};
+		ozpIwc.object.eachEntry(scenarios,function(template,tests){
+			ozpIwc.object.eachEntry(tests,function(answer,args){
+				it("Processes "+ template +" into " + answer,function(){
+					expect(ozpIwc.util.resolveUriTemplate(template,args)).toEqual(answer);
+				});
+			});
+		});
+		
+	});
 });

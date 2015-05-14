@@ -30,6 +30,9 @@ ozpIwc.AjaxPersistenceQueue=function(config) {
  * @returns {*}
  */
 ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
+		if(!node.self) {
+			return Promise.resolve();
+		}
     if(node.deleted) {
        return ozpIwc.util.ajax({
             href:  node.self,
