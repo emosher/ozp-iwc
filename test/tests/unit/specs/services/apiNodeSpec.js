@@ -6,7 +6,13 @@ describe("ApiNode",function() {
             version: 50,        
             self: "https://example.com/iwc/foo",
             contentType: "text/plain",
-            entity: "hello world"
+            entity: {
+							msg:"hello world",
+							_links: {
+								self: {href: "https://example.com/iwc/foo"},
+								"ozp:iwcSelf": {href: "web+ozp://test.api/foo"}
+							}
+						}
        });
 	});
     
@@ -30,11 +36,14 @@ describe("ApiNode",function() {
         expect(apiNode.entity).toEqual("goodbye world");
         expect(apiNode.version).toEqual(100);
     });
-    
+    var serializedFields=["entity","resource","self"];
     it("deserializes and serializes persisted data with the same outcome",function() {
         var node2=new ozpIwc.ApiNode({resource:"/foo"});
         node2.deserializedEntity(apiNode.serializedEntity(),apiNode.serializedContentType());
-        expect(node2).toEqual(apiNode);
+        serializedFields.forEach(function(k) {
+					expect(node2[k]).toEqual(apiNode[k]);
+				});
+				
     });
     
     it("deserializes and serializes persisted data with the same outcome using the constructor",function() {
@@ -42,14 +51,18 @@ describe("ApiNode",function() {
             serializedEntity: apiNode.serializedEntity(),
             serializedContentType: apiNode.serializedContentType()
         });
-        expect(node2).toEqual(apiNode);
+        serializedFields.forEach(function(k) {
+					expect(node2[k]).toEqual(apiNode[k]);
+				});
     });
     
     it("deserializes and serializes persisted data with the same outcome using the constructor without content type",function() {
         var node2=new ozpIwc.ApiNode({
             serializedEntity: apiNode.serializedEntity()
         });
-        expect(node2).toEqual(apiNode);
+        serializedFields.forEach(function(k) {
+					expect(node2[k]).toEqual(apiNode[k]);
+				});
     });
     it("sets up it's uri from a template",function(){
 			// only defined if initEndpoints is called, so we define it here

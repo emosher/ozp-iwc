@@ -90,7 +90,7 @@ ozpIwc.ApiNode= function(config) {
     if(config.serializedEntity) {
         this.deserializedEntity(config.serializedEntity,config.serializedContentType);
     }
-    
+
     if(!this.resource) { throw new Error("ApiNode requires a resource");}
 };
 
@@ -158,7 +158,7 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
  * @return {String} a string serialization of the object
  */
 ozpIwc.ApiNode.prototype.serializedEntity=function() {
-    return JSON.stringify(this.serializeLive());
+    return JSON.stringify(this.entity);
 };
 
 /**
@@ -170,7 +170,7 @@ ozpIwc.ApiNode.prototype.serializedEntity=function() {
  * @return {String} the content type of the serialized data
  */
 ozpIwc.ApiNode.prototype.serializedContentType=function() {
-    return "application/json";
+    return this.contentType;
 };
 
 /**
@@ -184,7 +184,19 @@ ozpIwc.ApiNode.prototype.serializedContentType=function() {
  * @return {Object}
  */
 ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    return this.deserializeLive(JSON.parse(serializedForm));
+		if(typeof(serializedForm) === "string") {
+        serializedForm=JSON.parse(serializedForm);
+    }
+		this.entity=serializedForm;
+		if(this.entity && this.entity._links) {
+			var links=this.entity._links;
+			if(!this.self && links.self) {
+				this.self=links.self.href;
+			}
+			if(!this.resource && links["ozp:iwcSelf"]) {
+				this.resource=links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/,"");
+			}
+		}
 };
 
 

@@ -578,7 +578,8 @@ ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
             return endpoint.get(l).then(function(data) {
   //              console.log(self.logPrefix+" retrieved data: ",data);
                 var n=self.createNode({
-                    serializedEntity: data.response
+                    serializedEntity: data.response,
+										contentType: data.header['Content-Type']
                 });
                 self.data[n.resource]=n;
             });
