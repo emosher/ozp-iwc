@@ -139,7 +139,8 @@ ozpIwc.EndpointRegistry=function(config) {
      * @default {}
      */
     this.endPoints={};
-
+		this.template={};
+		
     var self=this;
 
     /**
@@ -151,18 +152,23 @@ ozpIwc.EndpointRegistry=function(config) {
         href: apiRoot,
         method: 'GET'
     }).then(function(data) {
+			console.log("Parsing payload",data);
         var payload = data.response || {};
         payload._links = payload._links || {};
         payload._embedded = payload._embedded || {};
 
         for (var linkEp in payload._links) {
             if (linkEp !== 'self') {
-                var link = payload._links[linkEp].href;
+                var link = payload._links[linkEp];
 								if(Array.isArray(payload._links[linkEp])) {
 									link=payload._links[linkEp][0].href;
 								}
-
-                self.endpoint(linkEp).baseUrl = link;
+								console.log("Found link ",linkEp,"=",link);
+								if(link.templated) {
+									self.template[linkEp]=link.href;
+								} else {
+									self.endpoint(linkEp).baseUrl = link.href;
+								}
             }
         }
         for (var embEp in payload._embedded) {
@@ -199,5 +205,8 @@ ozpIwc.initEndpoints=function(apiRoot) {
     ozpIwc.endpoint=function(name) {
         return registry.endpoint(name);
     };
+		ozpIwc.uriTemplate=function(name) {
+			return registry.template[name];
+		}
 };
 
