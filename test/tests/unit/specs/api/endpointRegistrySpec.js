@@ -40,7 +40,7 @@ describe("Endpoint Registry",function() {
 		pit("contains the linked templates",function() {
         var e=new ozpIwc.EndpointRegistry();
 				return e.loadPromise.then(function() {
-					expect(e.template["template"]).toEqual("https://example.com/{foo}");
+					expect(e.template.template).toEqual("https://example.com/{foo}");
 				});
     });
 		

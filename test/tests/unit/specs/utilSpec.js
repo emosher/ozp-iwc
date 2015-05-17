@@ -567,5 +567,13 @@ describe("General Utilities", function() {
 			});
 		});
 		
+		it("Removes double // in the path",function() {
+			var uri=ozpIwc.util.resolveUriTemplate(
+					"http://example.com/{+foo}",
+					{foo:"/foo"}
+			);
+			expect(uri).toEqual("http://example.com/foo");
+		});
 	});
+	
 });

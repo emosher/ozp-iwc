@@ -13,6 +13,7 @@ ozpIwc.DataNode=ozpIwc.util.extend(ozpIwc.ApiNode,function(config) {
    ozpIwc.ApiNode.apply(this, arguments);
 });
 
+ozpIwc.DataNode.prototype.uriTemplate="ozp:data-item";
 /**
  * Serialize the node to a form that conveys both persistent and
  * ephemeral state of the object to be handed off to a new API

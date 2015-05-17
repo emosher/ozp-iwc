@@ -98,7 +98,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
 
     scope.loadKey = function (key) {
         client.api(scope.api).get(key.resource).then(function(response) {
-            for (i in response) {
+            for (var i in response) {
                 key[i] = response[i];
             }
             key.isLoaded = true;

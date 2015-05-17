@@ -44,7 +44,15 @@ ozpIwc.ApiNode= function(config) {
      * @type String
      */
 	this.contentType=config.contentType;
-
+    /**
+     * @property uriTemplate
+     * @type String
+     */
+	// used if() to allow for subclasses to set the uriTemplate on the prototype
+	// setting the field, even to undefined, would mask the prototype's value
+	if(config.uriTemplate) {
+		this.uriTemplate=config.uriTemplate;
+	}
     /**
      * @property permissions
      * @type Object
@@ -84,6 +92,19 @@ ozpIwc.ApiNode= function(config) {
     }
     
     if(!this.resource) { throw new Error("ApiNode requires a resource");}
+};
+
+ozpIwc.ApiNode.prototype.getSelfUri=function() {
+	if(this.self) {
+		return this.self;
+	}
+	if(this.uriTemplate && ozpIwc.uriTemplate) {
+		this.self=ozpIwc.util.resolveUriTemplate(
+			ozpIwc.uriTemplate(this.uriTemplate),
+			this
+		);
+	}
+	return this.self;
 };
 
 /**

@@ -207,6 +207,6 @@ ozpIwc.initEndpoints=function(apiRoot) {
     };
 		ozpIwc.uriTemplate=function(name) {
 			return registry.template[name];
-		}
+		};
 };
 

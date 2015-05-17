@@ -1,3 +1,5 @@
+/* global ozpIwc */
+
 /**
  * @submodule bus.service.Type
  */
@@ -21,6 +23,7 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
         this.persistenceQueue.queueNode(this.name+"/"+node.resource,node);
     },this);
 });
+
 
 /**
  * Override the default node type to be a DataNode.

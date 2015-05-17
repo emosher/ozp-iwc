@@ -51,5 +51,22 @@ describe("ApiNode",function() {
         });
         expect(node2).toEqual(apiNode);
     });
-    
+    it("sets up it's uri from a template",function(){
+			// only defined if initEndpoints is called, so we define it here
+			// rather than spyOn()
+			ozpIwc.uriTemplate=function() {
+				return "http://example.com/{+resource}";
+			};
+			var node=new ozpIwc.ApiNode({
+					resource: "/foo",
+					version: 50,
+					uriTemplate:"doesn't matter since it's mocked",
+					contentType: "text/plain",
+					entity: "hello world"
+			});
+			
+			expect(node.self).toBeUndefined();
+			expect(node.getSelfUri()).toEqual("http://example.com/foo");
+			expect(node.self).toEqual("http://example.com/foo");
+		});
 });
