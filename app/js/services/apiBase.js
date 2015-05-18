@@ -67,7 +67,7 @@ ozpIwc.ApiBase=function(config) {
         dst: "locks.api",
         resource: "/mutex/"+this.name,
         action: "lock"
-    }).then(function() {
+    }).then(function(pkt) {
         return self.transitionToLoading();
     });
     
@@ -112,23 +112,36 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
  * @return {Promise} a promise that resolves when all data is loaded.
  */
 ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
-//    console.log(this.logPrefix+"initializing data");
-
     deathScream=deathScream || { watchers: {}, data: []};
     this.watchers=deathScream.watchers;
     deathScream.data.forEach(function(packet) {
-        this.data[packet.resource]=this.createNode({resource: packet.resource});
-        this.data[packet.resource].deserializeLive(packet);
+        this.createNode({resource: packet.resource}).deserializeLive(packet);
     },this);
     
     if(this.endpoints) {
         var self=this;
         return Promise.all(this.endpoints.map(function(u) {
-            return self.loadFromEndpoint(ozpIwc.endpoint(u));
+          var e=ozpIwc.endpoint(u) ;
+					return self.loadFromEndpoint(e);
         }));    
     } else {
         return Promise.resolve();
     }
+};
+
+/**
+ * Creates a node appropriate for the given config, puts it into this.data,
+ * and fires off the right events.
+ *  
+ * @method createNode
+ * @param {Object} config The ApiNode configuration.
+ * @return {ozpIwc.ApiNode}
+ */
+ozpIwc.ApiBase.prototype.createNode=function(config) {
+    var n=this.createNodeObject(config);
+		this.data[n.resource]=n;
+		this.events.trigger("createdNode",n);
+		return n;
 };
 
 /**
@@ -141,15 +154,13 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
  * Subsclasses can override this for custom node types that may vary
  * from resource to resource.
  * 
- * @method createNode
+ * @method createNodeObject
  * @param {Object} config The ApiNode configuration.
- * @param {string} config.resource The resource path to create.
  * @return {ozpIwc.ApiNode}
  */
-ozpIwc.ApiBase.prototype.createNode=function(config) {
+ozpIwc.ApiBase.prototype.createNodeObject=function(config) {
     return new ozpIwc.ApiNode(config);
 };
-
 
 //===============================================================
 // Leader state management
@@ -180,10 +191,9 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
  * @private
  */
 ozpIwc.ApiBase.prototype.transitionToLeader=function() {
-    if(this.leaderState !== "loading") {
+		if(this.leaderState !== "loading") {
         return;
     }
-//    console.log(this.logPrefix+"becoming leader");
 
     this.leaderState = "leader";
     this.broadcastLeaderReady();
@@ -458,8 +468,6 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
  * @param {ozpIwc.TransportPacketContext} context
  */
 ozpIwc.ApiBase.prototype.defaultRoute=function(packet,context) {
-//    console.log(this.logPrefix+"Could not route due to " + context.defaultRouteCause,packet);
-
     switch(context.defaultRouteCause) {
         case "nonRoutablePacket": // packet doesn't have an action/resource, so ignore it
             return;
@@ -549,43 +557,42 @@ ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
  */
 ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
     var self=this;
+
     return endpoint.get("/").then(function(data) {
+
         var response=data.response;
         var embeddedItems=ozpIwc.util.ensureArray((response._embedded && response._embedded.item) || []);
         var linkedItems=ozpIwc.util.ensureArray((response._links && response._links.item) || []);
 
         // load all the embedded items
         embeddedItems.forEach(function(i) {
-            var n=self.createNode({
+            self.createNode({
                 serializedEntity: i
             });
-//            console.log(self.logPrefix+" loading ",n.resource);
-            self.data[n.resource]=n;
         });
 
         var unknownLinks=linkedItems.map(function(i) { return i.href;});
-        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
         unknownLinks=unknownLinks.filter(function(href) {
                 return ozpIwc.object.values(self.data,function(k,node) {
-                    console.log(self.logPrefix+" comparing " + node.self + "===" + href);
                     return node.self === href;
                 }).length === 0;
             });
-        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
-        // empty array resolves immediately, so no check needed
+
+				// empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
-//            console.log(self.logPrefix+"fetching link: " + l);
             return endpoint.get(l).then(function(data) {
-  //              console.log(self.logPrefix+" retrieved data: ",data);
-                var n=self.createNode({
+                self.createNode({
                     serializedEntity: data.response,
 										contentType: data.header['Content-Type']
                 });
-                self.data[n.resource]=n;
-            });
+            }).catch(function(err) {
+							ozpIwc.log.info(self.logPrefix+"Could not load from "+l+" -- ",err);
+						});
         }));
 
-    });
+    }).catch(function(err) {
+			ozpIwc.log.info(self.logPrefix+" couldn't load from endpoint "+endpoint.name +" -- ",err);
+		});
 };
 
 

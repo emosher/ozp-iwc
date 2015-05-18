@@ -23,23 +23,12 @@ ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
 
 /**
  * Override the default node type to be an IntentsNode.
- * @method createNode
+ * @method createNodeObject
  * @param config
  * @returns {ozpIwc.IntentsNode}
  */
-ozpIwc.IntentsApi.prototype.createNode = function(config) {
+ozpIwc.IntentsApi.prototype.createNodeObject = function(config) {
     return new ozpIwc.IntentsNode(config);
-};
-
-/**
- * Returns true if the resource exists in the api.
- * @TODO should this be in the apiBase?
- * @method hasKey
- * @param resource
- * @returns {boolean}
- */
-ozpIwc.IntentsApi.prototype.hasKey = function(resource) {
-    return resource in this.data;
 };
 
 /**
@@ -53,13 +42,16 @@ ozpIwc.IntentsApi.prototype.createKey = function(prefix) {
     var key;
     do {
         key = prefix + ozpIwc.util.generateId();
-    } while (this.hasKey(key));
+    } while (key in this.data);
     return key;
 };
 
-/**
- * A route for in flight intent resources.
- */
+// turn on bulkGet and list for everything
+ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list"]);
+
+//====================================================================
+// In-flight intent endpoints
+//====================================================================
 ozpIwc.IntentsApi.declareRoute({
     action: "set",
     resource: "/inFlightIntent/{id}",
@@ -118,9 +110,31 @@ ozpIwc.IntentsApi.declareRoute({
     }
 });
 
+//====================================================================
+// Handler endpoints
+//====================================================================
 /**
- * A route for intent handler registrations.
+ * A route for intent handler invocations.
+ * Invokes a specific handler directly
  */
+ozpIwc.IntentsApi.declareRoute({
+    action: "invoke",
+    resource: "/{major}/{minor}/{action}/{handlerId}",
+    filters: []
+}, function(packet, context, pathParams) {
+    var flyingNode = this.makeInvocationNode(packet, context);
+    this.invokeIntentHandler(context.node, context, flyingNode);
+    return flyingNode.toPacket();
+});
+/**
+ * A route for Intent handler actions not handled by other routes: delete, watch, and unwatch.
+ * Default route used
+ */
+ozpIwc.IntentsApi.useDefaultRoute(["get", "set","delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
+
+//====================================================================
+// Action endpoints
+//====================================================================
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
@@ -128,7 +142,6 @@ ozpIwc.IntentsApi.declareRoute({
 }, function(packet, context, pathParams) {
     var key = this.createKey(context.node.resource + "/");
     var childNode = this.createNode({'resource': key});
-    this.data[key] = childNode;
     childNode.set(packet);
     return {
         'response': 'ok',
@@ -176,56 +189,6 @@ ozpIwc.IntentsApi.declareRoute({
 });
 
 /**
- * A route for intent handler invocations.
- * Invokes a specific handler directly
- */
-ozpIwc.IntentsApi.declareRoute({
-    action: "invoke",
-    resource: "/{major}/{minor}/{action}/{handlerId}",
-    filters: []
-}, function(packet, context, pathParams) {
-    var flyingNode = this.makeInvocationNode(packet, context);
-    this.invokeIntentHandler(context.node, context, flyingNode);
-    return flyingNode.toPacket();
-});
-
-/**
- * A route for setting & deleting Intent Types (/{major}/{minor})
- */
-ozpIwc.IntentsApi.declareRoute({
-    action: ["set", "delete"],
-    resource: "/{major}/{minor}",
-    filters: []
-}, function(packet, context, pathParams) {
-    throw new ozpIwc.NoPermissionError(packet);
-});
-
-/**
- * A route for getting Intent Types (/{major}/{minor})
- */
-ozpIwc.IntentsApi.declareRoute({
-    action: "get",
-    resource: "/{major}/{minor}",
-    filters: []
-}, function(packet, context, pathParams) {
-    if (context.node) {
-        // the following needs to be included, possibly via override of toPacket();
-        //'invokeIntent': childNode
-        return context.node.toPacket();
-    } else {
-        return {
-            response: "ok",
-            entity: {
-                "type": pathParams.major + "/" + pathParams.minor,
-                "actions": this.matchingNodes(packet.resource).map(function(n) {
-                    return n.entity.action;
-                })
-            }
-        };
-    }
-});
-
-/**
  * A route for getting Intent Actions (/{major}/{minor})
  * @TODO Is the following truly required?
  */
@@ -252,13 +215,40 @@ ozpIwc.IntentsApi.declareRoute({
  * A route for the following actions not handled by other routes: bulkGet, list, delete, watch, and unwatch.
  * Default route used.
  */
-ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list", "delete", "watch", "unwatch"]);
+ozpIwc.IntentsApi.useDefaultRoute(["delete", "watch", "unwatch"],"/{major}/{minor}/{action}");
 
-/**
- * A route for Intent handler actions not handled by other routes: bulkGet, list, delete, watch, and unwatch.
- * Default route used
- */
-ozpIwc.IntentsApi.useDefaultRoute(["get", "set", "bulkGet", "list", "delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
+//====================================================================
+// Content Type endpoints
+//====================================================================
+ozpIwc.IntentsApi.declareRoute({
+    action: ["set", "delete"],
+    resource: "/{major}/{minor}",
+    filters: []
+}, function(packet, context, pathParams) {
+    throw new ozpIwc.NoPermissionError(packet);
+});
+
+ozpIwc.IntentsApi.declareRoute({
+    action: "get",
+    resource: "/{major}/{minor}",
+    filters: []
+}, function(packet, context, pathParams) {
+    if (context.node) {
+        // the following needs to be included, possibly via override of toPacket();
+        //'invokeIntent': childNode
+        return context.node.toPacket();
+    } else {
+        return {
+            response: "ok",
+            entity: {
+                "type": pathParams.major + "/" + pathParams.minor,
+                "actions": this.matchingNodes(packet.resource).map(function(n) {
+                    return n.entity.action;
+                })
+            }
+        };
+    }
+});
 
 /**
  * Invokes an intent handler based on the given context.

@@ -152,7 +152,6 @@ ozpIwc.EndpointRegistry=function(config) {
         href: apiRoot,
         method: 'GET'
     }).then(function(data) {
-			console.log("Parsing payload",data);
         var payload = data.response || {};
         payload._links = payload._links || {};
         payload._embedded = payload._embedded || {};
@@ -163,7 +162,6 @@ ozpIwc.EndpointRegistry=function(config) {
 								if(Array.isArray(payload._links[linkEp])) {
 									link=payload._links[linkEp][0].href;
 								}
-								console.log("Found link ",linkEp,"=",link);
 								if(link.templated) {
 									self.template[linkEp]=link.href;
 								} else {

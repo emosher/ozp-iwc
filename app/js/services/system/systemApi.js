@@ -20,21 +20,63 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
 			ozpIwc.linkRelPrefix + ":user",
 			ozpIwc.linkRelPrefix + ":system"
 		];
+		var self=this;
+				
+		this.on("createdNode",this.updateIntents,this);
+		
+		this.leaderPromise.then(function() {
+			self.participant.send({
+            'dst' : "intents.api",
+            'src' : "system.api",
+            'action': "set",
+            'resource': "/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
+            'contentType': "application/vnd.ozp-iwc-intent-handler-v1+json",
+            'entity': {
+                'type': "application/vnd.ozp-iwc-launch-data-v1+json",
+                'action': "run",
+                'label': "Open in new tab",
+                'invokeIntent': {
+                    'action' : 'invoke',
+                    'resource' : "/"
+                }
+            }
+        });
+		});
 });
 
-/**
- * Override the default node type to be a DataNode.
- * @param {type} config
- * @returns {ozpIwc.DataNode}
- */
-ozpIwc.SystemApi.prototype.createNode=function(config) {
-    return new ozpIwc.ApiNode(config);
+ozpIwc.SystemApi.prototype.updateIntents=function(node) {
+    if(!node.entity || !node.entity.intents) {
+        return;
+    }
+    node.entity.intents.forEach(function(i) {
+        var icon = i.icon || (node.entity && node.entity.icons && node.entity.icons.small) ? node.entity.icons.small : '';
+        var label = i.label || node.entity.name;
+        this.participant.send({
+            'dst' : "intents.api",
+            'src' : "system.api",
+            'action': "set",
+            'resource': "/"+i.type+"/"+i.action+"/system.api"+node.resource.replace(/\//g,'.'),
+            'contentType': "application/vnd.ozp-iwc-intent-handler-v1+json",
+            'entity': {
+                'type': i.type,
+                'action': i.action,
+                'icon': icon,
+                'label': label,
+                '_links': node.entity._links,
+                'invokeIntent': {
+                    'action' : 'invoke',
+                    'resource' : node.resource
+                }
+            }
+        });
+    },this);
+
 };
 
 //====================================================================
 // Collection endpoints
 //====================================================================
-ozpIwc.SystemApi.useDefaultRoute(["bulkGet","list"],"/{c:user|application|system");
+ozpIwc.SystemApi.useDefaultRoute(["bulkGet","list"]);
 ozpIwc.SystemApi.declareRoute({
     action: "get",
     resource: "/{collection:user|application|system}",
@@ -76,6 +118,14 @@ ozpIwc.SystemApi.declareRoute({
 //====================================================================
 // Application Endpoints
 //====================================================================
+ozpIwc.SystemApi.useDefaultRoute(["get","watch","unwatch"],"/application/{id}");
+ozpIwc.SystemApi.declareRoute({
+    action: ["set", "delete"],
+    resource: "/application/{id}",
+    filters: []
+}, function(packet, context, pathParams) {
+    throw new ozpIwc.BadActionError(packet);
+});
 ozpIwc.SystemApi.declareRoute({
     action: ["launch"],
     resource: "/application/{id}",
@@ -97,12 +147,4 @@ ozpIwc.SystemApi.declareRoute({
     }
     this.participant.send(sendPacket);
     return {response: "ok"};
-});
-
-ozpIwc.SystemApi.declareRoute({
-    action: ["set", "delete"],
-    resource: "/application/{id}",
-    filters: []
-}, function(packet, context, pathParams) {
-    throw new ozpIwc.BadActionError(packet);
 });

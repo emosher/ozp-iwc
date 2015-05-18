@@ -30,7 +30,7 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
  * @param {type} config
  * @returns {ozpIwc.DataNode}
  */
-ozpIwc.DataApi.prototype.createNode=function(config) {
+ozpIwc.DataApi.prototype.createNodeObject=function(config) {
     return new ozpIwc.DataNode(config);
 };
 

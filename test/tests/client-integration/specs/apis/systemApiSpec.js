@@ -41,7 +41,7 @@ describe("System API", function() {
             });
 
     });
-    pit("lists the sampleData applications at /application", function() {
+		pit("lists the sampleData applications at /application", function() {
         return client.api("system.api").get("/application")
             .then(function(reply) {
                 expect(reply.response).toEqual("ok");
