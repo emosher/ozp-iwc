@@ -131,7 +131,7 @@ ozpIwc.SystemApi.declareRoute({
     resource: "/application/{id}",
     filters: []
 }, function(packet, context, pathParams) {
-    var sendPacket = {
+    this.participant.send({
         dst: "intents.api",
         contentType: "application/vnd.ozp-iwc-intent-handler-v1+json",
         action: "invoke",
@@ -139,12 +139,29 @@ ozpIwc.SystemApi.declareRoute({
         entity: {
             "url": context.node.entity.launchUrls.default,
             "applicationId": context.node.resource,
-            "launchData": packet.entity
+            "launchData": packet.entity,
+						"id": context.node.entity.id
         }
-    };
-    if (typeof context.node.entity.id !== "undefined") {
-        sendPacket.entity.id = context.node.entity.id;
-    }
-    this.participant.send(sendPacket);
+    });
     return {response: "ok"};
+});
+
+ozpIwc.SystemApi.declareRoute({
+    action: ["invoke"],
+    resource: "/",
+    filters: []
+}, function(packet,context,pathParams) {
+    if(packet.entity && packet.entity.inFlightIntent){
+        var launchParams=[
+            "ozpIwc.peer="+encodeURIComponent(ozpIwc.BUS_ROOT),
+            "ozpIwc.inFlightIntent="+encodeURIComponent(packet.entity.inFlightIntent)
+        ];
+
+        ozpIwc.util.openWindow(packet.entity.inFlightIntentEntity.entity.url,launchParams.join("&"));
+//        this.launchApplication(node,packetContext.packet.entity.inFlightIntent);
+        return {'response': "ok"};
+    } else{
+        return {'response': "badResource"};
+    }
+
 });

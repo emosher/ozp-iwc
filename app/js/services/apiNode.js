@@ -99,10 +99,10 @@ ozpIwc.ApiNode.prototype.getSelfUri=function() {
 		return this.self;
 	}
 	if(this.uriTemplate && ozpIwc.uriTemplate) {
-		this.self=ozpIwc.util.resolveUriTemplate(
-			ozpIwc.uriTemplate(this.uriTemplate),
-			this
-		);
+		var template=ozpIwc.uriTemplate(this.uriTemplate);
+		if(template) {
+			this.self=ozpIwc.util.resolveUriTemplate(template,this);
+		}
 	}
 	return this.self;
 };

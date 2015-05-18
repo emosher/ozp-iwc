@@ -173,6 +173,11 @@ ozpIwc.EndpointRegistry=function(config) {
             var embLink = payload._embedded[embEp]._links.self.href;
             self.endpoint(embEp).baseUrl = embLink;
         }
+				// UGLY HAX
+				if(!self.template["ozp:data-item"]) {
+					self.template["ozp:data-item"]=self.endpoint("ozp:user-data").baseUrl+"/{+resource}";
+				}
+				//END HUGLY HAX
     });
 };
 

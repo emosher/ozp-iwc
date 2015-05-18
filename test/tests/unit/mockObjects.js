@@ -169,7 +169,7 @@ ozpIwc.testUtil.customMatchers.toHaveSent=function(util, customEqualityTesters) 
     return {
         pass: contains,
         message: "Expected the participant to " + (contains?"NOT ":"") + "have sent " +
-            JSON.stringify(expected) +
+            JSON.stringify(expected,null,2) +
             ", but it sent packets " +
             JSON.stringify(sentPackets,null,2)
     };

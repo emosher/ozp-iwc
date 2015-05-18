@@ -80,7 +80,7 @@ describe("System API", function() {
         var context = new TestPacketContext({
             'leaderState': "leader",
             'packet': {
-                'resource': "/application/1234",
+                'resource': "/application/abcApp",
                 'action': "set",
                 'msgId': "1234",
                 'src': "srcParticipant",
@@ -100,7 +100,7 @@ describe("System API", function() {
         var context = new TestPacketContext({
             'leaderState': "leader",
             'packet': {
-                'resource': "/application/1234",
+                'resource': "/application/abcApp",
                 'action': "delete",
                 'msgId': "1234",
                 'src': "srcParticipant",
@@ -116,12 +116,12 @@ describe("System API", function() {
         });
 		});
 
-    it ("gets an application",function(){
+    pit ("gets an application",function(){
          var context = new TestPacketContext({
             'leaderState': "leader",
             'packet': {
-                'resource': "/application/1234",
-                'action': "delete",
+                'resource': "/application/abcApp",
+                'action': "get",
                 'msgId': "1234",
                 'src': "srcParticipant",
                 entity: {
@@ -134,40 +134,43 @@ describe("System API", function() {
         return systemApi.receivePacketContext(context).then(function() {
 					var reply=context.responses[0];
 	        expect(reply.response).toEqual("ok");
-	        expect(reply.entity).toEqual(systemApi.data[applicationNode.resource]);
+	        expect(reply.entity).toEqual(applicationPacket.entity);
         });
     });
 
-    it('handles launch actions', function(){
+    pit('handles launch actions', function(){
         var launchData={
                     'foo': 1
                 };
         var packetContext=new TestPacketContext({
             'packet': {
                 'resource': "/application/abcApp",
-                'entity' : launchData
-            },
-            action: 'launch'
+                'entity' : launchData,
+								 action: 'launch'
+            }
         });
-        systemApi.handleLaunch(applicationNode,packetContext);
-
-        var reply=packetContext.responses[0];
-        expect(reply.response).toEqual("ok");
-
-        var sent = systemApi.participant.sentPackets[0];
-        expect(sent.action).toEqual("invoke");
-        expect(sent.dst).toEqual("intents.api");
-        expect(sent.entity).toEqual({ 
-            "url": "http://localhost:15000/?color=blue",
-            "applicationId": "/application/abcApp",
-            "launchData": launchData
-        });
+        return systemApi.receivePacketContext(packetContext).then(function() {
+					var reply=packetContext.responses[0];
+					expect(reply.response).toEqual("ok");
+					expect(systemApi.participant).toHaveSent({
+						action: "invoke",
+						dst: "intents.api",
+						"entity": jasmine.objectContaining({
+							"url": "http://localhost:15000/?color=blue",
+							"applicationId": "/application/abcApp",
+							"launchData": {
+								"foo": 1
+							}
+						})
+					});
+				});
     });
 
-    it('handles invoke actions by launching applications', function(){
+    pit('handles invoke actions by launching applications', function(){
         var packetContext=new TestPacketContext({
             'packet': {
-                'resource': "/application/abcApp",
+                'resource': "/",
+								action: 'invoke',
                 'entity' : {
                     'foo': 1,
                     'inFlightIntent': '/intents/invocation/123',
@@ -180,20 +183,19 @@ describe("System API", function() {
                     }
                       
                 }
-            },
-            action: 'invoke'
+            }
         });
         spyOn( ozpIwc.util,"openWindow");
-
-        systemApi.rootHandleInvoke(applicationNode,packetContext);
-
-        var reply=packetContext.responses[0];
-        expect(reply.response).toEqual("ok");
-
-        expect(ozpIwc.util.openWindow.calls.mostRecent().args[0]).toEqual("http://" + window.location.hostname + ":15000/?color=blue");
-        var params= decodeURIComponent(ozpIwc.util.openWindow.calls.mostRecent().args[1]).split('&');
-        expect(params.length).toEqual(2);
-        expect(params[0]).toEqual('ozpIwc.peer='+ozpIwc.BUS_ROOT);
-        expect(params[1]).toEqual('ozpIwc.inFlightIntent='+packetContext.packet.entity.inFlightIntent);
-    });
+				return systemApi.receivePacketContext(packetContext).then(function() {
+						expect(packetContext).toHaveSent({
+							"response":"ok"
+						});
+						
+						expect(ozpIwc.util.openWindow.calls.mostRecent().args[0]).toEqual("http://" + window.location.hostname + ":15000/?color=blue");
+						var params= decodeURIComponent(ozpIwc.util.openWindow.calls.mostRecent().args[1]).split('&');
+						expect(params.length).toEqual(2);
+						expect(params[0]).toEqual('ozpIwc.peer='+ozpIwc.BUS_ROOT);
+						expect(params[1]).toEqual('ozpIwc.inFlightIntent='+packetContext.packet.entity.inFlightIntent);
+				});
+		});
 });
