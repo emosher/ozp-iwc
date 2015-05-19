@@ -1,14 +1,14 @@
 describe("Locks API",function() {
 
 	var locksApi;
-    var sentPackets;
+    var sentPacketObjs;
     
 	beforeEach(function() {
 		locksApi=new ozpIwc.LocksApi({
 			'participant': new TestParticipant()
 		});
         locksApi.participant.name="locks.api";
-        sentPackets=locksApi.participant.sentPackets;
+        sentPacketObjs=locksApi.participant.sentPacketObjs;
 	});
     
     var queueEntry=function(address,msgId) {
@@ -48,7 +48,7 @@ describe("Locks API",function() {
     it("gives the lock to the first requester",function() {
         locksApi.routePacket(lockPacket("12345"));
 
-        expect(sentPackets[0]).toEqual(ownerNotification("12345"));
+        expect(sentPacketObjs[0]).toEqual(ownerNotification("12345"));
     });
 
     it("passes the lock down the queue when the owner unlocks",function() {
@@ -58,9 +58,9 @@ describe("Locks API",function() {
 
         locksApi.routePacket(unlockPacket("12345"));
 
-        expect(sentPackets.length).toEqual(2);
-        expect(sentPackets[0]).toEqual(ownerNotification("12345"));
-        expect(sentPackets[1]).toEqual(ownerNotification("12346"));
+        expect(sentPacketObjs.length).toEqual(2);
+        expect(sentPacketObjs[0]).toEqual(ownerNotification("12345"));
+        expect(sentPacketObjs[1]).toEqual(ownerNotification("12346"));
     });
 
     
@@ -136,8 +136,8 @@ describe("Locks API",function() {
         var context = getPacket("unitTest","i:300");
         locksApi.routePacket(context);
         
-        expect(sentPackets.length).toEqual(2);
-        expect(sentPackets[1]).toEqual(ownerNotification("12346"));
+        expect(sentPacketObjs.length).toEqual(2);
+        expect(sentPacketObjs[1]).toEqual(ownerNotification("12346"));
     });
     
     it("removes an address from ALL lock queues upon disconnect",function() {

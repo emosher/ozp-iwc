@@ -117,7 +117,7 @@ ozpIwc.util.safePostMessage = function(window,msg,origin) {
         try {
             window.postMessage(JSON.stringify(msg), origin);
         } catch (e) {
-            console.error("Invalid call to window.postMessage: " + e.message);
+            ozpIwc.log.debug("Invalid call to window.postMessage: " + e.message);
         }
     }
 };

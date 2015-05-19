@@ -2,7 +2,7 @@
 debuggerModule.controller("MyAppsCtrl",["$scope","iwcClient",function(scope,client) {
 
   function saveAppData(appResource) {
-    return client.api("system.api").get(appResource).then(function(response) {
+    return client.system().get(appResource).then(function(response) {
         scope.appListings.push(response.entity);
     })["catch"](function(err){
           console.log("Not Supported: " + err.response);
@@ -10,7 +10,7 @@ debuggerModule.controller("MyAppsCtrl",["$scope","iwcClient",function(scope,clie
   }
 
     function getApplicationResources() {
-      return client.api('system.api').get('/application').then(function (response) {
+      return client.system().get('/application').then(function (response) {
           return response.entity;
       })["catch"](function(err){
           return console.log("Not Supported: " + err.response);
@@ -18,7 +18,7 @@ debuggerModule.controller("MyAppsCtrl",["$scope","iwcClient",function(scope,clie
     }
 
     function getUserInfo() {
-      return client.api('system.api').get('/user').then(function (response) {
+      return client.system().get('/user').then(function (response) {
           scope.username = response.entity.username;
           scope.userRole = response.entity.highestRole;
           return response.entity;

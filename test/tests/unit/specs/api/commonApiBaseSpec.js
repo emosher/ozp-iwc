@@ -1905,8 +1905,8 @@ describe("Common API Base class",function() {
 
             apiBase.routePacket(context);
 
-            expect(apiBase.participant.sentPackets.length).toEqual(1);
-            var changePacket=apiBase.participant.sentPackets[0];
+            expect(apiBase.participant.sentPacketObjs.length).toEqual(1);
+            var changePacket=apiBase.participant.sentPacketObjs[0];
             expect(changePacket).toBeDefined();
             expect(changePacket.response).toEqual("changed");
             expect(changePacket.entity.newValue).toEqual({'bar':2});
@@ -1926,8 +1926,8 @@ describe("Common API Base class",function() {
 
             apiBase.routePacket(context);
 
-            expect(apiBase.participant.sentPackets.length).toEqual(0);
-            expect(apiBase.participant.sentPackets[0]).toBeUndefined();
+            expect(apiBase.participant.sentPacketObjs.length).toEqual(0);
+            expect(apiBase.participant.sentPacketObjs[0]).toBeUndefined();
         });
         it("responds to a root level list action", function() {
             // possibly brittle, if CommonApiBase changes how it stores the
@@ -2044,8 +2044,8 @@ describe("Common API Base class",function() {
                 }
             }));
 
-            expect(apiBase.participant.sentPackets.length).toEqual(1);
-            var changePacket=apiBase.participant.sentPackets[0];
+            expect(apiBase.participant.sentPacketObjs.length).toEqual(1);
+            var changePacket=apiBase.participant.sentPacketObjs[0];
             expect(changePacket.response).toEqual("changed");
             expect(changePacket.entity.newValue).toEqual([ "/foo/1", "/foo/2", "/foo/3", "/foo/4" ]);
             expect(changePacket.entity.oldValue).toEqual([ "/foo/1", "/foo/2", "/foo/3"]);

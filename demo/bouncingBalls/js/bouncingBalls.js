@@ -250,7 +250,9 @@ client.on("connected",function() {
             });
 		}
 	};
-	client.send(watchRequest,onBallsChanged);
+	client.send(watchRequest,onBallsChanged).then(function(e){
+        console.log(e);
+    });
 
 	//=================================================================
 	// get the existing balls

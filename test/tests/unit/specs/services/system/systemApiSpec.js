@@ -32,6 +32,6 @@ describe("System API", function() {
         });
         return systemApi.receivePacketContext(context).then(function() {
             expect(context.responses[0].response).toEqual("badAction");
-        })
+        });
     });
 });

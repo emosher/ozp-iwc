@@ -1,5 +1,6 @@
 var ozpIwc=ozpIwc || {};
 ozpIwc.version = "0.2";
+ozpIwc.log.threshold = 11;
 ozpIwc.ELECTION_TIMEOUT = 1000;
 ozpIwc.apiRootUrl = ozpIwc.apiRootUrl || "/api";
 ozpIwc.policyRootUrl = ozpIwc.policyRootUrl || "/policy";
@@ -13,8 +14,7 @@ ozpIwc.authorization = new ozpIwc.policyAuth.PDP({
 });
 
 if(typeof ozpIwc.enableDefault === "undefined" || ozpIwc.enableDefault) {
-    ozpIwc.initEndpoints(ozpIwc.apiRootUrl);
-
+    ozpIwc.initEndpoints(ozpIwc.apiRootUrl || "api");
 
     ozpIwc.defaultPeer = new ozpIwc.Peer();
     ozpIwc.defaultLocalStorageLink = new ozpIwc.KeyBroadcastLocalStorageLink({
@@ -38,8 +38,6 @@ if(typeof ozpIwc.enableDefault === "undefined" || ozpIwc.enableDefault) {
             };
         };
 
-        ozpIwc.initEndpoints(ozpIwc.apiRootUrl || "api");
-        
         ozpIwc.locksApi = new ozpIwc.LocksApi({
             'participant': new ozpIwc.LeaderGroupParticipant({
                 'name': "locks.api",

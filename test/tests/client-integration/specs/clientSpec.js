@@ -224,7 +224,7 @@ describe("IWC Client", function() {
 //                    'dst': "intents.api",
 //                    'resource': "/ozpIntents/invocations/123",
 //                    'action': "get"
-//                }));
+//                }),undefined);
 //                done();
 //            })['catch'](function(error) {
 //                console.log("Error ", error);
