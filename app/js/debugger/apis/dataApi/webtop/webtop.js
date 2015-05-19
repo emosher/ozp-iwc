@@ -14,23 +14,19 @@ debuggerModule.controller('WebtopCtrl', ["$scope", "$http", "iwcClient", functio
   };
 
   function getApplicationResources() {
-    return client.api('system.api')
-      .get('/application')
-      .then(function (reply) {
+    return client.system().get('/application').then(function (reply) {
         return reply.entity;
       });
   }
 
   function saveAppData(appResource, appListings) {
-    return client.api('system.api').get(appResource).then(function(appData) {
+    return client.system().get(appResource).then(function(appData) {
       appListings.push(appData.entity);
     });
   }
 
   function getDashboardData() {
-    return client.api('data.api')
-      .get(dashboardDataResource)
-      .then(function (reply) {
+    return client.data().get(dashboardDataResource).then(function (reply) {
         return reply.entity;
       });
   }
@@ -90,9 +86,7 @@ debuggerModule.controller('WebtopCtrl', ["$scope", "$http", "iwcClient", functio
   }
 
   function setData(dst, resource, entity) {
-    return client.api(dst)
-      .set(resource, {"entity": entity})
-      .then(function (response) {
+    return client.api(dst).set(resource, {"entity": entity}).then(function (response) {
             console.log('updated OK');
         })["catch"](function(err) {
           console.log('update failed',err);

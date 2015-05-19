@@ -18,13 +18,13 @@ var FakePeer = function() {
 //========================================================
 // TestParticipant for connecting to a router
 //========================================================
-var TestParticipant = ozpIwc.util.extend(ozpIwc.InternalParticipant, function(config) {
-    ozpIwc.InternalParticipant.apply(this, arguments);
+var TestParticipant = ozpIwc.util.extend(ozpIwc.ClientParticipant, function(config) {
+    ozpIwc.ClientParticipant.apply(this, arguments);
     config = config || {};
     this.origin = config.origin || "foo.com";
     this.address = config.staticAddress;
     this.packets = [];
-    this.sentPackets = [];
+    this.sentPacketObjs = [];
     // since we aren't connecting to a router, mock these out, too
     this.metricRoot = "testparticipant";
     this.participantType="testParticipant";
@@ -43,19 +43,18 @@ var TestParticipant = ozpIwc.util.extend(ozpIwc.InternalParticipant, function(co
 });
 TestParticipant.prototype.receiveFromRouter = function(packet) {
     this.packets.push(packet);
-    return ozpIwc.InternalParticipant.prototype.receiveFromRouter.call(this, packet);
+    return ozpIwc.ClientParticipant.prototype.receiveFromRouter.call(this, packet);
 };
 
-TestParticipant.prototype.send = function(packet, callback) {
-    this.sentPackets.push(packet);
+TestParticipant.prototype.sendImpl = function(packet, callback) {
+    this.sentPacketObjs.push(packet);
     try {
-        packet = ozpIwc.InternalParticipant.prototype.send.call(this, packet, callback);
+        packet = ozpIwc.ClientParticipant.prototype.send.call(this, packet, callback);
     } catch (e) {
         packet=e;
     }
     // tick to trigger the async send
     ozpIwc.testUtil.tick(0);
-    return packet;
 };
 
 TestParticipant.prototype.reply = function(originalPacket, packet, callback) {
@@ -70,7 +69,7 @@ TestParticipant.prototype.reply = function(originalPacket, packet, callback) {
     packet.action = packet.action || originalPacket.action;
     packet.resource = packet.resource || originalPacket.resource;
 
-    this.sentPackets.push(packet);
+    this.sentPacketObjs.push(packet);
 
     if (callback) {
         this.callbacks[packet.msgId] = callback;
@@ -85,9 +84,7 @@ TestParticipant.prototype.reply = function(originalPacket, packet, callback) {
 var TestClientParticipant=ozpIwc.util.extend(TestParticipant,function() {
     TestParticipant.apply(this,arguments);
     this.participantType="testClientParticipant";
-    ozpIwc.ClientMixin(this);
 });
-TestClientParticipant.prototype.sendImpl=TestParticipant.prototype.send;
 
 
 //================================================
@@ -163,7 +160,7 @@ ozpIwc.testUtil.customMatchers.toHaveSent=function(util, customEqualityTesters) 
         };
     }
 
-    var sentPackets=participant.sentPackets || participant.responses;
+    var sentPackets=participant.sentPacketObjs || participant.responses;
 
     var contains=util.contains(sentPackets,jasmine.objectContaining(expected),customEqualityTesters);
     return {

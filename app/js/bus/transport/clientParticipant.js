@@ -34,10 +34,14 @@ ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) 
      */
 	this.name=config.name;
 
+    /**
+     * The router to connect to.
+     * @property router
+     * @type {*|ozpIwc.defaultRouter}
+     */
+    this.router=config.router || ozpIwc.defaultRouter;
     var self = this;
-    this.connectPromise=new Promise(function(resolve,reject) {
-        self.on("connectedToRouter",function() {
-            resolve();
+    this.on("connectedToRouter",function() {
             self.permissions.pushIfNotExist('ozp:iwc:address', self.address);
             self.permissions.pushIfNotExist('ozp:iwc:sendAs',self.address);
             self.permissions.pushIfNotExist('ozp:iwc:receiveAs', self.address);
@@ -49,11 +53,34 @@ ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) 
                 return Object.keys(self.replyCallbacks).length;
             });
         });
-    });
-    
-    ozpIwc.ClientMixin(this);
+
+    ozpIwc.ApiPromiseMixin(this,config.autoConnect);
 });
 
+
+/**
+ * Connects the client from the IWC bus.
+ * Fires:
+ *     - {{#crossLink "ozpIwc.Client/#connected"}}{{/crossLink}}
+ *
+ * @method connect
+ */
+ozpIwc.ClientParticipant.prototype.connect = function(){
+
+    if(!this.connectPromise) {
+        var self = this;
+        /**
+         * Promise to chain off of for client connection asynchronous actions.
+         * @property connectPromise
+         * @type Promise
+         */
+        this.connectPromise = new Promise(function(){
+            self.router.registerParticipant(self);
+        });
+    }
+
+    return this.connectPromise;
+};
 /**
  * Send functionality for the clientParticipant type Participant.
  *
@@ -61,19 +88,3 @@ ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) 
  * @param {ozpIwc.TransportPacket} packet
  */
 ozpIwc.ClientParticipant.prototype.sendImpl=ozpIwc.Participant.prototype.send;
-
-/**
- * Handles packets received from the {{#crossLink "ozpIwc.Router"}}{{/crossLink}} the participant is registered to.
- *
- * Fires:
- *   - {{#crossLink "ozpIwc.Participant/#receive:event"}}{{/crossLink}}
- *
- * @method receiveFromRouterImpl
- * @param {ozpIwc.TransportPacketContext} packetContext
- */
-ozpIwc.ClientParticipant.prototype.receiveFromRouterImpl=function(packetContext) {
-    var packet=packetContext.packet;
-    if(!this.routeToReplies(packet)) {
-        this.events.trigger("receive",packetContext);
-    }    
-};
