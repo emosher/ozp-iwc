@@ -33,7 +33,6 @@ ozpIwc.util.ajax = function (config) {
         request.open(config.method, config.href, true);
         request.withCredentials = true;
         var setContentType = true;
-
         if (Array.isArray(config.headers)) {
             config.headers.forEach(function(header) {
                 if(header.name ==="Content-Type"){

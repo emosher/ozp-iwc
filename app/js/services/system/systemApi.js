@@ -25,6 +25,7 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
 		this.on("createdNode",this.updateIntents,this);
 		
 		this.leaderPromise.then(function() {
+			ozpIwc.log.debug("System.api registering for the launch intent");
 			self.participant.send({
             'dst' : "intents.api",
             'src' : "system.api",
@@ -36,11 +37,14 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
                 'action': "run",
                 'label': "Open in new tab",
                 'invokeIntent': {
+										'dst': "system.api",
                     'action' : 'invoke',
                     'resource' : "/"
                 }
             }
-        });
+        }).catch(function(error) {
+					ozpIwc.log.error("System.api failed to register for launch intent: ",error);
+				});
 		});
 });
 
@@ -129,7 +133,7 @@ ozpIwc.SystemApi.declareRoute({
 ozpIwc.SystemApi.declareRoute({
     action: ["launch"],
     resource: "/application/{id}",
-    filters: []
+    filters: ozpIwc.standardApiFilters.getFilters()
 }, function(packet, context, pathParams) {
     this.participant.send({
         dst: "intents.api",

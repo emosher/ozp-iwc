@@ -113,6 +113,8 @@ ozpIwc.IntentsApi.declareRoute({
 //====================================================================
 // Handler endpoints
 //====================================================================
+ozpIwc.IntentsApi.useDefaultRoute(["get", "set","delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
+
 /**
  * A route for intent handler invocations.
  * Invokes a specific handler directly
@@ -126,11 +128,6 @@ ozpIwc.IntentsApi.declareRoute({
     this.invokeIntentHandler(context.node, context, flyingNode);
     return flyingNode.toPacket();
 });
-/**
- * A route for Intent handler actions not handled by other routes: delete, watch, and unwatch.
- * Default route used
- */
-ozpIwc.IntentsApi.useDefaultRoute(["get", "set","delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
 
 //====================================================================
 // Action endpoints

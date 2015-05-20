@@ -13,6 +13,8 @@ var ozpIwc=ozpIwc || {};
  * @todo accept a list of peer URLs that are searched in order of preference
  * @param {Object} config
  * @param {String} config.peerUrl - Base URL of the peer server
+ * @param {Object} config.params - Parameters that will be passed to the bus.
+ * @param {String} config.params.log - The IWC bus logging level.  One of "NONE","DEFAULT","ERROR","INFO","DEBUG", or "ALL"
  * @param {Boolean} [config.autoConnect=true] - Whether to automatically find and connect to a peer
  */
 ozpIwc.Client=function(config) {
@@ -122,7 +124,7 @@ ozpIwc.Client=function(config) {
      * @type Object
      * @default {}
      */
-    this.launchParams={};
+    this.launchParams=config.params || {};
     
     this.readLaunchParams(window.name);
     this.readLaunchParams(window.location.search);
@@ -605,7 +607,11 @@ ozpIwc.Client.prototype.createIframePeer=function() {
             self.iframe.addEventListener("load",function() {
                 resolve();
             });
-            self.iframe.src=self.peerUrl+"/iframe_peer.html";
+						var url=self.peerUrl+"/iframe_peer.html";
+						if(self.launchParams.log) {
+							url+="?log="+self.launchParams.log;
+						}
+            self.iframe.src=url;
             self.iframe.height=1;
             self.iframe.width=1;
             self.iframe.setAttribute("area-hidden",true);

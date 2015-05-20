@@ -81,7 +81,6 @@ ozpIwc.DataNode.prototype.serializedContentType=function() {
  * @param {String} contentType
  */
 ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    ozpIwc.log.debug("SerializedForm is ",serializedForm);
     if(typeof(serializedForm) === "string") {
         serializedForm=JSON.parse(serializedForm);
     }

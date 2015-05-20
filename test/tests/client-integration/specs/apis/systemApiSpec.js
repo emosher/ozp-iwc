@@ -8,17 +8,20 @@ describe("System API", function() {
     var participant;
     beforeEach(function(done) {
         client = new ozpIwc.Client({
-            peerUrl: "http://" + window.location.hostname + ":14002"
+            peerUrl: "http://" + window.location.hostname + ":14002",
+						params: {"log":"DEBUG"}
         });
         participant = new ozpIwc.test.MockParticipant({
             clientUrl: "http://localhost:14001",
             'client': client
         });
 
-        var gate = ozpIwc.testUtil.doneSemaphore(2, done);
-
+        var gate = ozpIwc.testUtil.doneSemaphore(3, done);
         participant.on("connected", gate);
         client.connect().then(gate, gate);
+				
+				// wait for the systemAPI to be available
+				client.api("system.api").list("/").then(gate,gate);
     });
 
     afterEach(function() {
@@ -76,11 +79,12 @@ describe("System API", function() {
     
     pit("registers for the intent run /application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",function() {
         return client.api("intents.api").get("/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api")
-            .then(function(reply) {
-                expect(reply.response).toEqual("ok");
-                expect(reply.entity.invokeIntent).toBeDefined();
-                expect(reply.entity.invokeIntent.action).toEqual("invoke");
-                expect(reply.entity.invokeIntent.dst).toEqual("system.api");
+				.then(function(reply) {
+						console.log("Received ",reply);
+						expect(reply.response).toEqual("ok");
+						expect(reply.entity.invokeIntent).toBeDefined();
+						expect(reply.entity.invokeIntent.action).toEqual("invoke");
+						expect(reply.entity.invokeIntent.dst).toEqual("system.api");
         });
     });
     pit("launch on system.api invokes the intent run /application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",function() {
@@ -99,7 +103,7 @@ describe("System API", function() {
         }).then(function(reply) {
             expect(reply.response).toEqual("ok");
             return Promise.all([
-                client.api("system.api").launch("/application/8e8265bb-fef8-49ab-8b13-2356a1647b6b",{
+                client.api("system.api").launch("/application/23456",{
                     entity: { "foo": 123 }
                 }),
                 new Promise(function(resolve,reject) {
@@ -118,8 +122,8 @@ describe("System API", function() {
             expect(reply.entity).toEqual(jasmine.objectContaining({
                 "entity": { 
                     "url": "http://localhost:15004/", 
-                    "applicationId": "/application/8e8265bb-fef8-49ab-8b13-2356a1647b6b",
-                    "id": "8e8265bb-fef8-49ab-8b13-2356a1647b6b",
+                    "applicationId": "/application/23456",
+                    "id": "23456",
                     "launchData": { "foo": 123 } 
                 }
             }));

@@ -122,7 +122,9 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
         var self=this;
         return Promise.all(this.endpoints.map(function(u) {
           var e=ozpIwc.endpoint(u) ;
-					return self.loadFromEndpoint(e);
+					return self.loadFromEndpoint(e).catch(function(e) {
+						ozpIwc.log.error(self.logPrefix,"load from endpoint ",e," failed: ",e);
+					});
         }));    
     } else {
         return Promise.resolve();
@@ -174,8 +176,10 @@ ozpIwc.ApiBase.prototype.createNodeObject=function(config) {
 ozpIwc.ApiBase.prototype.transitionToLoading=function() {
     var self=this;
     if(this.leaderState !== "member") {
+				ozpIwc.log.error(this.logPrefix+"transition to loading called in an invalide state:",this.leaderState);
         return;
     }
+		ozpIwc.log.debug(this.logPrefix+"transitioning to loading");
     this.leaderState="loading";
     return this.initializeData(this.deathScream)
         .then(function() {
@@ -192,9 +196,10 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
  */
 ozpIwc.ApiBase.prototype.transitionToLeader=function() {
 		if(this.leaderState !== "loading") {
-        return;
+				ozpIwc.log.error(this.logPrefix+"transition to leader called in an invalide state:",this.leaderState);
+				return;
     }
-
+		ozpIwc.log.debug(this.logPrefix+"transitioning to leader");
     this.leaderState = "leader";
     this.broadcastLeaderReady();
     this.deliverRequestQueue();
@@ -449,6 +454,9 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
         }
         self.resolveChangedNodes();    
     },function(e) {
+			if(!e.errorAction) {
+				ozpIwc.log.error(self.logPrefix,"Unexpected error: ",e," packet= ",packet);
+			}
         var packetFragment={
             'src': self.name,
             'response': e.errorAction || "errorUnknown",
@@ -557,7 +565,7 @@ ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
  */
 ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
     var self=this;
-
+		ozpIwc.log.debug(self.logPrefix+" loading from ",endpoint.name," -- ",endpoint.baseUrl);
     return endpoint.get("/").then(function(data) {
 
         var response=data.response;
@@ -570,13 +578,14 @@ ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
                 serializedEntity: i
             });
         });
-
+				ozpIwc.log.debug(self.logPrefix+" processed " + embeddedItems.length + " items embedded in the endoint");
         var unknownLinks=linkedItems.map(function(i) { return i.href;});
         unknownLinks=unknownLinks.filter(function(href) {
                 return ozpIwc.object.values(self.data,function(k,node) {
                     return node.self === href;
                 }).length === 0;
             });
+				ozpIwc.log.debug(self.logPrefix+" loading " + unknownLinks.length + " linked items");
 
 				// empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
