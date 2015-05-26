@@ -12,13 +12,25 @@
  * @constructor
  */
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
-    this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
 //    this.endpoints = this.endpoints || [];
 //    this.endpoints.push(ozpIwc.linkRelPrefix + ":intent");
+    var systemIntents = [{
+            contentType: "application/vnd.ozp-iwc-intent-handler-v1+json",
+            resource: "/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
+            entity: {
+                label: "Launch in New Window",
+                invokeIntent: {
+                    dst: "system.api",
+                    action: "invoke",
+                    resource: null
+                }
+            }
+        }];
 
-    this.on("changed", function(node) {
-        this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
-    }, this);
+    var self = this;
+    for (var i = 0; i < systemIntents.length; ++i) {
+        self.createNode(systemIntents[i]);
+    }
 });
 
 /**
