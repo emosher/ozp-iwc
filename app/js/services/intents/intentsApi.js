@@ -13,23 +13,13 @@
  */
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
     this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
-//    this.endpoints = this.endpoints || [];
-//    this.endpoints.push(ozpIwc.linkRelPrefix + ":intent");
-
+    this.endpoints=[
+        ozpIwc.linkRelPrefix+":intent"
+    ];
     this.on("changed", function(node) {
         this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
     }, this);
 });
-
-/**
- * Override the default node type to be an IntentsNode.
- * @method createNodeObject
- * @param config
- * @returns {ozpIwc.IntentsNode}
- */
-ozpIwc.IntentsApi.prototype.createNodeObject = function(config) {
-    return new ozpIwc.IntentsNode(config);
-};
 
 /**
  * Generates a unique key with the given prefix.
@@ -50,64 +40,66 @@ ozpIwc.IntentsApi.prototype.createKey = function(prefix) {
 ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list"]);
 
 //====================================================================
-// In-flight intent endpoints
+// Intent Invocation Endpoints
 //====================================================================
+ozpIwc.IntentsApi.prototype.getHandlerPreference=function(inflightNode) {
+    return Promise.reject("TO BE IMPLEMENTED: Fetch the value from the data.api");
+};
+
+ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,handlers) {
+    var inflightNode = new ozpIwc.IntentsInFlightNode({
+        resource: this.createKey("/inFlightIntent/"),
+        invokePacket: packet,
+        type: type,
+        action: action,
+        handlerChoices: handlers
+    });
+    
+    this.data[inflightNode.resource] = inflightNode;
+    this.addWatcher(inflightNode.resource,{src:packet.src,replyTo:packet.msgId});
+    this.handleInflightIntentState(inflightNode);
+    return {
+        entity: {
+            inFlightIntent: inflightNode.resource
+        }
+    };
+};
+
+ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
+    switch(inflightNode.entity.state){
+        case "choosing":
+            this.getHandlerPreference(inflightNode).then(function(handlerResource) {
+                inflightNode.setHandlerResource(handlerResource,"remembered");
+            }).catch(function(){
+                ozpIwc.util.openWindow("intentsChooser.html", {
+                    "ozpIwc.peer": ozpIwc.BUS_ROOT,
+                    "ozpIwc.intentSelection": "intents.api" + inflightNode.resource
+                });
+            });
+            break;
+        case "delivering":
+            var handlerNode=this.data[inflightNode.entity.handlerChosen.resource];
+
+            var packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
+            packet.src=this.participant.name;
+            packet.entity = packet.entity || {};
+            packet.entity.inFlightIntent = inflightNode.resource;
+            packet.entity.inFlightIntentEntity= inflightNode.entity;
+            // TODO: packet permissions
+            return this.participant.send(packet);
+            break;
+        default:
+            break;
+    }
+};
+
 ozpIwc.IntentsApi.declareRoute({
     action: "set",
     resource: "/inFlightIntent/{id}",
     filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsInFlightNode, "application/vnd.ozp-iwc-intent-invocation-v1+json")
 }, function(packet, context, pathParams) {
-    var invokePacket, snapshot;
-    if (ozpIwc.IntentsInFlightNode.acceptedStates.indexOf(packet.entity.state) > -1 &&
-            (packet.entity.state !== "new" && packet.entity.state !== "delivering")) {
-
-        context.node.set(packet);
-        switch (packet.entity.state) {
-            case "choosing":
-                var handlerNode = this.data[packet.entity.resource];
-                if (handlerNode === null) {
-                    return;
-                }
-                this.invokeIntentHandler(handlerNode, context, context.node);
-                break;
-            case "fail":
-                invokePacket = context.node.invokePacket;
-                snapshot = context.node.snapshot();
-                // What to do regarding this next call?
-                // this.notifyWatchers(node, node.changesSince(snapshot));
-
-                this.participant.send({
-                    replyTo: invokePacket.msgId,
-                    dst: invokePacket.src,
-                    response: 'ok',
-                    entity: {
-                        response: context.node.entity.reply,
-                        invoked: false
-                    }
-                });
-                break;
-            case "complete":
-                invokePacket = context.node.invokePacket;
-                snapshot = context.node.snapshot();
-                // What to do regarding this next call?
-                // this.notifyWatchers(node, node.changesSince(snapshot));
-
-                this.participant.send({
-                    replyTo: invokePacket.msgId,
-                    dst: invokePacket.src,
-                    response: 'ok',
-                    entity: {
-                        response: context.node.entity.reply,
-                        invoked: true
-                    }
-                });
-                break;
-        }
-        return {response: "ok"};
-    }
-    else {
-        throw new ozpIwc.BadActionError(packet);
-    }
+    context.node.set(packet);
+    this.handleInflightIntentState(context.node);
 });
 
 //====================================================================
@@ -124,9 +116,12 @@ ozpIwc.IntentsApi.declareRoute({
     resource: "/{major}/{minor}/{action}/{handlerId}",
     filters: []
 }, function(packet, context, pathParams) {
-    var flyingNode = this.makeInvocationNode(packet, context);
-    this.invokeIntentHandler(context.node, context, flyingNode);
-    return flyingNode.toPacket();
+    return this.invokeIntentHandler(
+        pathParams.major+"/"+pathParams.minor,
+        pathParams.action,
+        packet, 
+        [context.node]
+    );
 });
 
 //====================================================================
@@ -157,32 +152,12 @@ ozpIwc.IntentsApi.declareRoute({
     resource: "/{major}/{minor}/{action}",
     filters: []
 }, function(packet, context, pathParams) {
-    var flyingNode = this.makeInvocationNode(packet, context);
-    var handlers = this.matchingNodes(packet.resource);
-    var updateInFlightEntity = flyingNode.toPacket();
-    if (handlers.length === 1) {
-        // Only one option, fire it.
-        updateInFlightEntity.entity.handlerChosen = {
-            'resource': handlers[0].resource,
-            'reason': "onlyOne"
-        };
-        updateInFlightEntity.entity.state = "delivering";
-        flyingNode.set(updateInFlightEntity);
-        this.invokeIntentHandler(handlers[0], context, flyingNode);
-    }
-    else {
-        // Choose.
-        var handler = this.chooseIntentHandler(context.node, context, flyingNode);
-        updateInFlightEntity.entity.handlerChosen = {
-            'resource': handler.resource,
-            'reason': "user"
-        };
-        updateInFlightEntity.entity.state = "delivering";
-        flyingNode.set(updateInFlightEntity);
-        this.invokeIntentHandler(handler, context, flyingNode);
-    }
-
-    return flyingNode.toPacket();
+    return this.invokeIntentHandler(
+        pathParams.major+"/"+pathParams.minor,
+        pathParams.action,
+        packet, 
+        this.matchingNodes(packet.resource+"/")
+    );
 });
 
 /**
@@ -247,73 +222,4 @@ ozpIwc.IntentsApi.declareRoute({
     }
 });
 
-/**
- * Invokes an intent handler based on the given context.
- *
- * @method invokeIntentHandler
- * @param {ozpIwc.IntentsNode} handlerNode
- * @param {ozpIwc.TransportPacket} packetContext
- * @param {ozpIwc.IntentsInFlightNode} inFlightIntent
- */
-ozpIwc.IntentsApi.prototype.invokeIntentHandler = function(handlerNode, packetContext, inFlightIntent) {
-    inFlightIntent = inFlightIntent || {};
-    var packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
-    packet.entity = packet.entity || {};
-    packet.entity.inFlightIntent = inFlightIntent.resource;
-    packet.entity.inFlightIntentEntity = inFlightIntent.entity;
-    packet.src = this.participant.name;
-    var self = this;
-    this.participant.send(packet, function(response, done) {
-        var blacklist = ['src', 'dst', 'msgId', 'replyTo'];
-        var packet = {};
-        for (var k in response) {
-            if (blacklist.indexOf(k) === -1) {
-                packet[k] = response[k];
-            }
-        }
-        self.participant.send({
-            replyTo: packet.msgId,
-            dst: packet.src,
-            response: 'ok',
-            entity: packet
-        });
-        packetContext.replyTo(packet);
-        done();
-    });
-};
 
-/**
- * Produces a modal for the user to select a handler from the given list of 
- * intent handlers.
- *
- * @method chooseIntentHandler
- * @param {ozpIwc.IntentsInFlightNode} inflightPacket
- */
-ozpIwc.IntentsApi.prototype.chooseIntentHandler = function(inflightPacket) {
-    inflightPacket.entity.state = "choosing";
-    ozpIwc.util.openWindow("intentsChooser.html", {
-        "ozpIwc.peer": ozpIwc.BUS_ROOT,
-        "ozpIwc.intentSelection": "intents.api" + inflightPacket.resource
-    });
-};
-
-/**
- * @method makeInvocationNode
- * @param {ozpIwc.TransportPacket} packet
- * @param context
- * @returns {ozpIwc.IntentsInFlightNode}
- */
-ozpIwc.IntentsApi.prototype.makeInvocationNode = function(packet, context) {
-    var resource = this.createKey("/inFlightIntent/");
-    var inflightPacket = new ozpIwc.IntentsInFlightNode({
-        resource: resource,
-        invokePacket: packet,
-        contentType: context.node.contentType,
-        type: context.node.entity.type,
-        action: context.node.entity.action,
-        entity: packet.entity,
-        handlerChoices: []
-    });
-    this.data[inflightPacket.resource] = inflightPacket;
-    return inflightPacket;
-};

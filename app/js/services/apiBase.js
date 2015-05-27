@@ -454,9 +454,9 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
         }
         self.resolveChangedNodes();    
     },function(e) {
-			if(!e.errorAction) {
-				ozpIwc.log.error(self.logPrefix,"Unexpected error: ",e," packet= ",packet);
-			}
+        if(!e.errorAction) {
+            ozpIwc.log.error(self.logPrefix,"Unexpected error: ",e," packet= ",packet);
+        }
         var packetFragment={
             'src': self.name,
             'response': e.errorAction || "errorUnknown",

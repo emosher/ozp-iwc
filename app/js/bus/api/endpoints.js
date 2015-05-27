@@ -208,8 +208,8 @@ ozpIwc.initEndpoints=function(apiRoot) {
     ozpIwc.endpoint=function(name) {
         return registry.endpoint(name);
     };
-		ozpIwc.uriTemplate=function(name) {
-			return registry.template[name];
-		};
+    ozpIwc.uriTemplate=function(name) {
+        return registry.template[name];
+    };
 };
 

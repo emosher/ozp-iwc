@@ -46,13 +46,52 @@ ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config)
     }
 });
 
-/**
- * Valid states for an IntentsInFlightNode.
- *
- * @property acceptedStates
- * @type {String[]}
- */
-ozpIwc.IntentsInFlightNode.prototype.acceptedStates = ["choosing", "delivering", "running", "error", "complete"];
+ozpIwc.IntentsInFlightNode.prototype.setError=function(entity) {
+    this.entity.reply=entity.error;
+    this.entity.state = "error";
+    this.version++;
+};
+
+ozpIwc.IntentsInFlightNode.prototype.setHandlerResource=function(entity) {
+    if(!entity.handlerChosen || !entity.handlerChosen.resource || !entity.handlerChosen.reason) {
+       throw new ozpIwc.BadStateError("Choosing state requires a resource and reason");
+    }
+    this.entity.handlerChosen = entity.handlerChosen;
+    this.entity.state = "delivering";
+    this.version++;
+};
+ozpIwc.IntentsInFlightNode.prototype.setHandlerParticipant=function(entity) {
+    if(!entity.handler || !entity.handler.address) {
+        throw new ozpIwc.BadContentError("Entity lacks a 'handler.address' field");
+    }
+    this.entity.handler=entity.handler;
+    this.entity.state = "running";
+    this.version++;
+};
+
+ozpIwc.IntentsInFlightNode.prototype.setComplete=function(entity) {
+    this.entity.reply=entity.reply;
+    this.entity.state = "complete";
+    this.version++;
+};
+
+ozpIwc.IntentsInFlightNode.stateTransitions={
+    "choosing": {
+        "error": ozpIwc.IntentsInFlightNode.prototype.setError,
+        "delivering" : ozpIwc.IntentsInFlightNode.prototype.setHandlerResource
+    },
+    "delivering": {
+        "error": ozpIwc.IntentsInFlightNode.prototype.setError,
+        "running": ozpIwc.IntentsInFlightNode.prototype.setHandlerParticipant,
+        "complete": ozpIwc.IntentsInFlightNode.prototype.setComplete
+    },
+    "running": {
+        "error": ozpIwc.IntentsInFlightNode.prototype.setError,
+        "complete": ozpIwc.IntentsInFlightNode.prototype.setComplete
+    },
+    "complete": {},
+    "error": {}
+};
 
 /**
  * Set action for an IntentsInflightNode.
@@ -61,48 +100,22 @@ ozpIwc.IntentsInFlightNode.prototype.acceptedStates = ["choosing", "delivering",
  * @param {ozpIwc.TransportPacket} packet
  */
 ozpIwc.IntentsInFlightNode.prototype.set = function(packet) {
-    if(packet.entity && packet.entity.error) {
-        this.entity.reply=packet.entity.error;
-        this.entity.state = "error";
-        this.version++;
+    if(!packet.entity || !packet.entity.state) {
+        throw new ozpIwc.BadContentError("Entity lacks a 'state' field");
+    }
+    
+    var transition=ozpIwc.IntentsInFlightNode.stateTransitions[this.entity.state];
+    if(!transition) {
+        // we're in a bad state.  pretty much unrecoverable
+        this.setError("Inflight intent is in an invalid state.  Cannot proceed.");
         return;
     }
-    // Allowed transitions of state here.  Should probably test for the current
-    // state and throw exception back if an illegal change is attempted.
-    switch (this.entity.state) {
-        case "choosing":
-            if(!packet.entity || !packet.entity.resource || !packet.entity.reason) {
-                throw new ozpIwc.BadStateError("Choosing state requires a resource and reason");
-            }
-            this.entity.handlerChosen = {
-                'resource': packet.entity.resource,
-                'reason': packet.entity.reason
-            };
-            this.entity.state = "delivering";
-            break;
 
-        case "delivering":
-            if(!packet.entity || !packet.entity.address || !packet.entity.resource) {
-                throw new ozpIwc.BadStateError("Delivering state requires a resource and address");
-            }
-            this.entity.handler.address = packet.entity.address;
-            this.entity.handler.resource = packet.entity.resource;
-            this.entity.state = "running";
-            break;
-
-        case "running":
-            this.entity.reply=packet.entity && packet.entity.reply;
-            this.entity.state = "complete";
-            break;
-        case "complete":
-            throw new ozpIwc.BadStateError("In-flight intent is complete");
-        case "error":
-            throw new ozpIwc.BadStateError("In-flight intent is in an error state");
-        default:
-            // We would only get here if we added a state and forgot to manage
-            // it with one of the cases.  In which case we deserve the resulting
-            // exception.
-            throw new ozpIwc.BadStateError("In-flight intent in an unknown state:"+this.entity.state);
+    transition=transition[packet.entity.state];
+    if(!transition) {
+        throw new ozpIwc.BadStateError("In-flight intent cannot transition from "+
+                this.entity.state+" to"+packet.entity.state);
     }
-    this.version++;
+    
+    transition.call(this,packet.entity);
 };

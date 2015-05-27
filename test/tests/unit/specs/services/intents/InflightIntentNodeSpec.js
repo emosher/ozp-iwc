@@ -83,12 +83,14 @@ describe("Intents in Flight Value", function () {
     // choosing -> delivering
     //============================================
     
-    it("transitions from choosing to deliverying on receiving a 'choosing' packet", function () {
+    it("transitions from choosing to deliverying on receiving a 'delivering' packet", function () {
         var node = makeNode();
-        node.set({
-            'entity': {
-                'resource': handlerChoices[0].resource,
-                'reason': "userSelected"
+        node.set({'entity': {
+                'state': "delivering",
+                'handlerChosen' : {
+                    'resource': handlerChoices[0].resource,
+                    'reason': "userSelected"
+                }
             }
         });
         stateValidation.delivering(node);
@@ -99,29 +101,27 @@ describe("Intents in Flight Value", function () {
     });
     it("transitions from choosing to error on receiving a error packet", function () {
         var node = makeNode();
-        node.set({
-            'entity': {
-                'error': "Unknown Error"
-            }
-        });
+        node.set({'entity': {'state': "error", 'error': "Unknown Error" }});
         expect(node.entity.state).toEqual("error");
         expect(node.entity.reply).toEqual("Unknown Error");
     });
     it("throws badState if the set lacks resource or reason",function() {
         var node = makeNode();
         expect(function() {
-            node.set({
-                'entity': {
-                    'resource': handlerChoices[0].resource
+            node.set({'entity':{
+                'state': "delivering",
+                'handlerChosen' : {
+                    'reason': "userSelected"
                 }
-            });
+            }});
         }).toThrow();
         expect(function() {
-            node.set({
-                'entity': {
-                    'reason': "becauseShutup"
+            node.set({'entity':{
+                'state': "delivering",
+                'handlerChosen' : {
+                    'resource': handlerChoices[0].resource
                 }
-            });
+            }});
         }).toThrow();
         stateValidation.choosing(node);
     });
@@ -132,47 +132,38 @@ describe("Intents in Flight Value", function () {
     describe("transition from delivering to running",function() {
         var node;
         beforeEach(function() {
-            node = makeNode();
-            node.set({
-                'entity': {
-                    'resource': handlerChoices[0].resource,
-                    'reason': "userSelected"
-                }
-            });
+            node = makeNode({'handlerChoices': [handlerChoices[0]]});
             stateValidation.delivering(node);
         });
-        it("on receiving a 'delivering' packet", function () {
-            node.set({
-                'entity': {
+        it("on receiving a 'running' packet", function () {
+            node.set({'entity': {
+                'state': "running",
+                'handler': {
                     'address': "someAddress",
                     'resource': "/intentReceiver"
                 }
-            });
+            }});
             stateValidation.running(node);
             expect(node.entity.handler).toEqual({
                 'address': "someAddress",
                 'resource': "/intentReceiver"
             });
         });
+        
         it("transitions from delivering to error on receiving a error packet", function () {
-            node.set({'entity': { 'error': "Unknown Error" }});
+            node.set({'entity': {'state': "error", 'error': "Unknown Error" }});
             expect(node.entity.state).toEqual("error");
             expect(node.entity.reply).toEqual("Unknown Error");
         });
-        it("throws badState if the set lacks resource or reason",function() {
+        
+        it("throws badState if the set lacks an address",function() {
             expect(function() {
-                node.set({
-                    'entity': {
-                        'address': "someAddress"
-                    }
-                });
-            }).toThrow();
-            expect(function() {
-                node.set({
-                    'entity': {
+                node.set({'entity': {
+                    'state': "running",
+                    'handler': {
                         'resource': "/intentReceiver"
                     }
-                });
+                }});
             }).toThrow();
             stateValidation.delivering(node);
         });
@@ -180,29 +171,27 @@ describe("Intents in Flight Value", function () {
     describe("transition from running",function() {
         var node;
         beforeEach(function() {
-            node = makeNode();
-            node.set({
-                'entity': {
-                    'resource': handlerChoices[0].resource,
-                    'reason': "userSelected"
-                }
-            });
+            node = makeNode({'handlerChoices': [handlerChoices[0]]});
             stateValidation.delivering(node);
-            node.set({
-                'entity': {
+            node.set({'entity': {
+                'state': "running",
+                'handler': {
                     'address': "someAddress",
                     'resource': "/intentReceiver"
                 }
-            });
+            }});
             stateValidation.running(node);
         });
+        
         it("to error on receiving a error packet", function () {
-            node.set({'entity': { 'error': "Unknown Error" }});
+            node.set({'entity': {'state': "error", 'error': "Unknown Error" }});
             expect(node.entity.state).toEqual("error");
             expect(node.entity.reply).toEqual("Unknown Error");
         });
+        
         it("to complete on receiving a 'complete' packet", function () {
             node.set({ 'entity': {
+                'state': "complete",
                 'reply': {
                     'contentType' : "text/plain",
                     'entity' : "Goodbye!"
