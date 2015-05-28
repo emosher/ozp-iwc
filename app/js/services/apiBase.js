@@ -98,6 +98,16 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
     };
 };
 
+ozpIwc.ApiBase.prototype.getPreference=function(prefName) {
+    return this.participant.send({
+        dst: "data.api",
+        resource: "/ozp/iwc/"+this.name+"/"+prefName,
+        action: "get"
+    }).then(function(reply) {
+        return reply.entity;
+    });
+};
+
 /**
  * Called when the API has become the leader, but before it starts
  * serving data.  Receives the deathScream of the previous leader
@@ -384,7 +394,10 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function() {
 //===============================================================
 // Packet Routing
 //===============================================================
-
+ozpIwc.ApiBase.prototype.send=function(fragment) {
+    fragment.src=this.name;
+    return this.participant.send(fragment);
+};
 /**
  * Routes a packet received from the participant
  *  
@@ -454,7 +467,7 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
         }
         self.resolveChangedNodes();    
     },function(e) {
-        if(!e.errorAction) {
+        if(!e || !e.errorAction) {
             ozpIwc.log.error(self.logPrefix,"Unexpected error: ",e," packet= ",packet);
         }
         var packetFragment={

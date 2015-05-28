@@ -7,6 +7,8 @@ ozpIwc.basicAuthUsername= ozpIwc.basicAuthUsername || '';
 ozpIwc.basicAuthPassword= ozpIwc.basicAuthPassword || '';
 ozpIwc.linkRelPrefix = ozpIwc.linkRelPrefix || "ozp";
 
+ozpIwc.intentsChooserUri = "intentsChooser.html";
+
 (function() {
 	var params=ozpIwc.util.parseQueryParams();
 	if(params.log) {

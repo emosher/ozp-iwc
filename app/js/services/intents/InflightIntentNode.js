@@ -9,13 +9,13 @@ ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config)
     // such as resource.
     ozpIwc.ApiNode.apply(this, arguments);
 
-		config=config || {};
-		if(!config.invokePacket) {
-			throw new ozpIwc.BadContentError("In flight intent requires an invocation packet");
-		}
-		if(!Array.isArray(config.handlerChoices) || config.handlerChoices <1) {
-			throw new ozpIwc.BadContentError("No handlers available");
-		}
+    config=config || {};
+    if(!config.invokePacket) {
+        throw new ozpIwc.BadContentError("In flight intent requires an invocation packet");
+    }
+    if(!Array.isArray(config.handlerChoices) || config.handlerChoices <1) {
+        throw new ozpIwc.BadContentError("No handlers available");
+    }
     // Extra gravy that isn't captured already by the base class, or that isn't
     // captured adequately.
     this.entity = {
@@ -23,7 +23,7 @@ ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config)
             'type': config.type,
             'action': config.action
         },
-				'invokePacket': config.invokePacket,
+        'invokePacket': config.invokePacket,
         'contentType': config.invokePacket.contentType,
         'entity': config.invokePacket.entity,
         'state': "choosing",

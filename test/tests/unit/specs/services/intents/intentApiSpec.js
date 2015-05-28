@@ -105,6 +105,8 @@ describe("Intent API Class", function () {
                     }
                 }
             });
+            // act as if there are no saved preferences by default
+            apiBase.getPreference=function() {return Promise.reject();};
         });
         
         pit("invokes handlers directly",function() {
@@ -114,11 +116,30 @@ describe("Intent API Class", function () {
                     dst: invocationPacket.packet.src,
                     response: "ok"
                 });
-                var inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent]
+                var inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent];
                 expect(inflightNode.entity.state).toEqual("delivering");
             });
         });
-
+        pit("sends the delivery packet on a direct invocation",function() {
+            var invocationPacket=makeInvocationPacket(handlerResource);
+            return apiBase.receivePacketContext(invocationPacket).then(function() {
+                expect(invocationPacket).toHaveSent({
+                    dst: invocationPacket.packet.src,
+                    response: "ok"
+                });
+                var inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent];
+                expect(apiBase.participant).toHaveSent({
+                    dst: "system.api",
+                    resource: "/intentHandler",
+                    action: "view",
+                    entity: jasmine.objectContaining({
+                        inFlightIntent: inflightNode.resource,
+                        inFlightIntentEntity: inflightNode.entity
+                    })
+                });
+            });
+        });
+     
         pit("presents the chooser when there are multiple choices",function() {
             var invocationPacket=makeInvocationPacket("/text/plain/view");
             return apiBase.receivePacketContext(invocationPacket).then(function() {
@@ -129,15 +150,29 @@ describe("Intent API Class", function () {
                 var inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent];
                 expect(inflightNode.entity.state).toEqual("choosing");
                 expect(ozpIwc.util.openWindow)
-                    .toHaveBeenCalledWith("intentsChooser.html",jasmine.objectContaining({
+                    .toHaveBeenCalledWith(ozpIwc.intentsChooserUri,jasmine.objectContaining({
                         "ozpIwc.peer": ozpIwc.BUS_ROOT,
                         "ozpIwc.intentSelection": "intents.api"+inflightNode.resource
                     }));
             });
         });
-        
-        pit("presents the chooser when there are multiple choices",function() {
+        pit("uses a saved preference when one exists",function() {
             var invocationPacket=makeInvocationPacket("/text/plain/view");
+            apiBase.getPreference=function() {return Promise.resolve(handlerResource);};
+            return apiBase.receivePacketContext(invocationPacket).then(function() {
+                expect(invocationPacket).toHaveSent({
+                    dst: invocationPacket.packet.src,
+                    response: "ok"
+                });
+                var inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent];
+                expect(inflightNode.entity.state).toEqual("delivering");
+                expect(ozpIwc.util.openWindow)
+                    .not.toHaveBeenCalled();
+            });
+        });
+        pit("ignores a saved preference that's not valid",function() {
+            var invocationPacket=makeInvocationPacket("/text/plain/view");
+            apiBase.getPreference=function() {return Promise.resolve("/invalid/handler");};
             return apiBase.receivePacketContext(invocationPacket).then(function() {
                 expect(invocationPacket).toHaveSent({
                     dst: invocationPacket.packet.src,
@@ -146,22 +181,34 @@ describe("Intent API Class", function () {
                 var inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent];
                 expect(inflightNode.entity.state).toEqual("choosing");
                 expect(ozpIwc.util.openWindow)
-                    .toHaveBeenCalledWith("intentsChooser.html",jasmine.objectContaining({
+                    .toHaveBeenCalledWith(ozpIwc.intentsChooserUri,jasmine.objectContaining({
                         "ozpIwc.peer": ozpIwc.BUS_ROOT,
                         "ozpIwc.intentSelection": "intents.api"+inflightNode.resource
                     }));
             });
         });
-        xit("uses a saved preference when one exists",function() {
-        });
         
-        xit("sends the delivering packet when the chooser picks a handler",function() {
-        });
-        
-        xit("marks the invocation as running when ",function() {
-        });
-        
-        xit("sends the delivering packet when the chooser picks a handler",function() {
+        pit("marks the invocation as running when it receives a running packet",function() {
+            var invocationPacket=makeInvocationPacket(handlerResource);
+            var inflightNode=null;
+            return apiBase.receivePacketContext(invocationPacket).then(function() {
+                inflightNode=apiBase.data[invocationPacket.responses[0].entity.inFlightIntent];
+                var runningPacket=new TestPacketContext({'packet': {
+                    'resource': inflightNode.resource,
+                    'action': "set",
+                    'contentType': "application/vnd.ozp-iwc-intent-invocation-v1+json",
+                    'entity': {
+                        'state': "running",
+                        'handler': {
+                           'address': "someAddress",
+                           'resource': "/intentReceiver"
+                       }
+                    }
+                }});
+                return apiBase.receivePacketContext(runningPacket);
+            }).then(function() {
+                expect(inflightNode.entity.state).toEqual("running");
+            });
         });
     });
 });

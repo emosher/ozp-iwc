@@ -17,35 +17,34 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
     // some point.
     this.endpoints = [
 			ozpIwc.linkRelPrefix + ":application",
-			ozpIwc.linkRelPrefix + ":user",
-			ozpIwc.linkRelPrefix + ":system"
-		];
-		var self=this;
-				
-		this.on("createdNode",this.updateIntents,this);
-		
-		this.leaderPromise.then(function() {
-			ozpIwc.log.debug("System.api registering for the launch intent");
-			self.participant.send({
-            'dst' : "intents.api",
-            'src' : "system.api",
-            'action': "set",
-            'resource': "/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
-            'contentType': "application/vnd.ozp-iwc-intent-handler-v1+json",
-            'entity': {
-                'type': "application/vnd.ozp-iwc-launch-data-v1+json",
-                'action': "run",
-                'label': "Open in new tab",
-                'invokeIntent': {
-										'dst': "system.api",
-                    'action' : 'invoke',
-                    'resource' : "/"
-                }
+        ozpIwc.linkRelPrefix + ":user",
+        ozpIwc.linkRelPrefix + ":system"
+    ];
+    var self=this;
+
+    this.on("createdNode",this.updateIntents,this);
+
+    this.leaderPromise.then(function() {
+        ozpIwc.log.debug("System.api registering for the launch intent");
+        self.participant.send({
+        'dst' : "intents.api",
+        'src' : "system.api",
+        'action': "set",
+        'resource': "/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
+        'contentType': "application/vnd.ozp-iwc-intent-handler-v1+json",
+        'entity': {
+            'type': "application/vnd.ozp-iwc-launch-data-v1+json",
+            'action': "run",
+            'label': "Open in new tab",
+            'invokeIntent': {
+                'dst': "system.api",
+                'action' : 'invoke',
+                'resource' : "/launchNewWindow"
             }
-        }).catch(function(error) {
-					ozpIwc.log.error("System.api failed to register for launch intent: ",error);
-				});
-		});
+        }}).catch(function(error) {
+            ozpIwc.log.error("System.api failed to register for launch intent: ",error);
+        });
+    });
 });
 
 ozpIwc.SystemApi.prototype.updateIntents=function(node) {
@@ -68,7 +67,7 @@ ozpIwc.SystemApi.prototype.updateIntents=function(node) {
                 'label': label,
                 '_links': node.entity._links,
                 'invokeIntent': {
-                    'action' : 'invoke',
+                    'action' : 'launch',
                     'resource' : node.resource
                 }
             }
@@ -135,6 +134,7 @@ ozpIwc.SystemApi.declareRoute({
     resource: "/application/{id}",
     filters: ozpIwc.standardApiFilters.getFilters()
 }, function(packet, context, pathParams) {
+    ozpIwc.log.info(this.logPrefix+" launching ",packet.entity);
     this.participant.send({
         dst: "intents.api",
         contentType: "application/vnd.ozp-iwc-intent-handler-v1+json",
@@ -144,7 +144,7 @@ ozpIwc.SystemApi.declareRoute({
             "url": context.node.entity.launchUrls.default,
             "applicationId": context.node.resource,
             "launchData": packet.entity,
-						"id": context.node.entity.id
+            "id": context.node.entity.id
         }
     });
     return {response: "ok"};
@@ -152,16 +152,15 @@ ozpIwc.SystemApi.declareRoute({
 
 ozpIwc.SystemApi.declareRoute({
     action: ["invoke"],
-    resource: "/",
+    resource: "/launchNewWindow",
     filters: []
 }, function(packet,context,pathParams) {
+    ozpIwc.log.info(this.logPrefix+" handling launchdata ",packet.entity);
     if(packet.entity && packet.entity.inFlightIntent){
-        var launchParams=[
-            "ozpIwc.peer="+encodeURIComponent(ozpIwc.BUS_ROOT),
-            "ozpIwc.inFlightIntent="+encodeURIComponent(packet.entity.inFlightIntent)
-        ];
-
-        ozpIwc.util.openWindow(packet.entity.inFlightIntentEntity.entity.url,launchParams.join("&"));
+        ozpIwc.util.openWindow(packet.entity.inFlightIntentEntity.entity.url,{
+            "ozpIwc.peer":ozpIwc.BUS_ROOT,
+            "ozpIwc.inFlightIntent":packet.entity.inFlightIntent
+        });
 //        this.launchApplication(node,packetContext.packet.entity.inFlightIntent);
         return {'response': "ok"};
     } else{

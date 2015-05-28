@@ -42,9 +42,6 @@ ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list"]);
 //====================================================================
 // Intent Invocation Endpoints
 //====================================================================
-ozpIwc.IntentsApi.prototype.getHandlerPreference=function(inflightNode) {
-    return Promise.reject("TO BE IMPLEMENTED: Fetch the value from the data.api");
-};
 
 ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,handlers) {
     var inflightNode = new ozpIwc.IntentsInFlightNode({
@@ -57,55 +54,71 @@ ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,hand
     
     this.data[inflightNode.resource] = inflightNode;
     this.addWatcher(inflightNode.resource,{src:packet.src,replyTo:packet.msgId});
-    this.handleInflightIntentState(inflightNode);
-    return {
-        entity: {
-            inFlightIntent: inflightNode.resource
-        }
-    };
+    return this.handleInflightIntentState(inflightNode).then(function() {
+        return {
+            entity: {
+                inFlightIntent: inflightNode.resource
+            }
+        };
+    });
 };
 
 ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
+    var self=this;
     switch(inflightNode.entity.state){
         case "choosing":
-            this.getHandlerPreference(inflightNode).then(function(handlerResource) {
-                inflightNode.setHandlerResource(handlerResource,"remembered");
-            }).catch(function(){
-                ozpIwc.util.openWindow("intentsChooser.html", {
+            var showChooser=function(err) {
+                console.log("Picking chooser because",err);
+                ozpIwc.util.openWindow(ozpIwc.intentsChooserUri, {
                     "ozpIwc.peer": ozpIwc.BUS_ROOT,
                     "ozpIwc.intentSelection": "intents.api" + inflightNode.resource
                 });
-            });
-            break;
+            };
+            return this.getPreference(inflightNode.entity.intent.type+"/"+inflightNode.entity.intent.action).then(function(handlerResource) {
+                if(handlerResource in self.data) {
+                    inflightNode.setHandlerResource({
+                        'state': "delivering",
+                        'handlerChosen' : {
+                            'resource': handlerResource,
+                            'reason': "remembered"
+                        }
+                    });
+                } else {
+                    showChooser();
+                }
+            }).catch(showChooser);
         case "delivering":
             var handlerNode=this.data[inflightNode.entity.handlerChosen.resource];
 
             var packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
-            packet.src=this.participant.name;
             packet.entity = packet.entity || {};
             packet.entity.inFlightIntent = inflightNode.resource;
             packet.entity.inFlightIntentEntity= inflightNode.entity;
+            console.log(this.logPrefix+"delivering intent:",packet);
             // TODO: packet permissions
-            return this.participant.send(packet);
+            this.send(packet);
             break;
         default:
             break;
     }
+    return Promise.resolve();
 };
 
 ozpIwc.IntentsApi.declareRoute({
     action: "set",
     resource: "/inFlightIntent/{id}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsInFlightNode, "application/vnd.ozp-iwc-intent-invocation-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsInFlightNode)
 }, function(packet, context, pathParams) {
     context.node.set(packet);
-    this.handleInflightIntentState(context.node);
+    return this.handleInflightIntentState(context.node).then(function() {
+        return {response: "ok"};
+    });
 });
 
 //====================================================================
 // Handler endpoints
 //====================================================================
-ozpIwc.IntentsApi.useDefaultRoute(["get", "set","delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
+ozpIwc.IntentsApi.useDefaultRoute(["get","delete", "watch", "unwatch"], "/{major}/{minor}/{action}/{handlerId}");
 
 /**
  * A route for intent handler invocations.
@@ -117,11 +130,19 @@ ozpIwc.IntentsApi.declareRoute({
     filters: []
 }, function(packet, context, pathParams) {
     return this.invokeIntentHandler(
+        packet, 
         pathParams.major+"/"+pathParams.minor,
         pathParams.action,
-        packet, 
         [context.node]
     );
+});
+ozpIwc.IntentsApi.declareRoute({
+    action: "set",
+    resource: "/{major}/{minor}/{action}/{handlerId}",
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentHandlerNode, "application/vnd.ozp-iwc-intent-handler-v1+json")
+}, function(packet, context, pathParams) {
+    context.node.set(packet);
+    return {"response": "ok"};
 });
 
 //====================================================================
@@ -130,11 +151,12 @@ ozpIwc.IntentsApi.declareRoute({
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.IntentsNode, "application/vnd.ozp-iwc-intent-handler-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
 }, function(packet, context, pathParams) {
     var key = this.createKey(context.node.resource + "/");
-    var childNode = this.createNode({'resource': key});
+    var childNode = new ozpIwc.IntentHandlerNode({'resource': key});
     childNode.set(packet);
+    console.log(this.logPrefix+" registered ",childNode);
     return {
         'response': 'ok',
         'entity': {
@@ -153,9 +175,9 @@ ozpIwc.IntentsApi.declareRoute({
     filters: []
 }, function(packet, context, pathParams) {
     return this.invokeIntentHandler(
+        packet, 
         pathParams.major+"/"+pathParams.minor,
         pathParams.action,
-        packet, 
         this.matchingNodes(packet.resource+"/")
     );
 });
