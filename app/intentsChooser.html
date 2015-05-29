@@ -39,9 +39,11 @@
                 contentType: intentInvocation.contentType,
                 resource: intentInvocation.resource,
                 entity: {
-                    resource: handler.resource,
-                    reason: "user",
-                    state: "choosing"
+                'state': "delivering",
+                    'handlerChosen' : {
+                        'resource':handler.resource,
+                        'reason': "userSelected"
+                    }
                 }
             }).then(function(){
                 window.close();
@@ -101,11 +103,9 @@
         var loc=ozpIwc.util.parseOzpUrl(m[1]);
 
         participant.send(loc).then(function(reply) {
-            showHandlers(reply.entity.handlerChoices || [], reply);
+            showHandlers(reply.entity.handlerChoices|| [], reply);
             showCancel(reply);
-        })['catch'](function(){
-                failure();
-        });
+        },failure);
     </script>
   </body>
 </html>

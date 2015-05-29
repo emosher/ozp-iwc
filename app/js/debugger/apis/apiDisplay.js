@@ -98,7 +98,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
 
     scope.loadKey = function (key) {
         client.api(scope.api).get(key.resource).then(function(response) {
-            for (i in response) {
+            for (var i in response) {
                 key[i] = response[i];
             }
             key.isLoaded = true;
@@ -144,7 +144,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
     };
 
     scope.refresh=function() {
-        client.api(scope.api).list().then(function(response){
+        client.api(scope.api).list("/").then(function(response){
             scope.keys=response.entity.map(function(k) {
                 var key={
                     'resource': k,
@@ -154,12 +154,13 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
                 scope.loadKey(key);
                 return key;
             });
-            done();
         });
 
         client.connect().then(function(){
             scope.actions = client.apiMap[scope.api].actions;
-            scope.gridApi.core.handleWindowResize();
+            if(scope.gridApi && scope.gridApi.core) {
+              scope.gridApi.core.handleWindowResize();
+            }
         });
 
     };

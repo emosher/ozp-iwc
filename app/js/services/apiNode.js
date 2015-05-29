@@ -44,7 +44,15 @@ ozpIwc.ApiNode= function(config) {
      * @type String
      */
 	this.contentType=config.contentType;
-
+    /**
+     * @property uriTemplate
+     * @type String
+     */
+	// used if() to allow for subclasses to set the uriTemplate on the prototype
+	// setting the field, even to undefined, would mask the prototype's value
+	if(config.uriTemplate) {
+		this.uriTemplate=config.uriTemplate;
+	}
     /**
      * @property permissions
      * @type Object
@@ -82,8 +90,21 @@ ozpIwc.ApiNode= function(config) {
     if(config.serializedEntity) {
         this.deserializedEntity(config.serializedEntity,config.serializedContentType);
     }
-    
+
     if(!this.resource) { throw new Error("ApiNode requires a resource");}
+};
+
+ozpIwc.ApiNode.prototype.getSelfUri=function() {
+	if(this.self) {
+		return this.self;
+	}
+	if(this.uriTemplate && ozpIwc.uriTemplate) {
+		var template=ozpIwc.uriTemplate(this.uriTemplate);
+		if(template) {
+			this.self=ozpIwc.util.resolveUriTemplate(template,this);
+		}
+	}
+	return this.self;
 };
 
 /**
@@ -115,17 +136,34 @@ ozpIwc.ApiNode.prototype.serializeLive=function() {
  * @param {Object} serializedForm The data returned from serializeLive
  * @return {Object} the content type of the serialized data
  */
-ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
+ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm, serializedContentType) {
+    serializedForm.contentType = serializedForm.contentType || serializedContentType;
     this.set(serializedForm);
     if(serializedForm._links && serializedForm._links.self) {
         this.self=serializedForm._links.self.href;
     }
     if(!this.resource && serializedForm.resource) {
         this.resource=serializedForm.resource;
+    } else {
+        this.resourceFallback(serializedForm);
     }
     this.deleted = serializedForm.deleted;
     this.persist=serializedForm.persist;
     this.allowedContentTypes=serializedForm.allowedContentTypes;
+};
+
+
+/**
+ * If a resource path isn't given, this takes the best guess at assigning it.
+ * Overriden by subclasses.
+ *
+ * @method deserializeResourceFromContentType
+ * @param serializedForm
+ */
+ozpIwc.ApiNode.prototype.deserializeResourceFromContentType = function(serializedForm) {
+    if(serializedForm._links && serializedForm._links.self){
+        this.resource = serializedForm._links.self.href.replace(ozpIwc.apiRootUrl,"");
+    }
 };
 
 /**
@@ -137,7 +175,7 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
  * @return {String} a string serialization of the object
  */
 ozpIwc.ApiNode.prototype.serializedEntity=function() {
-    return JSON.stringify(this.serializeLive());
+    return JSON.stringify(this.entity);
 };
 
 /**
@@ -149,7 +187,7 @@ ozpIwc.ApiNode.prototype.serializedEntity=function() {
  * @return {String} the content type of the serialized data
  */
 ozpIwc.ApiNode.prototype.serializedContentType=function() {
-    return "application/json";
+    return this.contentType;
 };
 
 /**
@@ -163,9 +201,33 @@ ozpIwc.ApiNode.prototype.serializedContentType=function() {
  * @return {Object}
  */
 ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    return this.deserializeLive(JSON.parse(serializedForm));
+    if(typeof(serializedForm) === "string") {
+        serializedForm=JSON.parse(serializedForm);
+    }
+    this.entity=serializedForm;
+    this.contentType = contentType;
+    if(this.entity && this.entity._links) {
+        var links = this.entity._links;
+        if (!this.self && links.self) {
+            this.self = links.self.href;
+        }
+        if (!this.resource && links["ozp:iwcSelf"]) {
+            this.resource = links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/, "");
+        } else {
+            this.resourceFallback(serializedForm);
+        }
+    }
 };
 
+
+/**
+ * If a resource path isn't given, this takes the best guess at assigning it.
+ * @method resourceFallback
+ * @param serializedForm
+ */
+ozpIwc.ApiNode.prototype.resourceFallback = function(serializedForm) {
+    // do nothing, override if desired.
+};
 
 /**
  * Turns this value into a packet.

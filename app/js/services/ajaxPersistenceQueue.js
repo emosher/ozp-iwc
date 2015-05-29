@@ -30,9 +30,13 @@ ozpIwc.AjaxPersistenceQueue=function(config) {
  * @returns {*}
  */
 ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
+		var uri=node.getSelfUri();
+		if(!uri) {
+			return Promise.resolve();
+		}
     if(node.deleted) {
        return ozpIwc.util.ajax({
-            href:  node.self,
+            href:  uri,
             method: 'DELETE'
         });        
     } else {
@@ -40,18 +44,18 @@ ozpIwc.AjaxPersistenceQueue.prototype.doSync=function(iwcUri,node) {
         if(typeof(entity) !== "string") {
             entity=JSON.stringify(entity);
         }
-        ozpIwc.log.debug("PUT " + node.self,entity);
+        ozpIwc.log.debug("PUT " + uri,entity);
         return ozpIwc.util.ajax({
-            href:  node.self,
+            href:  uri,
             method: 'PUT',
             data: entity,
             headers: {
                 "Content-Type": node.serializedContentType()
             }
         }).then(function(result) {
-            ozpIwc.log.debug("  saving to " + node.self,result);
+            ozpIwc.log.debug("  saving to " + uri,result);
         },function(error) {
-            ozpIwc.log.error("  FAILED saving to " + node.self,error);
+            ozpIwc.log.error("  FAILED saving to " + uri,error);
         });
     }
 }; 

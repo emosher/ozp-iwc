@@ -67,7 +67,7 @@ ozpIwc.ApiBase=function(config) {
         dst: "locks.api",
         resource: "/mutex/"+this.name,
         action: "lock"
-    }).then(function() {
+    }).then(function(pkt) {
         return self.transitionToLoading();
     });
     
@@ -98,6 +98,16 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
     };
 };
 
+ozpIwc.ApiBase.prototype.getPreference=function(prefName) {
+    return this.participant.send({
+        dst: "data.api",
+        resource: "/ozp/iwc/"+this.name+"/"+prefName,
+        action: "get"
+    }).then(function(reply) {
+        return reply.entity;
+    });
+};
+
 /**
  * Called when the API has become the leader, but before it starts
  * serving data.  Receives the deathScream of the previous leader
@@ -112,23 +122,38 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
  * @return {Promise} a promise that resolves when all data is loaded.
  */
 ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
-//    console.log(this.logPrefix+"initializing data");
-
     deathScream=deathScream || { watchers: {}, data: []};
     this.watchers=deathScream.watchers;
     deathScream.data.forEach(function(packet) {
-        this.data[packet.resource]=this.createNode({resource: packet.resource});
-        this.data[packet.resource].deserializeLive(packet);
+        this.createNode({resource: packet.resource}).deserializeLive(packet);
     },this);
     
     if(this.endpoints) {
         var self=this;
         return Promise.all(this.endpoints.map(function(u) {
-            return self.loadFromEndpoint(ozpIwc.endpoint(u));
-        }));    
+          var e=ozpIwc.endpoint(u.link) ;
+          return self.loadFromEndpoint(e,u.headers).catch(function(e) {
+              ozpIwc.log.error(self.logPrefix,"load from endpoint ",e," failed: ",e);
+          });
+        }));
     } else {
         return Promise.resolve();
     }
+};
+
+/**
+ * Creates a node appropriate for the given config, puts it into this.data,
+ * and fires off the right events.
+ *  
+ * @method createNode
+ * @param {Object} config The ApiNode configuration.
+ * @return {ozpIwc.ApiNode}
+ */
+ozpIwc.ApiBase.prototype.createNode=function(config) {
+    var n=this.createNodeObject(config);
+		this.data[n.resource]=n;
+		this.events.trigger("createdNode",n);
+		return n;
 };
 
 /**
@@ -141,15 +166,13 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
  * Subsclasses can override this for custom node types that may vary
  * from resource to resource.
  * 
- * @method createNode
+ * @method createNodeObject
  * @param {Object} config The ApiNode configuration.
- * @param {string} config.resource The resource path to create.
  * @return {ozpIwc.ApiNode}
  */
-ozpIwc.ApiBase.prototype.createNode=function(config) {
+ozpIwc.ApiBase.prototype.createNodeObject=function(config) {
     return new ozpIwc.ApiNode(config);
 };
-
 
 //===============================================================
 // Leader state management
@@ -163,8 +186,10 @@ ozpIwc.ApiBase.prototype.createNode=function(config) {
 ozpIwc.ApiBase.prototype.transitionToLoading=function() {
     var self=this;
     if(this.leaderState !== "member") {
+				ozpIwc.log.error(this.logPrefix+"transition to loading called in an invalide state:",this.leaderState);
         return;
     }
+		ozpIwc.log.debug(this.logPrefix+"transitioning to loading");
     this.leaderState="loading";
     return this.initializeData(this.deathScream)
         .then(function() {
@@ -180,11 +205,11 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
  * @private
  */
 ozpIwc.ApiBase.prototype.transitionToLeader=function() {
-    if(this.leaderState !== "loading") {
-        return;
+		if(this.leaderState !== "loading") {
+				ozpIwc.log.error(this.logPrefix+"transition to leader called in an invalide state:",this.leaderState);
+				return;
     }
-//    console.log(this.logPrefix+"becoming leader");
-
+		ozpIwc.log.debug(this.logPrefix+"transitioning to leader");
     this.leaderState = "leader";
     this.broadcastLeaderReady();
     this.deliverRequestQueue();
@@ -369,7 +394,10 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function() {
 //===============================================================
 // Packet Routing
 //===============================================================
-
+ozpIwc.ApiBase.prototype.send=function(fragment) {
+    fragment.src=this.name;
+    return this.participant.send(fragment);
+};
 /**
  * Routes a packet received from the participant
  *  
@@ -439,6 +467,9 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
         }
         self.resolveChangedNodes();    
     },function(e) {
+        if(!e || !e.errorAction) {
+            ozpIwc.log.error(self.logPrefix,"Unexpected error: ",e," packet= ",packet);
+        }
         var packetFragment={
             'src': self.name,
             'response': e.errorAction || "errorUnknown",
@@ -458,8 +489,6 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
  * @param {ozpIwc.TransportPacketContext} context
  */
 ozpIwc.ApiBase.prototype.defaultRoute=function(packet,context) {
-//    console.log(this.logPrefix+"Could not route due to " + context.defaultRouteCause,packet);
-
     switch(context.defaultRouteCause) {
         case "nonRoutablePacket": // packet doesn't have an action/resource, so ignore it
             return;
@@ -545,46 +574,48 @@ ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
  * 
  * @method loadFromEndpoint
  * @param {ozpIwc.Endpoint} endpoint
+ * @param {Array} headers
  * @return {Promise} resolved when all data has been loaded.
  */
-ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
+ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint,headers) {
     var self=this;
+		ozpIwc.log.debug(self.logPrefix+" loading from ",endpoint.name," -- ",endpoint.baseUrl);
     return endpoint.get("/").then(function(data) {
+
         var response=data.response;
         var embeddedItems=ozpIwc.util.ensureArray((response._embedded && response._embedded.item) || []);
         var linkedItems=ozpIwc.util.ensureArray((response._links && response._links.item) || []);
 
         // load all the embedded items
         embeddedItems.forEach(function(i) {
-            var n=self.createNode({
+            self.createNode({
                 serializedEntity: i
             });
-//            console.log(self.logPrefix+" loading ",n.resource);
-            self.data[n.resource]=n;
         });
-
+				ozpIwc.log.debug(self.logPrefix+" processed " + embeddedItems.length + " items embedded in the endoint");
         var unknownLinks=linkedItems.map(function(i) { return i.href;});
-        console.log(self.logPrefix+" pre-filter unknown links: ", unknownLinks);
         unknownLinks=unknownLinks.filter(function(href) {
                 return ozpIwc.object.values(self.data,function(k,node) {
-                    console.log(self.logPrefix+" comparing " + node.self + "===" + href);
                     return node.self === href;
                 }).length === 0;
             });
-        console.log(self.logPrefix+" post-filter unknown links: ", unknownLinks);
-        // empty array resolves immediately, so no check needed
+				ozpIwc.log.debug(self.logPrefix+" loading " + unknownLinks.length + " linked items");
+
+				// empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
-//            console.log(self.logPrefix+"fetching link: " + l);
-            return endpoint.get(l).then(function(data) {
-  //              console.log(self.logPrefix+" retrieved data: ",data);
-                var n=self.createNode({
-                    serializedEntity: data.response
+            return endpoint.get(l,headers).then(function(data) {
+                self.createNode({
+                    serializedEntity: data.response,
+                    serializedContentType: data.header['Content-Type']
                 });
-                self.data[n.resource]=n;
-            });
+            }).catch(function(err) {
+							ozpIwc.log.info(self.logPrefix+"Could not load from "+l+" -- ",err);
+						});
         }));
 
-    });
+    }).catch(function(err) {
+			ozpIwc.log.info(self.logPrefix+" couldn't load from endpoint "+endpoint.name +" -- ",err);
+		});
 };
 
 

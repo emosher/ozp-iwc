@@ -21,6 +21,40 @@ ozpIwc.util.now=function() {
 };
 
 /**
+ * Applies the template using the supplied object for values
+ *
+ * @method resolveUriTemplate
+ * @param {string} template The template to use
+ * @param {Object} obj The object to get template paramters from
+ * @param {Object} fallback A secondary object for parameters not contained by the first
+ * @returns {Number}
+ */
+ozpIwc.util.resolveUriTemplate=function(template,obj,fallback) {
+	var converters={
+		"+": function(a) { return a;},
+		"": function(a) { return encodeURIComponent(a);}
+	};
+	var t=template.replace(/\{([\+\#\.\/\;\?\&]?)(.+?)\}/g,function(match,type,name) {
+			return converters[type](obj[name] || fallback[name]);
+		});
+	// look for the :// of the protocol
+	var protocolOffset=t.indexOf("://");
+	// if we found it, set the offset to the end.  otherwise, leave it
+	// at -1 so that a leading "//" will be replaced, below
+	if(protocolOffset >0) { protocolOffset+=3; }
+	
+	// remove double // that show up after the protocolOffset
+	return t.replace(/\/\//g,function(m,offset){
+			// only swap it after the protocol
+			if(offset > protocolOffset) {
+				return "/";
+			} else {
+				return m;
+			}
+		});
+};
+
+/**
  * A record of event listeners used in the given IWC context. Grouped by type.
  *
  * @property eventListeners
@@ -290,7 +324,7 @@ ozpIwc.util.getInternetExplorerVersion= function() {
     if (navigator.appName === 'Microsoft Internet Explorer')
     {
         var ua = navigator.userAgent;
-        var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+        var re  = /MSIE ([0-9]{1,}[\.0-9]{0,})/;
         if (re.exec(ua) !== null) {
             rv = parseFloat(RegExp.$1);
         }

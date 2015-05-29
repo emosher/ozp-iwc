@@ -24,7 +24,25 @@ describe("with one pool", function() {
             }));
         });
     });
-    
+		pit("creates the URI for a node without self",function() {
+				ozpIwc.uriTemplate=function() {
+					return "http://example.com/{+resource}";
+				};
+        var exampleNode=new ozpIwc.DataNode({
+            resource: "/foo/bar",
+						entity: {"foo":1}            
+        });
+        return queue.queueNode("data.api/foo/bar",exampleNode).then(function() {
+            return Promise.all(queue.syncPool);
+				}).then(function() {
+						expect(ozpIwc.util.ajax).toHaveBeenCalledWith(jasmine.objectContaining({
+                href: "http://example.com/foo/bar",
+                headers: {
+                    "Content-Type": exampleNode.serializedContentType()
+                }
+            }));
+        });
+    });
     pit("saves nodes in the order that they are enqueued",function() {
         for(var i=0;i<10;++i) {
             queue.queueNode("data.api/"+i,new ozpIwc.ApiNode({

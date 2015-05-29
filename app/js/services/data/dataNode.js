@@ -13,6 +13,7 @@ ozpIwc.DataNode=ozpIwc.util.extend(ozpIwc.ApiNode,function(config) {
    ozpIwc.ApiNode.apply(this, arguments);
 });
 
+ozpIwc.DataNode.prototype.uriTemplate="ozp:data-item";
 /**
  * Serialize the node to a form that conveys both persistent and
  * ephemeral state of the object to be handed off to a new API
@@ -80,12 +81,11 @@ ozpIwc.DataNode.prototype.serializedContentType=function() {
  * @param {String} contentType
  */
 ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    ozpIwc.log.debug("SerializedForm is ",serializedForm);
     if(typeof(serializedForm) === "string") {
         serializedForm=JSON.parse(serializedForm);
     }
-    if(!this.resource && serializedForm.key) {
-        this.resource=((serializedForm.key.charAt(0)==="/")?"":"/")+serializedForm.key;
+    if(!this.resource) {
+        this.resourceFallback(serializedForm);
     }
     this.entity=serializedForm.entity.entity;
     this.children=serializedForm.entity.children;
@@ -94,5 +94,17 @@ ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType
     this.version=serializedForm.version;
     if(serializedForm._links && serializedForm._links.self) {
         this.self=serializedForm._links.self.href;
+    }
+};
+
+/**
+ * If a resource path isn't given, this takes the best guess at assigning it.
+ * @override
+ * @method resourceFallback
+ * @param serializedForm
+ */
+ozpIwc.DataNode.prototype.resourceFallback = function(serializedForm) {
+    if(serializedForm.key) {
+        this.resource = ((serializedForm.key.charAt(0) === "/") ? "" : "/") + serializedForm.key;
     }
 };

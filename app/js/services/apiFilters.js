@@ -36,7 +36,7 @@ ozpIwc.apiFilter={
         } else {
             return function(packet,context,pathParams,next) {
                 if(!context.node) {
-                    context.node=this.data[packet.resource]=this.createNode({
+                    context.node=this.createNode({
                         resource: packet.resource
                     });
                 }

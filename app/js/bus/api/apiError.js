@@ -110,6 +110,15 @@ ozpIwc.BadRequestError=ozpIwc.ApiError.subclass("badRequest");
 ozpIwc.BadContentError=ozpIwc.ApiError.subclass("badContent");
 
 /**
+ * Thrown when the action or entity is not valid for the resource's state.
+ *
+ * @class BadStateError
+ * @extends ozpIwc.ApiError
+ * @static
+ */
+ozpIwc.BadStateError=ozpIwc.ApiError.subclass("badState");
+
+/**
  * Thrown when no action is given in a request against an api.
  *
  * @class NoActionError
