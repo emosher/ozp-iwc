@@ -16,9 +16,12 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
     // any special subclasses for these items.  Might have to revisit this at
     // some point.
     this.endpoints = [
-			ozpIwc.linkRelPrefix + ":application",
-        ozpIwc.linkRelPrefix + ":user",
-        ozpIwc.linkRelPrefix + ":system"
+        {
+            link: ozpIwc.linkRelPrefix + ":application",
+            headers: [{name: "Accept", value: "application/vnd.ozp-application-v1+json"}]
+        },
+        {link: ozpIwc.linkRelPrefix + ":user"},
+        {link: ozpIwc.linkRelPrefix + ":system"}
     ];
     var self=this;
     this.on("createdNode",this.updateIntents,this);
@@ -167,3 +170,12 @@ ozpIwc.SystemApi.declareRoute({
     }
 
 });
+
+/**
+ * Override the default node type to be a SystemNode.
+ * @param {type} config
+ * @returns {ozpIwc.SystemNode}
+ */
+ozpIwc.SystemApi.prototype.createNodeObject=function(config) {
+    return new ozpIwc.SystemNode(config);
+};

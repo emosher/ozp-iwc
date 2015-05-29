@@ -49,3 +49,17 @@ ozpIwc.IntentHandlerNode.prototype.set=function(packet) {
     "resource": "/application/23456"
   }
 }*/
+
+/**
+ * If a resource path isn't given, this takes the best guess at assigning it.
+ * @override
+ * @method resourceFallback
+ * @param serializedForm
+ */
+ozpIwc.IntentHandlerNode.prototype.resourceFallback = function(serializedForm) {
+    switch(this.contentType){
+        case "application/vnd.ozp-intents-v1+json":
+            this.resource = "/" + serializedForm.intent.type + "/" + serializedForm.intent.action;
+            break;
+    }
+};

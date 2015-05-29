@@ -131,11 +131,11 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
     if(this.endpoints) {
         var self=this;
         return Promise.all(this.endpoints.map(function(u) {
-          var e=ozpIwc.endpoint(u) ;
-					return self.loadFromEndpoint(e).catch(function(e) {
-						ozpIwc.log.error(self.logPrefix,"load from endpoint ",e," failed: ",e);
-					});
-        }));    
+          var e=ozpIwc.endpoint(u.link) ;
+          return self.loadFromEndpoint(e,u.headers).catch(function(e) {
+              ozpIwc.log.error(self.logPrefix,"load from endpoint ",e," failed: ",e);
+          });
+        }));
     } else {
         return Promise.resolve();
     }
@@ -574,9 +574,10 @@ ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
  * 
  * @method loadFromEndpoint
  * @param {ozpIwc.Endpoint} endpoint
+ * @param {Array} headers
  * @return {Promise} resolved when all data has been loaded.
  */
-ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
+ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint,headers) {
     var self=this;
 		ozpIwc.log.debug(self.logPrefix+" loading from ",endpoint.name," -- ",endpoint.baseUrl);
     return endpoint.get("/").then(function(data) {
@@ -602,10 +603,10 @@ ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint) {
 
 				// empty array resolves immediately, so no check needed
         return Promise.all(unknownLinks.map(function(l) {
-            return endpoint.get(l).then(function(data) {
+            return endpoint.get(l,headers).then(function(data) {
                 self.createNode({
                     serializedEntity: data.response,
-										contentType: data.header['Content-Type']
+                    serializedContentType: data.header['Content-Type']
                 });
             }).catch(function(err) {
 							ozpIwc.log.info(self.logPrefix+"Could not load from "+l+" -- ",err);

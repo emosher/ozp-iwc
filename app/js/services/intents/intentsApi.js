@@ -12,35 +12,13 @@
  * @constructor
  */
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
-//<<<<<<< HEAD
-////    this.endpoints = this.endpoints || [];
-////    this.endpoints.push(ozpIwc.linkRelPrefix + ":intent");
-//    var systemIntents = [{
-//            contentType: "application/vnd.ozp-iwc-intent-handler-v1+json",
-//            resource: "/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
-//            entity: {
-//                label: "Launch in New Window",
-//                invokeIntent: {
-//                    dst: "system.api",
-//                    action: "invoke",
-//                    resource: null
-//                }
-//            }
-//        }];
-//
-//    var self = this;
-//    for (var i = 0; i < systemIntents.length; ++i) {
-//        self.createNode(systemIntents[i]);
-//    }
-//=======
     this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
     this.endpoints=[
-        ozpIwc.linkRelPrefix+":intent"
+        {link: ozpIwc.linkRelPrefix+":intent"}
     ];
     this.on("changed", function(node) {
         this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
     }, this);
-//>>>>>>> 8be100de2f038d141b599437dd262ae27acf801c
 });
 
 /**
