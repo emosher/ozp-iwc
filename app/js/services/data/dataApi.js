@@ -52,8 +52,7 @@ ozpIwc.DataApi.addChildFilter= function() {
     var filters = ozpIwc.standardApiFilters.setFilters();
 
     filters.unshift(function(packet,context,pathParams,next) {
-        var resource = createKey.call(this,packet.resource + "/");
-        packet.resource = resource;
+        packet.resource = createKey.call(this,packet.resource + "/");
         return next();
     });
 
@@ -76,10 +75,13 @@ ozpIwc.DataApi.declareRoute({
 
 ozpIwc.DataApi.removeChildFilter= function() {
     var filters = ozpIwc.standardApiFilters.deleteFilters();
-
     filters.unshift(function(packet,context,pathParams,next) {
         if (packet.entity && packet.entity.resource) {
             packet.resource = packet.entity.resource;
+            context.node = this.data[packet.resource];
+            if(context.node) {
+                context.node.markAsDeleted(packet);
+            }
         }
         return next();
     });
@@ -91,8 +93,5 @@ ozpIwc.DataApi.declareRoute({
     resource: "{resource:.*}",
     filters: ozpIwc.DataApi.removeChildFilter()
 }, function(packet, context, pathParams) {
-    context.node.set(packet);
-    return {
-        response: "ok"
-    };
+    return {response: "ok"};
 });

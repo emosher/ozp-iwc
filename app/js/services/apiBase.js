@@ -639,7 +639,12 @@ ozpIwc.ApiBase.defaultHandler={
         return { response: "ok" };
     },
     "list": function(packet,context,pathParams) {
-        var entity=this.matchingNodes(packet.resource).map(function(node) {
+        var entity=this.matchingNodes(packet.resource).filter(function(node){
+            if(node.deleted) {
+                return false;
+            }
+            return true;
+        }).map(function(node) {
             return node.resource;
         });
         return {

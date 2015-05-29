@@ -92,7 +92,9 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         enableFiltering: true,
         onRegisterApi: function( gridApi ) {
             scope.gridApi = gridApi;
-            scope.gridApi.core.handleWindowResize();
+            window.setTimeout(function(){
+                scope.gridApi.core.handleWindowResize();
+            },0);
         }
     };
 
@@ -230,7 +232,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
       scope.entityFromFile = '';
     };
 
-    scope.writeActions = ['set','addChild','invoke','register','launch'];
+    scope.writeActions = ['set','addChild','removeChild','invoke','register','launch'];
     scope.$watch('msg.action',function(){
         if(scope.msg && scope.msg.action) {
             scope.entityVisible = scope.writeActions.indexOf(scope.msg.action) >= 0;

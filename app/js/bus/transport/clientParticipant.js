@@ -74,8 +74,8 @@ ozpIwc.ClientParticipant.prototype.connect = function(){
          * @property connectPromise
          * @type Promise
          */
-        this.connectPromise = new Promise(function(){
-            self.router.registerParticipant(self);
+        this.connectPromise = new Promise(function(resolve,rejectf){
+            resolve(ozpIwc.defaultRouter.registerParticipant(self));
         });
     }
 
