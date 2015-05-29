@@ -93,7 +93,7 @@ ozpIwc.LocksApi.prototype.handleLock=function(node,packetContext) {
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleUnlock=function(node,packetContext) {
-//    console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
+//	console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
     this.updateLock(node,node.unlock({
         src: packetContext.packet.src,
         msgId: packetContext.packet.msgId

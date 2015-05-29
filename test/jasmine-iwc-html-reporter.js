@@ -133,7 +133,7 @@ jasmineRequire.HtmlReporter = function(j$) {
           var expectation = result.failedExpectations[i];
           messages.appendChild(createDom("div", {className: "result-message"}, expectation.message));
           var stackTrace=createDom("ul", {className: "stack-trace"});
-          var lines=expectation.stack.split(/\r?\n/);
+          var lines=expectation.stack?expectation.stack.split(/\r?\n/):[];
           for(var j=0; j< lines.length; ++j) {
               var classes="stack-trace-line";
               if(lines[j].match(/jasmine.*.js/)) {

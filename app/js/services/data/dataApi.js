@@ -1,3 +1,5 @@
+/* global ozpIwc */
+
 /**
  * @submodule bus.service.Type
  */
@@ -22,12 +24,13 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
     },this);
 });
 
+
 /**
  * Override the default node type to be a DataNode.
  * @param {type} config
  * @returns {ozpIwc.DataNode}
  */
-ozpIwc.DataApi.prototype.createNode=function(config) {
+ozpIwc.DataApi.prototype.createNodeObject=function(config) {
     return new ozpIwc.DataNode(config);
 };
 

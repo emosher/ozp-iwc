@@ -7,6 +7,21 @@ ozpIwc.policyRootUrl = ozpIwc.policyRootUrl || "/policy";
 ozpIwc.basicAuthUsername= ozpIwc.basicAuthUsername || '';
 ozpIwc.basicAuthPassword= ozpIwc.basicAuthPassword || '';
 ozpIwc.linkRelPrefix = ozpIwc.linkRelPrefix || "ozp";
+
+ozpIwc.intentsChooserUri = "intentsChooser.html";
+
+(function() {
+	var params=ozpIwc.util.parseQueryParams();
+	if(params.log) {
+		try{
+			console.log("Setting log level to ",params.log);
+			ozpIwc.log.setThreshold(ozpIwc.log[params.log.toUpperCase()]);
+		}catch(e) {
+			// just ignore it and leave the default level
+		}
+	}
+})();
+
 ozpIwc.authorization = new ozpIwc.policyAuth.PDP({
     'pip': new ozpIwc.policyAuth.PIP(),
     'prp': new ozpIwc.policyAuth.PRP(),

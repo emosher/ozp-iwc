@@ -44,7 +44,15 @@ ozpIwc.ApiNode= function(config) {
      * @type String
      */
 	this.contentType=config.contentType;
-
+    /**
+     * @property uriTemplate
+     * @type String
+     */
+	// used if() to allow for subclasses to set the uriTemplate on the prototype
+	// setting the field, even to undefined, would mask the prototype's value
+	if(config.uriTemplate) {
+		this.uriTemplate=config.uriTemplate;
+	}
     /**
      * @property permissions
      * @type Object
@@ -82,8 +90,21 @@ ozpIwc.ApiNode= function(config) {
     if(config.serializedEntity) {
         this.deserializedEntity(config.serializedEntity,config.serializedContentType);
     }
-    
+
     if(!this.resource) { throw new Error("ApiNode requires a resource");}
+};
+
+ozpIwc.ApiNode.prototype.getSelfUri=function() {
+	if(this.self) {
+		return this.self;
+	}
+	if(this.uriTemplate && ozpIwc.uriTemplate) {
+		var template=ozpIwc.uriTemplate(this.uriTemplate);
+		if(template) {
+			this.self=ozpIwc.util.resolveUriTemplate(template,this);
+		}
+	}
+	return this.self;
 };
 
 /**
@@ -137,7 +158,7 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm) {
  * @return {String} a string serialization of the object
  */
 ozpIwc.ApiNode.prototype.serializedEntity=function() {
-    return JSON.stringify(this.serializeLive());
+    return JSON.stringify(this.entity);
 };
 
 /**
@@ -149,7 +170,7 @@ ozpIwc.ApiNode.prototype.serializedEntity=function() {
  * @return {String} the content type of the serialized data
  */
 ozpIwc.ApiNode.prototype.serializedContentType=function() {
-    return "application/json";
+    return this.contentType;
 };
 
 /**
@@ -163,7 +184,19 @@ ozpIwc.ApiNode.prototype.serializedContentType=function() {
  * @return {Object}
  */
 ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    return this.deserializeLive(JSON.parse(serializedForm));
+		if(typeof(serializedForm) === "string") {
+        serializedForm=JSON.parse(serializedForm);
+    }
+		this.entity=serializedForm;
+		if(this.entity && this.entity._links) {
+			var links=this.entity._links;
+			if(!this.self && links.self) {
+				this.self=links.self.href;
+			}
+			if(!this.resource && links["ozp:iwcSelf"]) {
+				this.resource=links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/,"");
+			}
+		}
 };
 
 
