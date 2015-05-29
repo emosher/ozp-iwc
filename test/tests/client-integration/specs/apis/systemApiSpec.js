@@ -121,10 +121,10 @@ describe("System API", function() {
         }).then(function(reply) {
             expect(reply.entity).toEqual(jasmine.objectContaining({
                 "entity": { 
-                    "url": "http://localhost:15004/", 
-                    "applicationId": "/application/23456",
-                    "id": "23456",
-                    "launchData": { "foo": 123 } 
+                    'url': 'http://localhost:15001/?color=green',
+                    'applicationId': '/application/23456',
+                    'launchData': Object({ foo: 123 }),
+                    'id': '25a3d034-31f1-4dbe-b9b4-03c8dad7b5f8' 
                 }
             }));
         });

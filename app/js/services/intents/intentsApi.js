@@ -155,6 +155,7 @@ ozpIwc.IntentsApi.declareRoute({
 }, function(packet, context, pathParams) {
     var key = this.createKey(context.node.resource + "/");
     var childNode = new ozpIwc.IntentHandlerNode({'resource': key});
+    this.data[childNode.resource]=childNode;
     childNode.set(packet);
     console.log(this.logPrefix+" registered ",childNode);
     return {

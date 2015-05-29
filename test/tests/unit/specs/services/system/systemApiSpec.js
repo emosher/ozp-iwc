@@ -169,8 +169,8 @@ describe("System API", function() {
     pit('handles invoke actions by launching applications', function(){
         var packetContext=new TestPacketContext({
             'packet': {
-                'resource': "/",
-								action: 'invoke',
+                'resource': "/launchNewWindow",
+                action: 'invoke',
                 'entity' : {
                     'foo': 1,
                     'inFlightIntent': '/intents/invocation/123',
@@ -192,10 +192,9 @@ describe("System API", function() {
 						});
 						
 						expect(ozpIwc.util.openWindow.calls.mostRecent().args[0]).toEqual("http://" + window.location.hostname + ":15000/?color=blue");
-						var params= decodeURIComponent(ozpIwc.util.openWindow.calls.mostRecent().args[1]).split('&');
-						expect(params.length).toEqual(2);
-						expect(params[0]).toEqual('ozpIwc.peer='+ozpIwc.BUS_ROOT);
-						expect(params[1]).toEqual('ozpIwc.inFlightIntent='+packetContext.packet.entity.inFlightIntent);
+						var params=ozpIwc.util.openWindow.calls.mostRecent().args[1];
+						expect(params['ozpIwc.peer']).toEqual(ozpIwc.BUS_ROOT);
+						expect(params['ozpIwc.inFlightIntent']).toEqual(packetContext.packet.entity.inFlightIntent);
 				});
 		});
 });

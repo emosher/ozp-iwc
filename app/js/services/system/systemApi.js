@@ -21,7 +21,6 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
         ozpIwc.linkRelPrefix + ":system"
     ];
     var self=this;
-
     this.on("createdNode",this.updateIntents,this);
 
     this.leaderPromise.then(function() {

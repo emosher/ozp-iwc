@@ -50,7 +50,10 @@ describe("Intent API Class", function () {
                 'action': "register",
                 'contentType' : "application/vnd.ozp-iwc-intent-handler-v1+json",
                 'entity': {
-                    'bar':2
+                    'bar':2,
+                    'invokeIntent': {
+                        'dst': "fakeAddress.unitTest"
+                    }
                 }
             },
             'leaderState': "leader"
