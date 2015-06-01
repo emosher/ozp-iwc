@@ -26,6 +26,9 @@ ozpIwc.IntentHandlerNode.prototype.set=function(packet) {
     ozpIwc.ApiNode.prototype.set.apply(this, arguments);
     this.entity.invokeIntent=this.entity.invokeIntent || {};
     this.entity.invokeIntent.dst=dst;
+
+    //We need to know what callback to call on the client.
+    this.replyTo = packet.msgId;
 };
 
 /*{

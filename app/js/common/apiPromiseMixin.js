@@ -58,7 +58,7 @@ ozpIwc.ApiPromiseMixin.registerEvents = function(participant){
 
         // fetch the inFlightIntent
         participant.intents().get(participant.launchParams.inFlightIntent).then(function (response) {
-            if (response) {
+            if (response && response.entity && response.entity.intent) {
                 participant.launchedIntents.push(response);
                 if (response.response === 'ok') {
                     for (var k in response.entity) {
@@ -417,14 +417,22 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
          * @param callback {Function} The intent handler's callback function
          * @returns {Promise}
          */
-        intentInvocationHandling: function (resource, intentResource, callback) {
+        intentInvocationHandling: function (resource, intentResource, intentEntity, callback) {
             var self = this;
             var res;
-            return self.send({
-                dst: "intents.api",
-                action: "get",
-                resource: intentResource
-            }).then(function (response) {
+            var promiseChain;
+            if(intentEntity) {
+                promiseChain = Promise.resolve(intentEntity);
+            } else {
+                promiseChain = self.send({
+                    dst: "intents.api",
+                    action: "get",
+                    resource: intentResource
+                }).then(function(reply){
+                    return reply.entity;
+                });
+            }
+            return promiseChain.then(function(response) {
                 response.entity.handler = {
                     address: self.address,
                     resource: resource
@@ -441,10 +449,12 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                 });
             }).then(function (reply) {
                 //Now run the intent
-                res.entity.reply.entity = callback(res.entity) || {};
+                res.reply = {
+                    entity : callback(res) || {}
+                };
                 // then respond to the inflight resource
                 res.entity.state = "complete";
-                res.entity.reply.contentType = res.entity.intent.type;
+                res.reply.contentType = res.intent.type;
                 return self.send({
                     dst: "intents.api",
                     contentType: res.contentType,
@@ -570,7 +580,8 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
             if (callback) {
                 this.registeredCallbacks[id] = function (reply, done) {
                     if (reply.entity && reply.entity.inFlightIntent) {
-                        self.intentInvocationHandling(packet.resource, reply.entity.inFlightIntent, callback);
+                        self.intentInvocationHandling(packet.resource, reply.entity.inFlightIntent,
+                            reply.entity.inFlightIntentEntity, callback);
                     } else {
                         callback(reply, done);
                     }

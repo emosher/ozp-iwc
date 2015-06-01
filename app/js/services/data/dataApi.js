@@ -77,7 +77,7 @@ ozpIwc.DataApi.declareRoute({
 
 ozpIwc.DataApi.removeChildFilter= function() {
     var filters = ozpIwc.standardApiFilters.deleteFilters();
-    filters.unshift(function(packet,context,pathParams,next) {
+    var removeChild = function(packet,context,pathParams,next) {
         if (packet.entity && packet.entity.resource) {
             packet.resource = packet.entity.resource;
             context.node = this.data[packet.resource];
@@ -86,7 +86,9 @@ ozpIwc.DataApi.removeChildFilter= function() {
             }
         }
         return next();
-    });
+    };
+
+    filters.unshift(removeChild);
 
     return filters;
 };

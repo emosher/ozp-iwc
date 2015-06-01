@@ -72,7 +72,7 @@ ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
                 ozpIwc.util.openWindow(ozpIwc.intentsChooserUri, {
                     "ozpIwc.peer": ozpIwc.BUS_ROOT,
                     "ozpIwc.intentSelection": "intents.api" + inflightNode.resource
-                });
+                },"width=400,height=500");
             };
             return this.getPreference(inflightNode.entity.intent.type+"/"+inflightNode.entity.intent.action).then(function(handlerResource) {
                 if(handlerResource in self.data) {
@@ -92,6 +92,7 @@ ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
 
             var packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
             packet.entity = packet.entity || {};
+            packet.replyTo = handlerNode.replyTo;
             packet.entity.inFlightIntent = inflightNode.resource;
             packet.entity.inFlightIntentEntity= inflightNode.entity;
             console.log(this.logPrefix+"delivering intent:",packet);
@@ -157,7 +158,7 @@ ozpIwc.IntentsApi.declareRoute({
     var childNode = new ozpIwc.IntentHandlerNode({'resource': key});
     this.data[childNode.resource]=childNode;
     childNode.set(packet);
-    console.log(this.logPrefix+" registered ",childNode);
+    ozpIwc.log.debug(this.logPrefix+" registered ",childNode);
     return {
         'response': 'ok',
         'entity': {

@@ -35,9 +35,8 @@
         }
 
         function handleSelection(handler,intentInvocation){
-            participant.intents().set({
+            participant.intents().set(intentInvocation.resource,{
                 contentType: intentInvocation.contentType,
-                resource: intentInvocation.resource,
                 entity: {
                 'state': "delivering",
                     'handlerChosen' : {
@@ -73,9 +72,8 @@
             button.appendChild(document.createTextNode("Cancel"));
             button.addEventListener("click",function(evt) {
                 evt.preventDefault();
-                participant.intents().set({
+                participant.intents().set(intentInvocation.resource,{
                     contentType: intentInvocation.contentType,
-                    resource: intentInvocation.resource,
                     entity: {
                         reply:{
                             'contentType': intentInvocation.contentType,
