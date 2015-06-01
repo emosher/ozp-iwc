@@ -103,6 +103,7 @@ text-align:left;
 .ui-grid-cell-contents{
     height: auto !important;
     white-space: normal;
+    word-wrap: break-word;
     overflow: auto;
 }
 

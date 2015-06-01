@@ -43,7 +43,8 @@ ozpIwc.ApiBase=function(config) {
     
     this.events = new ozpIwc.Event();
     this.events.mixinOnOff(this);
-    
+
+    this.endpoints=[];
     this.data={};
     this.watchers={};
     this.changeList={};

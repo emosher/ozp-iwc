@@ -72,7 +72,7 @@ ozpIwc.ApiNode= function(config) {
      * @type Boolean
      * @default false
      */
-    this.persist=true;
+    this.persist=false;
 
     /**
      * @property deleted

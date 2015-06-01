@@ -20,7 +20,9 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
     ];
 
     this.on("changed",function(node) {
-        this.persistenceQueue.queueNode(this.name+"/"+node.resource,node);
+        if(node.persist) {
+            this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
+        }
     },this);
 });
 
