@@ -112,7 +112,7 @@ ozpIwc.util.openWindow=function(url,windowName,features) {
             window.location.host +
             window.location.pathname.replace(/[^\/]+$/,"");
 
-    ozpIwc.INTENT_CHOOSER_FEATURES = "width=400,height=500";
+    ozpIwc.INTENT_CHOOSER_FEATURES = "width=330,height=500";
 })();
 
 
