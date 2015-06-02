@@ -20,8 +20,14 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
             link: ozpIwc.linkRelPrefix + ":application",
             headers: [{name: "Accept", value: "application/vnd.ozp-application-v1+json"}]
         },
-        {link: ozpIwc.linkRelPrefix + ":user"},
-        {link: ozpIwc.linkRelPrefix + ":system"}
+        {
+            link: ozpIwc.linkRelPrefix + ":user",
+            headers: []
+        },
+        {
+            link: ozpIwc.linkRelPrefix + ":system",
+            headers: []
+        }
     ];
     var self=this;
     this.on("createdNode",this.updateIntents,this);

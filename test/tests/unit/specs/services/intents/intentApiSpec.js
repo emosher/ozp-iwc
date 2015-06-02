@@ -37,10 +37,8 @@ describe("Intent API Class", function () {
     
     pit("fetches data from the server",function() {
         return apiBase.transitionToLoading().then(function() {
-           expect(endpoint.get).toHaveBeenCalledWith("/");
-           Object.keys(data).forEach(function(uri){
-               expect(endpoint.get).toHaveBeenCalledWith(uri); 
-           });
+            expect(endpoint.get).toHaveBeenCalledWith("/");
+            expect(endpoint.get).toHaveBeenCalledWith("http://example.com/intents/1",[]);
         });
     });
     pit("registers handlers",function() {
@@ -156,7 +154,7 @@ describe("Intent API Class", function () {
                     .toHaveBeenCalledWith(ozpIwc.intentsChooserUri,jasmine.objectContaining({
                         "ozpIwc.peer": ozpIwc.BUS_ROOT,
                         "ozpIwc.intentSelection": "intents.api"+inflightNode.resource
-                    }));
+                    }),ozpIwc.INTENT_CHOOSER_FEATURES);
             });
         });
         pit("uses a saved preference when one exists",function() {
@@ -187,7 +185,7 @@ describe("Intent API Class", function () {
                     .toHaveBeenCalledWith(ozpIwc.intentsChooserUri,jasmine.objectContaining({
                         "ozpIwc.peer": ozpIwc.BUS_ROOT,
                         "ozpIwc.intentSelection": "intents.api"+inflightNode.resource
-                    }));
+                    }),ozpIwc.INTENT_CHOOSER_FEATURES);
             });
         });
         

@@ -111,6 +111,8 @@ ozpIwc.util.openWindow=function(url,windowName,features) {
     ozpIwc.BUS_ROOT=window.location.protocol + "//" +
             window.location.host +
             window.location.pathname.replace(/[^\/]+$/,"");
+
+    ozpIwc.INTENT_CHOOSER_FEATURES = "width=400,height=500";
 })();
 
 

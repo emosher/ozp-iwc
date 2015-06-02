@@ -14,7 +14,10 @@
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
     this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
     this.endpoints=[
-        {link: ozpIwc.linkRelPrefix+":intent"}
+        {
+            link: ozpIwc.linkRelPrefix+":intent",
+            headers: []
+        }
     ];
     this.on("changed", function(node) {
         this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
@@ -72,7 +75,7 @@ ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
                 ozpIwc.util.openWindow(ozpIwc.intentsChooserUri, {
                     "ozpIwc.peer": ozpIwc.BUS_ROOT,
                     "ozpIwc.intentSelection": "intents.api" + inflightNode.resource
-                },"width=400,height=500");
+                },ozpIwc.INTENT_CHOOSER_FEATURES);
             };
             return this.getPreference(inflightNode.entity.intent.type+"/"+inflightNode.entity.intent.action).then(function(handlerResource) {
                 if(handlerResource in self.data) {
