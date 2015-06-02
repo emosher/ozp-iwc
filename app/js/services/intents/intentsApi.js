@@ -102,6 +102,9 @@ ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
             // TODO: packet permissions
             this.send(packet);
             break;
+        case "complete":
+            inflightNode.markAsDeleted();
+            break;
         default:
             break;
     }
@@ -152,20 +155,36 @@ ozpIwc.IntentsApi.declareRoute({
 //====================================================================
 // Action endpoints
 //====================================================================
+ozpIwc.IntentsApi.registerFilter = function(nodeType,contentType){
+    var createKey=function(prefix) {
+        prefix=prefix || "";
+        var key;
+        do {
+            key=prefix + ozpIwc.util.generateId();
+        } while(key in this.data);
+        return key;
+    };
+    var filters = ozpIwc.standardApiFilters.setFilters(nodeType,contentType);
+
+    filters.unshift(function(packet,context,pathParams,next) {
+        packet.resource = createKey.call(this,packet.resource + "/");
+        return next();
+    });
+
+    return filters;
+};
+
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
-    filters: ozpIwc.standardApiFilters.setFilters(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
+    filters: ozpIwc.IntentsApi.registerFilter(ozpIwc.IntentHandlerNode, "application/vnd.ozp-iwc-intent-handler-v1+json")
 }, function(packet, context, pathParams) {
-    var key = this.createKey(context.node.resource + "/");
-    var childNode = new ozpIwc.IntentHandlerNode({'resource': key});
-    this.data[childNode.resource]=childNode;
-    childNode.set(packet);
-    ozpIwc.log.debug(this.logPrefix+" registered ",childNode);
+    context.node.set(packet);
+    ozpIwc.log.debug(this.logPrefix+" registered ",context.node);
     return {
         'response': 'ok',
         'entity': {
-            'resource': childNode.resource
+            'resource': context.node.resource
         }
     };
 });

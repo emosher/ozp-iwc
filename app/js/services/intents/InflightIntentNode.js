@@ -78,7 +78,8 @@ ozpIwc.IntentsInFlightNode.prototype.setComplete=function(entity) {
 ozpIwc.IntentsInFlightNode.stateTransitions={
     "choosing": {
         "error": ozpIwc.IntentsInFlightNode.prototype.setError,
-        "delivering" : ozpIwc.IntentsInFlightNode.prototype.setHandlerResource
+        "delivering" : ozpIwc.IntentsInFlightNode.prototype.setHandlerResource,
+        "complete": ozpIwc.IntentsInFlightNode.prototype.setComplete
     },
     "delivering": {
         "error": ozpIwc.IntentsInFlightNode.prototype.setError,

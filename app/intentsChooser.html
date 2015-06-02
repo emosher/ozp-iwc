@@ -176,10 +176,9 @@
             }
         }
 
-        function showHandlers(handlers,intentInvocation) {
+        function showHandlers(handlers) {
             handlers.forEach(function(h) {
                 var handler = h;
-                handler._intentInvocation = intentInvocation;
                 var entry=document.createElement("div");
                 entry.setAttribute("class","entry");
                 entry.setAttribute("id",handler.resource);
@@ -217,14 +216,14 @@
 
             cancelButton = document.getElementById("cancelButton");
             cancelButton.addEventListener("click",function(evt) {
-                participant.intents().set(selection._intentInvocation.resource,{
-                    contentType: selection._intentInvocation.contentType,
+                participant.intents().set(intentInvocation.resource,{
+                    contentType: intentInvocation.contentType,
                     entity: {
                         reply:{
-                            'contentType': selection._intentInvocation.contentType,
+                            'contentType': intentInvocation.contentType,
                             entity: "User canceled the selection."
                         },
-                        state: "fail"
+                        state: "complete"
                     }
                 }).then(function(){
                     window.close();
@@ -234,7 +233,7 @@
 
             onceButton = document.getElementById("onceButton");
             onceButton.addEventListener("click",function() {
-                handleSelection(selection,selection._intentInvocation);
+                handleSelection(selection,intentInvocation);
             });
         }
 
