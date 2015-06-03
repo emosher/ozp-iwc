@@ -243,8 +243,8 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                     }
                     this.cancelRegisteredCallback(packet.replyTo);
                 }
-            } else if (packet.dst === "$bus.multicast"){
-                this.events.trigger("receiveEventChannelPacket",packetContext);
+            //} else if (packet.dst === "$bus.multicast"){
+            //    this.events.trigger("receiveEventChannelPacket",packetContext);
             } else {
                 // Otherwise trigger "receive" for someone to handle it
                 this.events.trigger("receive",packetContext);
