@@ -169,11 +169,6 @@ ozpIwc.SystemApi.declareRoute({
             "ozpIwc.peer":ozpIwc.BUS_ROOT,
             "ozpIwc.inFlightIntent":packet.entity.inFlightIntent
         });
-        packet.entity.state = "complete";
-        this.participant.intents().set(packet.entity.inFlightIntent,{
-            entity: packet.entity
-        });
-//        this.launchApplication(node,packetContext.packet.entity.inFlightIntent);
         return {'response': "ok"};
     } else{
         return {'response': "badResource"};

@@ -133,8 +133,8 @@ ozpIwc.Client.prototype.connect=function() {
              * @event #gotAddress
              */
             self.events.trigger("gotAddress", self);
-            self.events.trigger("connectedToRouter", self);
-            self.events.trigger("connected");
+
+            return self.afterConnected();
         });
     }
     return this.connectPromise; 

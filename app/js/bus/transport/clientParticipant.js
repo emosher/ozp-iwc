@@ -76,6 +76,8 @@ ozpIwc.ClientParticipant.prototype.connect = function(){
          */
         this.connectPromise = new Promise(function(resolve,reject){
             resolve(self.router.registerParticipant(self));
+        }).then(function(addr){
+            return self.afterConnected(addr);
         });
     }
 

@@ -40,36 +40,12 @@ ozpIwc.ApiPromiseMixin=function(participant,autoConnect) {
 };
 
 /**
- * Registers event listeners for the participant.  Listens for the following events: connectedToRouter, disconnect.
+ * Registers event listeners for the participant.  Listens for the following events: disconnect.
  * @method registerEvents
  * @static
  * @param {ozpIwc.Participant} participant
  */
 ozpIwc.ApiPromiseMixin.registerEvents = function(participant){
-    participant.on("connectedToRouter", function(){
-        // dump any queued sends, trigger that we are fully connected
-        participant.preconnectionQueue.forEach(function (p) {
-            participant.send(p.fields, p.callback, p.promiseRes, p.promiseRej);
-        });
-        participant.preconnectionQueue = [];
-        if (!participant.launchParams.inFlightIntent) {
-            return;
-        }
-
-        // fetch the inFlightIntent
-        participant.intents().get(participant.launchParams.inFlightIntent).then(function (response) {
-            if (response && response.entity && response.entity.intent) {
-                participant.launchedIntents.push(response);
-                if (response.response === 'ok') {
-                    for (var k in response.entity) {
-                        participant.launchParams[k] = response.entity[k];
-                    }
-                }
-            }
-            participant.events.trigger("connected");
-        });
-    });
-
     participant.on("disconnect",function(){
         participant.promiseCallbacks={};
         participant.registeredCallbacks={};
@@ -610,6 +586,38 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                 this.cancelRegisteredCallback(packet.replyTo);
             }
             return promise;
+        },
+
+        /**
+         * Generic handler for a bus connection to handle any queued messages & launch data after its connected.
+         * @method afterConnected
+         * @returns {Promise}
+         */
+        afterConnected: function(){
+            var self = this;
+            // dump any queued sends, trigger that we are fully connected
+            self.preconnectionQueue.forEach(function (p) {
+                self.send(p.fields, p.callback, p.promiseRes, p.promiseRej);
+            });
+            self.preconnectionQueue = [];
+            if (!self.launchParams.inFlightIntent) {
+                self.events.trigger("connected");
+                return;
+            }
+
+            // fetch the inFlightIntent
+            return self.intents().get(self.launchParams.inFlightIntent).then(function (response) {
+                if (response && response.entity && response.entity.intent) {
+                    self.launchedIntents.push(response);
+                    var launchData = response.entity.entity || {};
+                    if (response.response === 'ok') {
+                        for (var k in launchData) {
+                            self.launchParams[k] = launchData[k];
+                        }
+                    }
+                }
+                self.events.trigger("connected");
+            });
         }
 
     };
