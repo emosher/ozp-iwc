@@ -68,11 +68,11 @@ ozpIwc.ApiNode= function(config) {
 	this.version=config.version || 1;
 
     /**
-     * @property persist
+     * @property lifespan
      * @type Boolean
      * @default false
      */
-    this.persist=false;
+    this.lifespan= new ozpIwc.Lifespan.Ephemeral();
 
     /**
      * @property deleted
@@ -119,7 +119,7 @@ ozpIwc.ApiNode.prototype.getSelfUri=function() {
 ozpIwc.ApiNode.prototype.serializeLive=function() {
     return this.toPacket({
         deleted: this.deleted,
-        persist: this.persist,
+        lifespan: this.lifespan,
         allowedContentTypes: this.allowedContentTypes,
        _links: {
            self: {href: this.self}
@@ -148,7 +148,7 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm, serializedCont
         this.resourceFallback(serializedForm);
     }
     this.deleted = serializedForm.deleted;
-    this.persist=serializedForm.persist;
+    this.lifespan= serializedForm.lifespan;
     this.allowedContentTypes=serializedForm.allowedContentTypes;
 };
 

@@ -269,7 +269,7 @@ ozpIwc.LeaderGroupParticipant=ozpIwc.util.extend(ozpIwc.InternalParticipant,func
                 // Each leaderParticipant should report out what participants are on
                 // the router so that higher level elements can clean up soon to be dead references before passing on state.
                 if (participant.address) {
-                    self.events.trigger("receiveEventChannelPacket", {
+                    self.events.trigger("receive", {
                         packet: self.fixPacket({
                             dst: "$bus.multicast",
                             action: "disconnect",

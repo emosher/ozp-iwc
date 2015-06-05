@@ -37,6 +37,23 @@ ozpIwc.NamesApi = ozpIwc.createApi(function(config) {
 ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"{c:/}");
 ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"{c:/(?:api|address|multicast|router).*}");
 
+/**
+ * @class NamesNode
+ * @namespace ozpIwc
+ * @extends ozpIwc.ApiNode
+ * @constructor
+ */
+ozpIwc.NamesNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
+    // Take the supplied data for anything that matches in the super class,
+    // such as resource.
+    ozpIwc.ApiNode.apply(this, arguments);
+    this.lifespan = new ozpIwc.Lifespan.Bound({
+        'addresses': [config.src]
+    });
+    this.entity = config.entity || {};
+
+});
+
 //====================================================================
 // Address, Multicast, and Router endpoints
 //====================================================================
@@ -82,7 +99,7 @@ ozpIwc.NamesApi.useDefaultRoute(["get","delete","watch","unwatch"],"/address/{ad
 ozpIwc.NamesApi.declareRoute({
     action: "set",
     resource: "/address/{addr}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode,"application/vnd.ozp-iwc-address-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.NamesNode,"application/vnd.ozp-iwc-address-v1+json")
 }, function(packet,context,pathParams) {
     // validate that the entity is an address
 
@@ -110,7 +127,7 @@ ozpIwc.NamesApi.declareRoute({
 ozpIwc.NamesApi.declareRoute({
     action: "set",
     resource: "/multicast/{group}/{member}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode,"application/vnd.ozp-iwc-multicast-address-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.NamesNode,"application/vnd.ozp-iwc-multicast-address-v1+json")
 }, function(packet,context,pathParams) {
     // validate that the entity is an address
     
@@ -127,7 +144,7 @@ ozpIwc.NamesApi.useDefaultRoute(["get","delete","watch","unwatch"],"/router/{add
 ozpIwc.NamesApi.declareRoute({
     action: "set",
     resource: "/router/{addr}",
-    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.ApiNode,"application/vnd.ozp-iwc-router-v1+json")
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.NamesNode,"application/vnd.ozp-iwc-router-v1+json")
 }, function(packet,context,pathParams) {
     // validate that the entity is an address
     

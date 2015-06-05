@@ -28,7 +28,8 @@ ozpIwc.apiFilter={
             return function(packet,context,pathParams,next) {
                 if(!context.node) {
                     context.node=this.data[packet.resource]=new NodeType({
-                        resource: packet.resource
+                        resource: packet.resource,
+                        src: packet.src
                     });
                 }
                 return next();

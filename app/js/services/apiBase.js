@@ -76,6 +76,26 @@ ozpIwc.ApiBase=function(config) {
         console.error("Error registering for leader mutex [address="+self.participant.address+",api="+self.name+"]",e);
     });
 };
+
+ozpIwc.ApiBase.prototype.changedHandler =function(node,entity,packetContext) {
+    //var culprit = packetContext.src;
+    var lifespanFns = ozpIwc.Lifespan.getLifespan(node.lifespan);
+    if(lifespanFns.shouldPersist()) {
+        this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
+    }
+};
+
+ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
+    var self = this;
+    ozpIwc.object.eachEntry(self.data,function(resource,node) {
+        var lifespanFns = ozpIwc.Lifespan.getLifespan(node.lifespan);
+        if(lifespanFns.shouldDelete(node.lifespan,address)){
+            self.markForChange(node);
+            node.markAsDeleted();
+
+        }
+    });
+};
 //===============================================================
 // Default methods that can be overriden by subclasses
 //===============================================================
@@ -214,6 +234,8 @@ ozpIwc.ApiBase.prototype.transitionToLeader=function() {
     this.leaderState = "leader";
     this.broadcastLeaderReady();
     this.deliverRequestQueue();
+    this.on("changed",this.changedHandler,this);
+    this.on("addressDisconnects",this.disconnectHandler,this);
 };
 
 /**
@@ -244,6 +266,8 @@ ozpIwc.ApiBase.prototype.transitionToMemberReady=function(deathScream) {
         return;
     }
     this.deathScream=deathScream;
+    this.off("changed",this.changedHandler);
+    this.off("addressDisconnects",this.disconnectHandler);
     this.enableRequestQueue();
     return Promise.resolve();
 };
@@ -347,9 +371,10 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
  * Called after the request is complete to send out change notices.
  *  
  * @method resolveChangedNodes
+ * @param {Object} packetContext the packet that caused this change.
  * @private
  */
-ozpIwc.ApiBase.prototype.resolveChangedNodes=function() {
+ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
     ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot) {
         var node=this.data[resource];
         var watcherList=this.watchers[resource] || [];
@@ -373,7 +398,7 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function() {
             newValue: changes.newValue.entity
         };
         
-        this.events.trigger("changed",node,entity);
+        this.events.trigger("changed",node,entity,packetContext);
         
         watcherList.forEach(function(watcher) {
             // @TODO allow watchers to changes notifications if they have permission to either the old or new, not just both
@@ -466,7 +491,7 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
             packetFragment.response = packetFragment.response || "ok";
             packetContext.replyTo(packetFragment);
         }
-        self.resolveChangedNodes();    
+        self.resolveChangedNodes(packetContext);
     },function(e) {
         if(!e || !e.errorAction) {
             ozpIwc.log.error(self.logPrefix,"Unexpected error: ",e," packet= ",packet);

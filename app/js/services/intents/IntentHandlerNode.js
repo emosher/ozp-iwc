@@ -8,7 +8,9 @@ ozpIwc.IntentHandlerNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
     // Take the supplied data for anything that matches in the super class,
     // such as resource.
     ozpIwc.ApiNode.apply(this, arguments);
-
+    this.lifespan = new ozpIwc.Lifespan.Bound({
+        'addresses': [config.src]
+    });
     this.entity = config.entity || {};
 
 });

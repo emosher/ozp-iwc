@@ -22,11 +22,6 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
         }
     ];
 
-    this.on("changed",function(node) {
-        if(node.persist) {
-            this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
-        }
-    },this);
 });
 
 
@@ -42,38 +37,25 @@ ozpIwc.DataApi.prototype.createNodeObject=function(config) {
 // Default handlers are fine anything
 ozpIwc.DataApi.useDefaultRoute(ozpIwc.ApiBase.allActions);
 
-//
-// temporary filters/routes
-//
-ozpIwc.DataApi.addChildFilter= function() {
-    var createKey=function(prefix) {
-        prefix=prefix || "";
-        var key;
-        do {
-            key=prefix + ozpIwc.util.generateId();
-        } while(key in this.data);
-        return key;
-    };
-    var filters = ozpIwc.standardApiFilters.setFilters();
-
-    filters.unshift(function(packet,context,pathParams,next) {
-        packet.resource = createKey.call(this,packet.resource + "/");
-        return next();
-    });
-
-    return filters;
-};
 
 ozpIwc.DataApi.declareRoute({
     action: ["addChild"],
     resource: "{resource:.*}",
-    filters: ozpIwc.DataApi.addChildFilter()
+    filters: ozpIwc.standardApiFilters.setFilters(ozpIwc.DataNode)
 }, function(packet, context, pathParams) {
-    context.node.set(packet);
+    var key,childNode;
+    do {
+        key =packet.resource + "/" + ozpIwc.util.generateId();
+    } while(key in this.data);
+
+    childNode = this.data[key] = new ozpIwc.DataNode({resource: key});
+    childNode.set(packet);
+    context.node.addChild(key);
+
     return {
         response: "ok",
         entity: {
-            resource: context.node.resource
+            resource: childNode.resource
         }
     };
 });
@@ -102,3 +84,25 @@ ozpIwc.DataApi.declareRoute({
 }, function(packet, context, pathParams) {
     return {response: "ok"};
 });
+
+/**
+ * From a given snapshot, create a change notifications.  This is not a delta, rather it's
+ * change structure.
+ * <p> API subclasses can override if there are additional change notifications (e.g. children in DataApi).
+ *
+ * @method changesSince
+ * @param {object} snapshot The state of the value at some time in the past.
+ * @returns {Object} A record of the current value and the value of the snapshot.
+ */
+ozpIwc.DataApi.prototype.changesSince=function(snapshot) {
+    var changes = ozpIwc.ApiNode.prototype.changesSince.apply(this, arguments);
+    if (changes) {
+        changes.removedChildren = snapshot.links.children.filter(function (f) {
+            return this.indexOf(f) < 0;
+        }, this.children);
+        changes.addedChildren = this.children.filter(function (f) {
+            return this.indexOf(f) < 0;
+        }, snapshot.links.children);
+    }
+    return changes;
+};

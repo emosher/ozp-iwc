@@ -7,7 +7,7 @@
  */
 ozpIwc.AjaxPersistenceQueue=function(config) {
     config=config || {};
-    this.poolSize=config.poolSize || 4;
+    this.poolSize=config.poolSize || 1;
     
     this.syncPool=[]; // The tail of the promise chain for each pool
     

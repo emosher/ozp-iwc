@@ -19,20 +19,6 @@ ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
             headers: []
         }
     ];
-    this.on("changed", function(node) {
-        this.persistenceQueue.queueNode(this.name + "/" + node.resource, node);
-    }, this);
-    var self = this;
-    this.on("addressDisconnects",function(address) {
-        //@TODO delete handler registrations when their registrator leaves?
-        //var len=address.length;
-        //ozpIwc.object.eachEntry(self.data,function(k,v) {
-        //    if(k.substr(-len) === address) {
-        //        self.markForChange(v);
-        //        v.markAsDeleted();
-        //    }
-        //});
-    });
 });
 
 /**

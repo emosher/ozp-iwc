@@ -105,9 +105,9 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             }
             key.isLoaded = true;
             if(scope.hasChildren){
-                client.api(scope.api).list(key.resource).then(function(response) {
+                client.api(scope.api).get(key.resource).then(function(response) {
                     if (response.response === "ok") {
-                        key.children = response.entity;
+                        key.children = response.children;
                     } else {
                         key.children = "Not Supported: " + response.response;
                     }

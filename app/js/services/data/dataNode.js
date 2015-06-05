@@ -11,6 +11,7 @@
 ozpIwc.DataNode=ozpIwc.util.extend(ozpIwc.ApiNode,function(config) {
    this.children=[];
    ozpIwc.ApiNode.apply(this, arguments);
+    this.lifespan = new ozpIwc.Lifespan.Persistent();
 });
 
 ozpIwc.DataNode.prototype.uriTemplate="ozp:data-item";
@@ -48,10 +49,8 @@ ozpIwc.DataNode.prototype.deserializeLive=function(packet) {
 ozpIwc.DataNode.prototype.serializedEntity=function() {
     return JSON.stringify({
         key: this.resource,
-        entity: {
-            entity: this.entity,
-            children: this.children
-        },
+        entity: this.entity,
+        children: this.children,
         contentType: this.contentType,
         permissions: this.permissions,
         version: this.version,
@@ -81,19 +80,27 @@ ozpIwc.DataNode.prototype.serializedContentType=function() {
  * @param {String} contentType
  */
 ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType) {
-    if(typeof(serializedForm) === "string") {
-        serializedForm=JSON.parse(serializedForm);
+    var data;
+    if(typeof(serializedForm.entity) === "string") {
+        data=JSON.parse(serializedForm.entity);
+    } else {
+        data = serializedForm.entity;
     }
-    if(!this.resource) {
-        this.resourceFallback(serializedForm);
+
+    this.entity=data.entity;
+    this.children=data.children;
+    this.contentType=data.contentType;
+    this.permissions=data.permissions;
+    this.version=data.version;
+    data._links = data._links || {};
+    if(data._links.self) {
+        this.self=data._links.self.href;
     }
-    this.entity=serializedForm.entity.entity;
-    this.children=serializedForm.entity.children;
-    this.contentType=serializedForm.contentType;
-    this.permissions=serializedForm.permissions;
-    this.version=serializedForm.version;
-    if(serializedForm._links && serializedForm._links.self) {
-        this.self=serializedForm._links.self.href;
+
+    if (!this.resource && data._links["ozp:iwcSelf"]) {
+        this.resource = data._links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/, "");
+    } else {
+        this.resourceFallback(data);
     }
 };
 
@@ -107,4 +114,48 @@ ozpIwc.DataNode.prototype.resourceFallback = function(serializedForm) {
     if(serializedForm.key) {
         this.resource = ((serializedForm.key.charAt(0) === "/") ? "" : "/") + serializedForm.key;
     }
+};
+
+/**
+ * Adds a child resource to the Data Api value.
+ *
+ * @method addChild
+ * @param {String} child name of the child record of this
+ */
+ozpIwc.DataNode.prototype.addChild=function(child) {
+    if(this.children.indexOf(child) < 0) {
+        this.children.push(child);
+        this.version++;
+    }
+    this.dirty= true;
+};
+
+/**
+ *
+ * Removes a child resource from the Data Api value.
+ *
+ * @method removeChild
+ * @param {String} child name of the child record of this
+ */
+ozpIwc.DataNode.prototype.removeChild=function(child) {
+    this.dirty= true;
+    var originalLen=this.children.length;
+    this.children=this.children.filter(function(c) {
+        return c !== child;
+    });
+    if(originalLen !== this.children.length) {
+        this.version++;
+    }
+};
+
+/**
+ * Turns this value into a packet.
+ *
+ * @method toPacket
+ * @returns {ozpIwc.TransportPacket}
+ */
+ozpIwc.DataNode.prototype.toPacket=function() {
+    var p = ozpIwc.ApiNode.prototype.toPacket.apply(this,arguments);
+    p.children = this.children;
+    return p;
 };
