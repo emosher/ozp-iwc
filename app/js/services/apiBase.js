@@ -75,6 +75,10 @@ ozpIwc.ApiBase=function(config) {
     this.leaderPromise.catch(function(e) {
         console.error("Error registering for leader mutex [address="+self.participant.address+",api="+self.name+"]",e);
     });
+
+    ozpIwc.util.addEventListener("beforeunload",function(){
+        self.shutdown();
+    });
 };
 
 ozpIwc.ApiBase.prototype.changedHandler =function(node,entity,packetContext) {
