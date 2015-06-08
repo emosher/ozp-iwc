@@ -69,7 +69,20 @@ ozpIwc.ApiBase=function(config) {
         resource: "/mutex/"+this.name,
         action: "lock"
     }).then(function(pkt) {
-        return self.transitionToLoading();
+        var resolve;
+
+        // Delay loading for deathScreams to flow in.
+        var delayed = new Promise(function(res,rej){
+            resolve = res;
+        });
+
+        window.setTimeout(function(){
+            resolve();
+        },1000);
+
+        return delayed;
+    }).then(function(){
+        self.transitionToLoading();
     });
     
     this.leaderPromise.catch(function(e) {
@@ -479,6 +492,9 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
 
     if(this.isRequestQueueing) {
         this.requestQueue.push(packetContext);
+        return Promise.resolve();
+    }
+    if(this.leaderState !== "leader"){
         return Promise.resolve();
     }
     

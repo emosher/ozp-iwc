@@ -29,7 +29,7 @@ ozpIwc.Lifespan.getLifespan = function(lifespanObj){
 
 ozpIwc.Lifespan.ephemeralFunctionality = {
     shouldPersist: function(){ return false; },
-    shouldDelete: function(){ return true; }
+    shouldDelete: function(){ return false; }
 };
 
 ozpIwc.Lifespan.persistentFunctionality = {

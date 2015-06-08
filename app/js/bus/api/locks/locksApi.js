@@ -54,7 +54,7 @@ ozpIwc.LocksApi.prototype.makeValue = function(packet) {
  * @param {Object} newOwner
  */
 ozpIwc.LocksApi.prototype.updateLock=function(node,newOwner) {
-    if(!newOwner) {
+    if(!newOwner || !this.participant.activeStates.leader) {
 //        console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
         return;
     }
@@ -125,6 +125,7 @@ ozpIwc.LocksApi.prototype.handleEventChannelDisconnectImpl = function (packetCon
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleSet = function(node,packetContext) {
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo({
         'response': 'badAction',
         'entity': {
@@ -142,6 +143,7 @@ ozpIwc.LocksApi.prototype.handleSet = function(node,packetContext) {
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleDelete = function(node,packetContext) {
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo({
         'response': 'badAction',
         'entity': {

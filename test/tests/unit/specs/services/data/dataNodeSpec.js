@@ -32,21 +32,24 @@ describe("DataNode",function() {
     
     it("deserializes and serializes persisted data with the same outcome",function() {
         var node2=new ozpIwc.DataNode({resource:"/foo"});
-        node2.deserializedEntity(dataNode.serializedEntity(),dataNode.serializedContentType());
+        var serialized = { entity: dataNode.serializedEntity() };
+        node2.deserializedEntity(serialized,dataNode.serializedContentType());
         expect(node2).toEqual(dataNode);
     });
     
     it("deserializes and serializes persisted data with the same outcome using the constructor",function() {
+        var serialized = { entity: dataNode.serializedEntity() };
         var node2=new ozpIwc.DataNode({
-            serializedEntity: dataNode.serializedEntity(),
+            serializedEntity:serialized,
             serializedContentType: dataNode.serializedContentType()
         });
         expect(node2).toEqual(dataNode);
     });
     
     it("deserializes and serializes persisted data with the same outcome using the constructor without content type",function() {
+        var serialized = { entity: dataNode.serializedEntity() };
         var node2=new ozpIwc.DataNode({
-            serializedEntity: dataNode.serializedEntity()
+            serializedEntity:serialized
         });
         expect(node2).toEqual(dataNode);
     });

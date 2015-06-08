@@ -45,7 +45,7 @@
  */
 ozpIwc.LeaderGroupParticipant=ozpIwc.util.extend(ozpIwc.InternalParticipant,function(config) {
 	ozpIwc.InternalParticipant.apply(this,arguments);
-    config.states = config.states || {};
+    this.getStateData = config.getStateData || function(){return{}; };
 
 
 	if(!config.name) {
@@ -258,34 +258,36 @@ ozpIwc.LeaderGroupParticipant=ozpIwc.util.extend(ozpIwc.InternalParticipant,func
 
     // Handle passing of state on unload
     var self=this;
-	ozpIwc.util.addEventListener("beforeunload",function() {
-        //Priority has to be the minimum possible
-        self.priority=-Number.MAX_VALUE;
+    window.setTimeout(function(){
+        ozpIwc.util.addEventListener("beforeunload",function() {
+            //Priority has to be the minimum possible
+            self.priority=-Number.MAX_VALUE;
 
-        if(self.activeStates.leader) {
-            for (var part in self.router.participants) {
-                var participant = self.router.participants[part];
+            if(self.activeStates.leader) {
+                for (var part in self.router.participants) {
+                    var participant = self.router.participants[part];
 
-                // Each leaderParticipant should report out what participants are on
-                // the router so that higher level elements can clean up soon to be dead references before passing on state.
-                if (participant.address) {
-                    self.events.trigger("receive", {
-                        packet: self.fixPacket({
-                            dst: "$bus.multicast",
-                            action: "disconnect",
-                            entity: {
-                                address: participant.address,
-                                participantType: participant.participantType,
-                                namesResource: participant.namesResource
-                            }
-                        })
-                    });
+                    // Each leaderParticipant should report out what participants are on
+                    // the router so that higher level elements can clean up soon to be dead references before passing on state.
+                    if (participant.address) {
+                        self.events.trigger("receive", {
+                            packet: self.fixPacket({
+                                dst: "$bus.multicast",
+                                action: "disconnect",
+                                entity: {
+                                    address: participant.address,
+                                    participantType: participant.participantType,
+                                    namesResource: participant.namesResource
+                                }
+                            })
+                        });
+                    }
                 }
             }
-        }
 
-        self.events.trigger("unloadState");
-	});
+            self.events.trigger("unloadState");
+        });
+    },10);
 
 
     // Connect Metrics
@@ -552,7 +554,7 @@ ozpIwc.LeaderGroupParticipant.prototype.handleElectionMessage=function(electionM
     //If a state was received, store it case participant becomes the leader
     if(Object.keys(electionMessage.entity.state).length > 0){
         this.stateStore = electionMessage.entity.state;
-        this.events.trigger("receivedState");
+        this.events.trigger("receivedState", electionMessage.entity.state);
     }
 
     // If knowledge of a previousLeader was received, store it case participant becomes the leader and requests state
@@ -575,7 +577,7 @@ ozpIwc.LeaderGroupParticipant.prototype.handleElectionMessage=function(electionM
             }
         }
         // Quell the rebellion!
-        this.startElection({opponent: electionMessage.src});
+        this.startElection({opponent: electionMessage.src, state: this.getStateData()});
 
     } else if(this.activeStates.leader) {
         // If this participant is currently the leader but will loose the election, it sends out notification that their

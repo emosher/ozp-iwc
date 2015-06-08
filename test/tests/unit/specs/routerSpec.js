@@ -81,6 +81,12 @@ describe("Router", function() {
             router.registerParticipant(participant2);
         });
 
+        afterEach(function() {
+            participant = null;
+            participant2 = null;
+
+        });
+
         it("forwards connection packets",function(){
             expect(fakePeer.packets).toContain(jasmine.objectContaining({
                 'action': "connect",
@@ -123,6 +129,12 @@ describe("Router", function() {
 
             participant.permissions.pushIfNotExist("ozp:iwc:color",'blue');
             participant2.permissions.pushIfNotExist("ozp:iwc:color",'red');
+        });
+
+        afterEach(function() {
+            participant = null;
+            participant2 = null;
+
         });
 
         it("allows receipt of shared permissions", function(done) {

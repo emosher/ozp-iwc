@@ -18,7 +18,16 @@
         <script type="text/javascript" src="/js/ozpIwc-bus.js"></script>
         <!--script type="text/javascript" src="/js/ozpIwc-client.js"></script-->
         <script type="text/javascript">
+
             ozpIwc.log.setThreshold(ozpIwc.log.ALL);
+
+            ozpIwc.defaultPeer = new ozpIwc.Peer();
+            ozpIwc.defaultRouter = new ozpIwc.Router({
+                peer: ozpIwc.defaultPeer,
+                heartbeatFrequency: 99999999
+            });
+
+
             // All unit tests need to fake out the clock
             var now = function() {
                 return Date.now();

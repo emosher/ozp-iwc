@@ -49,7 +49,7 @@ ozpIwc.LocksApiValue.prototype.unlock=function(packet) {
        return !ozpIwc.util.objectContainsAll(q,packet);
     });
     
-    if(this.entity.owner !== this.entity.queue[0]) {
+    if(!ozpIwc.util.objectContainsAll(this.entity.owner,this.entity.queue[0])) {
         this.entity.owner=this.entity.queue[0];
         return this.entity.owner;
     }

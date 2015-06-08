@@ -57,7 +57,12 @@ if(typeof ozpIwc.enableDefault === "undefined" || ozpIwc.enableDefault) {
             'participant': new ozpIwc.LeaderGroupParticipant({
                 'name': "locks.api",
                 'states': ozpIwc.defaultLeadershipStates(),
-                electionTimeout: ozpIwc.ELECTION_TIMEOUT
+                electionTimeout: ozpIwc.ELECTION_TIMEOUT,
+                getStateData: function(){
+                    var foo = {};
+                    foo.data=ozpIwc.locksApi.data;
+                    return foo;
+                }
             })
         });
         ozpIwc.defaultRouter.registerParticipant(ozpIwc.locksApi.participant);

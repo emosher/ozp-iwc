@@ -27,6 +27,7 @@ ozpIwc.CommonApiBase = function(config) {
     this.participant.on("newLeaderEvent", this.newLeader,this);
     this.participant.on("startElection", this.startElection,this);
     this.participant.on("receiveEventChannelPacket",this.routeEventChannel,this);
+    this.participant.on("receivedState", this.receiveState,this);
    /**
     * An events module for the API.
     * @property events
@@ -73,6 +74,11 @@ ozpIwc.CommonApiBase = function(config) {
 
     this.endpointUrls=[];
 };
+ozpIwc.CommonApiBase.prototype.receiveState = function (state) {
+    state = state || this.participant.stateStore;
+    this.setState(state);
+};
+
 
 /**
  * Finds or creates the corresponding node to store a server loaded resource.
@@ -521,6 +527,11 @@ ozpIwc.CommonApiBase.prototype.isPermitted=function(packetContext,node) {
  * @param {Object} changes The changes to the node.
  */
 ozpIwc.CommonApiBase.prototype.notifyWatchers=function(node,changes) {
+
+    if(!this.participant.activeStates.leader)	{
+        // if not leader, just drop it.
+        return;
+    }
     if(!changes) {
         return;
     }
@@ -628,17 +639,14 @@ ozpIwc.CommonApiBase.prototype.routePacket=function(packetContext) {
             if(!e.errorAction) {
                 ozpIwc.log.error("Unexpected error:",e);
             }
+
+            if(!self.participant.activeStates.leader)	{return;}
             packetContext.replyTo({
                 'response': e.errorAction || "unknownError",
                 'entity': e.message
             });
-            return;
         }
     };
-    if(packetContext.leaderState !== 'leader' && packetContext.leaderState !== 'actingLeader'  )	{
-        // if not leader, just drop it.
-        return;
-    }
 
     if(packet.response && !packet.action) {
         //TODO create a metric for this instead of logging to console
@@ -681,9 +689,6 @@ ozpIwc.CommonApiBase.prototype.routePacket=function(packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext
  */
 ozpIwc.CommonApiBase.prototype.routeEventChannel = function(packetContext) {
-    if (!this.participant.activeStates.leader) {
-        return;
-    }
     var packet = packetContext.packet;
     switch (packet.action) {
         case "connect":
@@ -881,6 +886,7 @@ ozpIwc.CommonApiBase.prototype.defaultHandler=function(node,packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext The packet context containing the get action.
  */
 ozpIwc.CommonApiBase.prototype.handleGet=function(node,packetContext) {
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo(node.toPacket({'response': 'ok'}));
 };
 
@@ -892,6 +898,7 @@ ozpIwc.CommonApiBase.prototype.handleGet=function(node,packetContext) {
  * @param {ozpIwc.TransportPacketContext} packetContext The packet context containing the bulk get action.
  */
 ozpIwc.CommonApiBase.prototype.handleBulkget=function(node,packetContext) {
+    if(!this.participant.activeStates.leader)	{return;}
 	// scan local data set for resource link(?) contains prefix
 	// return list of nodes of matches
 	var matchingNodes = [];
@@ -919,6 +926,7 @@ ozpIwc.CommonApiBase.prototype.handleBulkget=function(node,packetContext) {
  */
 ozpIwc.CommonApiBase.prototype.handleSet=function(node,packetContext) {
     node.set(packetContext.packet);
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo({'response':'ok'});
 };
 
@@ -932,6 +940,7 @@ ozpIwc.CommonApiBase.prototype.handleSet=function(node,packetContext) {
  */
 ozpIwc.CommonApiBase.prototype.handleDelete=function(node,packetContext) {
     node.deleteData();
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo({'response':'ok'});
 };
 
@@ -944,7 +953,7 @@ ozpIwc.CommonApiBase.prototype.handleDelete=function(node,packetContext) {
  */
 ozpIwc.CommonApiBase.prototype.handleWatch=function(node,packetContext) {
     node.watch(packetContext.packet);
-
+    if(!this.participant.activeStates.leader)	{return;}
     // @TODO: Reply with the entity? Immediately send a change notice to the new watcher?
     packetContext.replyTo({'response': 'ok'});
 };
@@ -958,7 +967,7 @@ ozpIwc.CommonApiBase.prototype.handleWatch=function(node,packetContext) {
  */
 ozpIwc.CommonApiBase.prototype.handleUnwatch=function(node,packetContext) {
     node.unwatch(packetContext.packet);
-
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo({'response':'ok'});
 };
 
@@ -995,7 +1004,7 @@ ozpIwc.CommonApiBase.prototype.unloadState = function(){
  */
 ozpIwc.CommonApiBase.prototype.setState = function(state) {
     this.data = {};
-    this.dynamicNodes = state.dynamicNodes;
+    this.dynamicNodes = state.dynamicNodes || [];
     for (var key in state.data) {
         var dynIndex = this.dynamicNodes.indexOf(key);
         var node;
@@ -1027,6 +1036,7 @@ ozpIwc.CommonApiBase.prototype.setState = function(state) {
  * @param {ozpIwc.TransportPacketContext} packetContext The packet context of the received request.
  */
 ozpIwc.CommonApiBase.prototype.rootHandleList=function(node,packetContext) {
+    if(!this.participant.activeStates.leader)	{return;}
     packetContext.replyTo({
         'response':'ok',
         'entity': Object.keys(this.data)
@@ -1137,25 +1147,14 @@ ozpIwc.CommonApiBase.prototype.leaderSync = function () {
             // There was a previous leader but we haven't seen their state. Wait for it.
             self.receiveStateTimer = null;
 
-            var recvFunc = function () {
-                self.setState(self.participant.stateStore);
-                self.participant.off("receivedState", recvFunc);
-                self.setToLeader();
-                window.clearInterval(self.receiveStateTimer);
-                self.receiveStateTimer = null;
-            };
-
-            self.participant.on("receivedState", recvFunc);
-
             self.receiveStateTimer = window.setTimeout(function () {
                 if (self.participant.stateStore && Object.keys(self.participant.stateStore).length > 0) {
-                    recvFunc();
+                    self.receiveState(self.participant.stateStore);
                 } else {
                     self.loadFromServer();
                     ozpIwc.log.debug(self.participant.name, "New leader(",self.participant.address, ") failed to retrieve state from previous leader(", self.participant.previousLeader, "), so is loading data from server.");
                 }
 
-                self.participant.off("receivedState", recvFunc);
                 self.setToLeader();
             }, 250);
 
