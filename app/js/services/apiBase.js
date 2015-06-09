@@ -35,7 +35,7 @@ ozpIwc.ApiBase=function(config) {
 	if(!config.name) {
         throw Error("API must be configured with a name");
     }
-    this.participant=config.participant || new ozpIwc.ClientParticipant();
+    this.participant=config.participant || new ozpIwc.ClientParticipant({internal:true});
 
     this.name=config.name;
     this.coordinationAddress="coord." + this.name;

@@ -600,9 +600,9 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                 self.send(p.fields, p.callback, p.promiseRes, p.promiseRej);
             });
             self.preconnectionQueue = [];
-            if (!self.launchParams.inFlightIntent) {
+            if (!self.launchParams.inFlightIntent || self.internal) {
                 self.events.trigger("connected");
-                return;
+                return Promise.resolve();
             }
 
             // fetch the inFlightIntent

@@ -27,6 +27,13 @@ ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) 
 	this.participantType="internalClient";
 
     /**
+     * Notes if this is a client participant internal to the bus.
+     * @property internal
+     * @type {boolean|*}
+     * @default false
+     */
+    this.internal = config.internal || false;
+    /**
      * The name of the participant.
      * @property name
      * @type {String}
