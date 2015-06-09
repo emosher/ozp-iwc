@@ -469,12 +469,24 @@ ozpIwc.ApiBase.prototype.receiveBusPacket=function(packetContext) {
             this.events.trigger("addressConnects",packet.entity.address,packet);
             break;
         case "disconnect":
+            this.removeDeadWatchers(packet.entity.address);
             this.events.trigger("addressDisconnects",packet.entity.address,packet);
             break;
     }
     return Promise.resolve();
 };
 
+
+ozpIwc.ApiBase.prototype.removeDeadWatchers = function(address){
+    var len=address.length;
+    ozpIwc.object.eachEntry(this.watchers,function(resource,array) {
+        for(var i in array) {
+            if (array[i].src.substr(-len) === address) {
+                array.splice(i, 1);
+            }
+        }
+    });
+};
 
 //===============================================================
 // API Request Handling

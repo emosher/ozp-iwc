@@ -79,6 +79,7 @@ ozpIwc.ClientParticipant.prototype.connect = function(){
         /**
          * Promise to chain off of for client connection asynchronous actions.
          * @property connectPromise
+         *
          * @type Promise
          */
         this.connectPromise = new Promise(function(resolve,reject){
