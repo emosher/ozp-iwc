@@ -154,8 +154,6 @@ describe("Data API", function () {
     describe('Data load test', function() {
 
         pit ('Gets the contents of the data api', function() {
-            var called = false;
-
             return client.data().get('/dashboard/12345').then(function (packet) {
                     expect(packet.response).toEqual('ok');
             });
@@ -187,8 +185,6 @@ describe("Data API", function () {
 
 
         pit('Client gets values', function (done) {
-            var called = false;
-
             return client.api('data.api').set('/test', { entity: "testData"}).then(function (packet) {
                 return client.api('data.api').get('/test', {});
             }).then(function (packet) {
