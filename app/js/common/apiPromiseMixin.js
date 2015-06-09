@@ -229,14 +229,13 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
 
             //Try and handle this packet as callback message
             if (!handled && packet.replyTo && this.registeredCallbacks[packet.replyTo]) {
-                handled = true;
 
                 var registeredCancel = false;
                 var registeredDone = function () {
                     registeredCancel = true;
                 };
 
-                this.registeredCallbacks[packet.replyTo](packet, registeredDone);
+                handled = this.registeredCallbacks[packet.replyTo](packet, registeredDone);
                 if (registeredCancel) {
                     if (this.watchMsgMap[packet.replyTo].action === "watch") {
                         this.api(this.watchMsgMap[packet.replyTo].dst).unwatch(this.watchMsgMap[packet.replyTo].resource);
@@ -245,7 +244,8 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                 }
             //} else if (packet.dst === "$bus.multicast"){
             //    this.events.trigger("receiveEventChannelPacket",packetContext);
-            } else {
+            }
+            if(!handled){
                 // Otherwise trigger "receive" for someone to handle it
                 this.events.trigger("receive",packetContext);
             }
@@ -555,12 +555,17 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
 
             if (callback) {
                 this.registeredCallbacks[id] = function (reply, done) {
-                    if (reply.entity && reply.entity.inFlightIntent) {
+                    // We've received a message that was a promise response but we've aready handled our promise response.
+                    if (reply.src === "$transport" || /(ok).*/.test(reply.response) || /(bad|no).*/.test(reply.response)) {
+                        // Do noting and let it get sent to the event handler
+                        return false;
+                    }else if (reply.entity && reply.entity.inFlightIntent) {
                         self.intentInvocationHandling(packet.resource, reply.entity.inFlightIntent,
                             reply.entity.inFlightIntentEntity, callback);
                     } else {
                         callback(reply, done);
                     }
+                    return true;
                 };
             }
 
