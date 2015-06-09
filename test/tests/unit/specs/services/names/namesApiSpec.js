@@ -9,6 +9,7 @@ describe("Names API",function() {
             'router': new FakeRouter()
 		});
         namesApi.isRequestQueueing=false;
+        namesApi.leaderState = "leader";
 	});
 
 	afterEach(function() {

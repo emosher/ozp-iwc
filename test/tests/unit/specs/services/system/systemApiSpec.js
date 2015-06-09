@@ -63,6 +63,7 @@ describe("System API", function() {
             'router': new FakeRouter()
         });
         systemApi.isRequestQueueing = false;
+        systemApi.leaderState = "leader";
         systemApi.participant.sentPackets = [];
         systemApi.createNode(applicationPacket);
     });

@@ -91,7 +91,9 @@ ozpIwc.ApiNode= function(config) {
         this.deserializedEntity(config.serializedEntity,config.serializedContentType);
     }
 
-    if(!this.resource) { throw new Error("ApiNode requires a resource");}
+    if(!this.resource) {
+        throw new Error("ApiNode requires a resource");
+    }
 };
 
 ozpIwc.ApiNode.prototype.getSelfUri=function() {

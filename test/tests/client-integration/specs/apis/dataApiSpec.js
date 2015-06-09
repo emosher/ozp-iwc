@@ -153,18 +153,12 @@ describe("Data API", function () {
 
     describe('Data load test', function() {
 
-        it ('Gets the contents of the data api', function(done) {
+        pit ('Gets the contents of the data api', function() {
             var called = false;
-            client.data().get('/dashboard/12345')
-                .then(function (packet) {
+
+            return client.data().get('/dashboard/12345').then(function (packet) {
                     expect(packet.response).toEqual('ok');
-                    if (!called) {
-                        called = true;
-                        done();
-                    }
-                })['catch'](function (error) {
-                    expect(error).toEqual('');
-                });
+            });
         });
     });
 
@@ -185,58 +179,27 @@ describe("Data API", function () {
         });
 
 
-        it('Client sets values', function (done) {
-            var called = false;
-            client.api('data.api').set('/test', { entity: "testData"})
-                .then(function (packet) {
-                    if (!called) {
-                        called = true;
-                        expect(packet.response).toEqual('ok');
-                        done();
-                    }
-                })
-                ['catch'](function (error) {
-                    expect(error).toEqual('');
-                });
-        });
-
-
-        it('Client gets values', function (done) {
-            var called = false;
-
-            client.api('data.api').set('/test', { entity: "testData"})
-                .then(function (packet) {
-                    client.api('data.api').get('/test', {})
-                        .then(function (packet) {
-                            if (!called) {
-                                called = true;
-
-                                expect(packet.entity).toEqual('testData');
-
-                                done();
-                            }
-                        })
-                        ['catch'](function (error) {
-                            expect(error).toEqual('');
-                        });
-                })
-                ['catch'](function (error) {
-                    expect(error).toEqual('');
-                });
-        });
-
-        it('Client deletes values', function (done) {
-            var called = false;
-            client.api('data.api').delete('/test')
-                .then(function (packet) {
+        pit('Client sets values', function () {
+            return client.api('data.api').set('/test', { entity: "testData"}).then(function (packet) {
                     expect(packet.response).toEqual('ok');
-                    if (!called) {
-                        called = true;
-                        done();
-                    }
-                })['catch'](function (error) {
-                    expect(error).toEqual('');
-                });
+            });
+        });
+
+
+        pit('Client gets values', function (done) {
+            var called = false;
+
+            return client.api('data.api').set('/test', { entity: "testData"}).then(function (packet) {
+                return client.api('data.api').get('/test', {});
+            }).then(function (packet) {
+                    expect(packet.entity).toEqual('testData');
+            });
+        });
+
+        pit('Client deletes values', function () {
+            return client.api('data.api').delete('/test').then(function (packet) {
+                expect(packet.response).toEqual('ok');
+            });
         });
 
 //        xdescribe('Collection-like Actions', function () {

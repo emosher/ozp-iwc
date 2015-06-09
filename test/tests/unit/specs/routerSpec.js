@@ -81,12 +81,6 @@ describe("Router", function() {
             router.registerParticipant(participant2);
         });
 
-        afterEach(function() {
-            participant = null;
-            participant2 = null;
-
-        });
-
         it("forwards connection packets",function(){
             expect(fakePeer.packets).toContain(jasmine.objectContaining({
                 'action': "connect",
@@ -131,15 +125,10 @@ describe("Router", function() {
             participant2.permissions.pushIfNotExist("ozp:iwc:color",'red');
         });
 
-        afterEach(function() {
-            participant = null;
-            participant2 = null;
-
-        });
-
         it("allows receipt of shared permissions", function(done) {
-            participant2.on("receive", function(packetContext) {
+            participant2.on("receive", function onreceive(packetContext) {
                 expect(packetContext.packet.entity).toEqual({foo: "bar"});
+                participant2.off("receive",onreceive);
                 done();
             });
             participant.send({
@@ -175,8 +164,9 @@ describe("Router", function() {
         });
 
         it("allows a participant to send a packet to require permissions that it doesn't have, itself", function(done) {
-            participant2.on("receive", function(packetContext) {
+            participant2.on("receive", function onreceive(packetContext) {
                 expect(packetContext.packet.entity).toEqual({foo: "bar"});
+                participant2.off("receive",onreceive);
                 done();
             });
             participant.send({

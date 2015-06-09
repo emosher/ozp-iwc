@@ -225,7 +225,7 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
     var self=this;
     if(this.leaderState !== "member") {
 				ozpIwc.log.error(this.logPrefix+"transition to loading called in an invalide state:",this.leaderState);
-        return;
+        return Promise.reject(this.logPrefix+"transition to loading called in an invalide state:",this.leaderState);
     }
 		ozpIwc.log.debug(this.logPrefix+"transitioning to loading");
     this.leaderState="loading";
@@ -243,11 +243,11 @@ ozpIwc.ApiBase.prototype.transitionToLoading=function() {
  * @private
  */
 ozpIwc.ApiBase.prototype.transitionToLeader=function() {
-		if(this.leaderState !== "loading") {
-				ozpIwc.log.error(this.logPrefix+"transition to leader called in an invalide state:",this.leaderState);
-				return;
+    if(this.leaderState !== "loading") {
+            ozpIwc.log.error(this.logPrefix+"transition to leader called in an invalid state:",this.leaderState);
+            return;
     }
-		ozpIwc.log.debug(this.logPrefix+"transitioning to leader");
+    ozpIwc.log.debug(this.logPrefix+"transitioning to leader");
     this.leaderState = "leader";
     this.broadcastLeaderReady();
     this.deliverRequestQueue();

@@ -1757,6 +1757,7 @@ describe("Common API Base class",function() {
     describe("CommonAPI Packet Routing",function() {
         beforeEach(function() {
             apiBase.data['/node']=simpleNode;
+			apiBase.participant.sentPacketObjs = [];
         });
         
         it("routes packets to invokeHandler based upon the action",function() {
@@ -1978,6 +1979,7 @@ describe("Common API Base class",function() {
                 'version' : 1
             });
             apiBase.addDynamicNode(collectionNode);
+			apiBase.participant.sentPacketObjs = [];
         });
     
         it("get on collection nodes list their contents",function() {

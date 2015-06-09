@@ -34,6 +34,7 @@ describe("ApiBase request handling",function() {
 	beforeEach(function() {
         apiBase=createApiRequestObject();
         apiBase.isRequestQueueing=false;
+        apiBase.leaderState = "leader";
 	});
     
     var testPacket=function(packet) {

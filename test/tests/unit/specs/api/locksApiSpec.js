@@ -8,7 +8,7 @@ describe("Locks API",function() {
 			'participant': new TestParticipant()
 		});
         locksApi.participant.name="locks.api";
-        sentPacketObjs=locksApi.participant.sentPacketObjs;
+        sentPacketObjs=locksApi.participant.sentPacketObjs = [];
 	});
     
     var queueEntry=function(address,msgId) {

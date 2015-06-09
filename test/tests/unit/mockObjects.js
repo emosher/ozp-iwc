@@ -19,12 +19,21 @@ var FakePeer = function() {
 // TestParticipant for connecting to a router
 //========================================================
 var TestParticipant = ozpIwc.util.extend(ozpIwc.ClientParticipant, function(config) {
+    config = config || {};
+    this.sentPacketObjs = [];
+    this.packets = [];
+    this.activeStates = config.activeStates || {
+        'leader': true,
+        'member': false,
+        'election': false,
+        'queueing': false
+    };
+
+
     ozpIwc.ClientParticipant.apply(this, arguments);
     config = config || {};
     this.origin = config.origin || "foo.com";
     this.address = config.staticAddress;
-    this.packets = [];
-    this.sentPacketObjs = [];
     // since we aren't connecting to a router, mock these out, too
     this.metricRoot = "testparticipant";
     this.participantType="testParticipant";
@@ -41,6 +50,7 @@ var TestParticipant = ozpIwc.util.extend(ozpIwc.ClientParticipant, function(conf
         }
     };
 });
+
 TestParticipant.prototype.receiveFromRouter = function(packet) {
     this.packets.push(packet);
     return ozpIwc.ClientParticipant.prototype.receiveFromRouter.call(this, packet);

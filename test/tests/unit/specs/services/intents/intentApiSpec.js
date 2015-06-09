@@ -23,6 +23,7 @@ describe("Intent API Class", function () {
             'router': new FakeRouter()
         });
         apiBase.isRequestQueueing=false;
+        apiBase.leaderState = "leader";
 
         endpoint=jasmine.createSpyObj('endpoint',['get','put','delete']);
 //        ozpIwc.endpoint=function() { return endpoint; };
@@ -36,6 +37,7 @@ describe("Intent API Class", function () {
     });
     
     pit("fetches data from the server",function() {
+        apiBase.leaderState = "member";
         return apiBase.transitionToLoading().then(function() {
             expect(endpoint.get).toHaveBeenCalledWith("/");
             expect(endpoint.get).toHaveBeenCalledWith("http://example.com/intents/1",[]);
