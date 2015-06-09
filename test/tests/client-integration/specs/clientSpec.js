@@ -182,32 +182,22 @@ describe("IWC Client", function() {
         var testPeerUrl = "http://" + window.location.hostname + ":14002";
 
 
-        it("when peerUrl is a string, it directly connects", function(done) {
+        pit("when peerUrl is a string, it directly connects", function() {
             client = new ozpIwc.Client({
                 peerUrl: testPeerUrl,
                 autoConnect: false
             });
-            client.connect().then(function() {
+            return client.connect().then(function() {
                 expect(client.peerUrl).toEqual(testPeerUrl);
-                done();
-            })['catch'](function(error) {
-                console.log("Error ", error);
-                expect(JSON.strinfigy(error)).toEqual("did not happen");
-                done();
             });
         });
-        it("when peerUrl is an array, the first is chosen", function(done) {
+        pit("when peerUrl is an array, the first is chosen", function() {
             client = new ozpIwc.Client({
                 peerUrl: [testPeerUrl, "http://ozp.example.com"],
                 autoConnect: false
             });
-            client.connect().then(function() {
+            return client.connect().then(function() {
                 expect(client.peerUrl).toEqual(testPeerUrl);
-                done();
-            })['catch'](function(error) {
-                console.log("Error ", error);
-                expect(error).toEqual("did not happen");
-                done();
             });
         });
 

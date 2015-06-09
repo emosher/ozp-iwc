@@ -1,6 +1,5 @@
 describe("Data API", function () {
-    var client;
-    var participant;
+    var client, participant, resolve, reject, promise;
 
     beforeEach(function(done) {
         client=new ozpIwc.Client({
@@ -15,6 +14,11 @@ describe("Data API", function () {
 
         participant.on("connected",gate);
         client.on("connected",gate);
+
+        promise = new Promise(function(res,rej){
+            resolve=res;
+            reject=rej;
+        });
     });
 
     afterEach(function() {
@@ -22,13 +26,13 @@ describe("Data API", function () {
         participant.close();
     });
 
-	it("responds to a bulk get with matching entities", function(done) {
+	pit("responds to a bulk get with matching entities", function() {
 		var packetOne={'resource': "/family", 'entity': "value1"};
 		var packetTwo={'resource': "/family_a", 'entity': "value2", 'contentType':"application/fake+b+json"};
         var packetThree={'resource': "/family_b", 'entity': "value3"};
         var packetFour={'resource': "/notfamily", 'entity': "value4"};
 
-		client.api('data.api').set(packetOne.resource,{entity:packetOne.entity})
+		return client.api('data.api').set(packetOne.resource,{entity:packetOne.entity})
 			.then(function() {
 				return client.api('data.api').set(packetTwo.resource,{'entity':packetTwo.entity,'contentType':packetTwo.contentType});
 			}).then(function() {
@@ -43,14 +47,12 @@ describe("Data API", function () {
 				expect(reply.entity[0]).toEqual(jasmine.objectContaining(packetOne));
 				expect(reply.entity[1]).toEqual(jasmine.objectContaining(packetTwo));
 				expect(reply.entity[2]).toEqual(jasmine.objectContaining(packetThree));
-				done();
 			})['catch'](function(error) {
 				expect(error).toEqual('not have happened');
-				done();
 			});
 	});
 
-    it('sets a value visible to other clients',function(done) {
+    pit('sets a value visible to other clients',function() {
         var packet={
             'dst': "data.api",
             'resource': "/test",
@@ -58,76 +60,71 @@ describe("Data API", function () {
             'entity' : { 'foo' : 1 }
         };
         participant.send(packet,function() {
-
-            client.api('data.api')
-                .get(packet.resource)
-                .then(function(reply) {
+            resolve();
+        });
+        return promise.then(function(){
+            return client.api('data.api').get(packet.resource).then(function (reply) {
                     expect(reply.entity).toEqual(packet.entity);
-                    done();
-                })['catch'](function(error) {
-                    expect(error).toEqual('not have happened');
-                });
+            });
         });
     });
 
-    it('setting a value generates a change to other clients',function(done) {
+    pit('setting a value generates a change to other clients',function() {
         var packet={
             'dst': "data.api",
             'resource': "/test",
             'action' : "set",
             'entity' : { 'foo' : 1 }
         };
-        client.api('data.api').watch(packet.resource,function(reply) {
-            if(reply.response==="changed") {
-                expect(reply.entity.newValue).toEqual(packet.entity);
-                expect(reply.entity.oldValue).toBeUndefined();
-                done();
-            }
-            return true;
+        return client.api('data.api').watch(packet.resource,function(reply) {
+            expect(reply.entity.newValue).toEqual(packet.entity);
+            expect(reply.entity.oldValue).toBeUndefined();
         }).then(function(reply) {
             participant.send(packet);
-        })['catch'](function(error) {
-            expect(error).toEqual('');
         });
 
     });
-    it('can get a value set by another participant',function(done){
+    pit('can get a value set by another participant',function(){
         participant.send({
             'dst': "data.api",
                 'resource': "/test",
                 'action' : "set",
                 'entity' : { 'foo' : 2 }
         },function(response){
-            client.data().get('/test').then(function(reply){
+            resolve();
+        });
+        return promise.then(function(){
+            return client.data().get('/test').then(function(reply){
                 expect(reply.entity).toEqual({"foo":2});
-                done();
             });
         });
     });
-    it("can delete a value set by someone else",function(done) {
+    pit("can delete a value set by someone else",function() {
         participant.send({
             'dst': "data.api",
             'resource': "/test",
             'action': "set",
             'entity': {'foo': 2}
         }, function (response) {
-            client.data().get('/test').then(function (reply) {
-                expect(reply.entity).toEqual({"foo": 2});
-                client.data().delete('/test').then(function (reply) {
-                    expect(reply.response).toEqual("ok");
-                    client.data().get('/test')['catch'](function(error){
-                        expect(error.response).toEqual("noResource");
-                        done();
-                    });
-                });
-            });
+            resolve();
+        });
+
+        return promise.then(function() {
+            return client.data().get('/test');
+        }).then(function (reply) {
+            expect(reply.entity).toEqual({"foo": 2});
+            return client.data().delete('/test');
+        }). then(function (reply) {
+            expect(reply.response).toEqual("ok");
+            return client.data().get('/test');
+        })['catch'](function(error){
+            expect(error.response).toEqual("noResource");
         });
     });
 
-    it('Integration bus cleans up after every run',function(done) {
-        client.data().get('/test')['catch'](function(error) {
+    pit('Integration bus cleans up after every run',function() {
+        return client.data().get('/test')['catch'](function(error) {
             expect(error.response).toEqual("noResource");
-            done();
         });
     });
 
@@ -184,7 +181,7 @@ describe("Data API", function () {
         });
 
 
-        pit('Client gets values', function (done) {
+        pit('Client gets values', function () {
             return client.api('data.api').set('/test', { entity: "testData"}).then(function (packet) {
                 return client.api('data.api').get('/test', {});
             }).then(function (packet) {

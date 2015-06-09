@@ -127,43 +127,18 @@ describe("Names API", function () {
         });
 
 
-        it('Client gets values', function (done) {
-            var called = false;
-
-            client.api('names.api').set(testId,testFragment)
-                .then(function(reply) {
-                    client.api('names.api').get(testId,{})
-                        .then(function(reply) {
-                            if (!called) {
-                                called = true;
-                                expect(reply.entity).toEqual(testFragment.entity);
-                                done();
-                            }
-                        })
-                        ['catch'](function(error) {
-                            expect(error).toEqual('');
-                        });
-                })
-                ['catch'](function(error) {
-                    expect(error).toEqual('');
-                });
+        pit('Client gets values', function () {
+            return client.api('names.api').set(testId,testFragment).then(function(reply) {
+                return client.api('names.api').get(testId, {});
+            }).then(function(reply) {
+                expect(reply.entity).toEqual(testFragment.entity);
+            });
         });
 
-        it('Client deletes values', function (done) {
-            var called = false;
-
-            client.api('names.api').delete(testId,{
-                'contentType': testFragment.contentType
-            })
+        pit('Client deletes values', function () {
+            return client.api('names.api').delete(testId,{'contentType': testFragment.contentType})
                 .then(function(reply) {
-                    if (!called) {
-                        called = true;
                         expect(reply.response).toEqual('ok');
-                        done();
-                    }
-                })
-                ['catch'](function(error) {
-                    expect(error).toEqual('');
                 });
         });
 
