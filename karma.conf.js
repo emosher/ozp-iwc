@@ -54,7 +54,7 @@ module.exports = function(config) {
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['Firefox'],
     // If browser does not capture in given timeout [ms], kill it
-    captureTimeout: 60000,
+    captureTimeout: 100000,
 
     // to avoid DISCONNECTED messages
     browserDisconnectTimeout : 10000, // default 2000

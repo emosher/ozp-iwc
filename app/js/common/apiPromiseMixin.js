@@ -615,8 +615,9 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                             self.launchParams[k] = launchData[k];
                         }
                     }
-                    response.entity.entity.state = "complete";
-                    self.intents().set(self.launchParams.inFlightIntent, response);
+                    self.intents().set(self.launchParams.inFlightIntent, { entity: {
+                        state: "complete"
+                    }});
                 }
                 self.events.trigger("connected");
             });
