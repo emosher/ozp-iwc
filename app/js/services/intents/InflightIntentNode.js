@@ -104,7 +104,9 @@ ozpIwc.IntentsInFlightNode.prototype.set = function(packet) {
     if(!packet.entity || !packet.entity.state) {
         throw new ozpIwc.BadContentError("Entity lacks a 'state' field");
     }
-    
+    if(this.deleted){
+        throw new ozpIwc.BadContentError("Already handled.");
+    }
     var transition=ozpIwc.IntentsInFlightNode.stateTransitions[this.entity.state];
     if(!transition) {
         // we're in a bad state.  pretty much unrecoverable

@@ -620,6 +620,9 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                     }});
                 }
                 self.events.trigger("connected");
+            })['catch'](function(e){
+                ozpIwc.log.debug(self.launchParams.inFlightIntent, " not handled, reason: ", e);
+                self.events.trigger("connected");
             });
         }
 
