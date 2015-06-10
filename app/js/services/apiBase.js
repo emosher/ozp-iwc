@@ -47,6 +47,7 @@ ozpIwc.ApiBase=function(config) {
     this.endpoints=[];
     this.data={};
     this.watchers={};
+    this.collectorList=[];
     this.changeList={};
     this.leaderState="member";
 
@@ -107,11 +108,12 @@ ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
     ozpIwc.object.eachEntry(self.data,function(resource,node) {
         var lifespanFns = ozpIwc.Lifespan.getLifespan(node.lifespan);
         if(lifespanFns.shouldDelete(node.lifespan,address)){
-            self.markForChange(node);
             node.markAsDeleted();
-
+            self.markForChange(node);
         }
     });
+    self.updateCollections();
+    self.resolveChangedNodes();
 };
 //===============================================================
 // Default methods that can be overriden by subclasses
@@ -192,6 +194,14 @@ ozpIwc.ApiBase.prototype.createNode=function(config) {
 		this.data[n.resource]=n;
 		this.events.trigger("createdNode",n);
 		return n;
+};
+
+
+ozpIwc.ApiBase.prototype.createCollectionNode=function(config) {
+    var n= new ozpIwc.ApiCollectionNode(config);
+    this.data[n.resource]=n;
+    this.events.trigger("createdCollectionNode",n);
+    return n;
 };
 
 /**
@@ -384,6 +394,48 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
     watchList.push(watcher);
 };
 
+
+ozpIwc.ApiBase.prototype.resolveChangedNode=function(resource,snapshot,packetContext) {
+    var node=this.data[resource];
+    var watcherList=this.watchers[resource] || [];
+
+    if(!node) {
+        return;
+    }
+
+    var changes=node.changesSince(snapshot);
+    if(!changes) {
+        return;
+    }
+
+    var permissions=ozpIwc.authorization.pip.attributeUnion(
+        changes.oldValue.permissions,
+        changes.newValue.permissions
+    );
+
+    var entity={
+        oldValue: changes.oldValue.entity,
+        newValue: changes.newValue.entity,
+        oldCollection: changes.oldValue.collection,
+        newCollection: changes.newValue.collection,
+    };
+
+    this.events.trigger("changed",node,entity,packetContext);
+
+    watcherList.forEach(function(watcher) {
+        // @TODO allow watchers to changes notifications if they have permission to either the old or new, not just both
+        this.participant.send({
+            'src'   : this.participant.name,
+            'dst'   : watcher.src,
+            'replyTo' : watcher.replyTo,
+            'response': 'changed',
+            'resource': node.resource,
+            'permissions': permissions,
+            'contentType': node.contentType,
+            'entity': entity
+        });
+    },this);
+};
 /**
  * Called after the request is complete to send out change notices.
  *  
@@ -392,48 +444,35 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
  * @private
  */
 ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
-    ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot) {
-        var node=this.data[resource];
-        var watcherList=this.watchers[resource] || [];
-        
-        if(!node) {
-            return;
-        }
-        
-        var changes=node.changesSince(snapshot);
-        if(!changes) {
-            return;
-        }
-
-        var permissions=ozpIwc.authorization.pip.attributeUnion(
-            changes.oldValue.permissions,
-            changes.newValue.permissions
-        );
-
-        var entity={
-            oldValue: changes.oldValue.entity,
-            newValue: changes.newValue.entity
-        };
-        
-        this.events.trigger("changed",node,entity,packetContext);
-        
-        watcherList.forEach(function(watcher) {
-            // @TODO allow watchers to changes notifications if they have permission to either the old or new, not just both
-            this.participant.send({
-                'src'   : this.participant.name,
-                'dst'   : watcher.src,
-                'replyTo' : watcher.replyTo,
-                'response': 'changed',
-                'resource': node.resource,
-                'permissions': permissions,
-                'entity': entity
-            });
-        },this);
+    ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot){
+        this.resolveChangedNode(resource,snapshot,packetContext);
     },this);
     this.changeList={};
 };
 
 
+ozpIwc.ApiBase.prototype.updateCollections = function(){
+    for(var i in this.collectorList){
+        var collectorNode = this.data[this.collectorList[i]];
+        this.updateCollectionNode(collectorNode);
+    }
+};
+
+ozpIwc.ApiBase.prototype.updateCollectionNode = function(cNode){
+    var snapshot = cNode.snapshot();
+    cNode.collection = this.matchingNodes(cNode.pattern).filter(function(node){
+        if(node.deleted) {
+            return false;
+        }
+        return true;
+    }).map(function(node) {
+        return node.resource;
+    });
+    if(!ozpIwc.util.arrayContainsAll(cNode.collection,snapshot.collection)) {
+        cNode.version++;
+        this.resolveChangedNode(snapshot.resource,snapshot);
+    }
+};
 //===============================================================
 // Packet Routing
 //===============================================================
@@ -523,6 +562,7 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
             packetFragment.response = packetFragment.response || "ok";
             packetContext.replyTo(packetFragment);
         }
+        self.updateCollections();
         self.resolveChangedNodes(packetContext);
     },function(e) {
         if(!e || !e.errorAction) {

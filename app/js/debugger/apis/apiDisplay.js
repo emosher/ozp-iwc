@@ -177,6 +177,8 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
                         key.contentType=response.contentType;
                     });
                 }
+            }).then(function(reply){
+                console.log(reply);
             });
         } else {
             client.api(scope.api).unwatch(key.resource);

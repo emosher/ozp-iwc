@@ -153,35 +153,34 @@ ozpIwc.IntentsApi.declareRoute({
 // Action endpoints
 //====================================================================
 ozpIwc.IntentsApi.registerFilter = function(nodeType,contentType){
-    var createKey=function(prefix) {
-        prefix=prefix || "";
-        var key;
-        do {
-            key=prefix + ozpIwc.util.generateId();
-        } while(key in this.data);
-        return key;
-    };
-    var filters = ozpIwc.standardApiFilters.setFilters(nodeType,contentType);
-
-    filters.unshift(function(packet,context,pathParams,next) {
-        packet.resource = createKey.call(this,packet.resource + "/");
-        return next();
-    });
-
-    return filters;
+    return [
+        ozpIwc.apiFilter.createCollectionResource(ozpIwc.ApiCollectionNode),
+        ozpIwc.apiFilter.checkAuthorization(),
+        ozpIwc.apiFilter.checkContentType("application/vnd.ozp-iwc-intent-handler-v1+json"),
+        ozpIwc.apiFilter.checkVersion(),
+        ozpIwc.apiFilter.markResourceAsChanged(),
+        ozpIwc.apiFilter.markAsCollector()
+    ];
 };
 
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
-    filters: ozpIwc.IntentsApi.registerFilter(ozpIwc.IntentHandlerNode, "application/vnd.ozp-iwc-intent-handler-v1+json")
+    filters: ozpIwc.IntentsApi.registerFilter()
 }, function(packet, context, pathParams) {
-    context.node.set(packet);
+    var key = this.createKey(context.node.resource + "/");
+    var childNode = new ozpIwc.IntentHandlerNode({
+        'resource': key,
+        'src': packet.src
+    });
+    this.data[childNode.resource]=childNode;
+    childNode.set(packet);
+    this.updateCollectionNode(context.node);
     ozpIwc.log.debug(this.logPrefix+" registered ",context.node);
     return {
         'response': 'ok',
         'entity': {
-            'resource': context.node.resource
+            'resource': childNode.resource
         }
     };
 });
@@ -218,7 +217,7 @@ ozpIwc.IntentsApi.declareRoute({
             entity: {
                 "type": pathParams.major + "/" + pathParams.minor,
                 "action": pathParams.action,
-                "handlers": this.matchingNodes(packet.resource).map(function(n) {
+                "handlers": context.node.collection || this.matchingNodes(packet.resource).map(function(n) {
                     return n.entity.id; // Needs work
                 })
             }

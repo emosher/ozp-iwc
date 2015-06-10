@@ -45,6 +45,47 @@ ozpIwc.apiFilter={
             };
         }
     },
+    createCollectionResource: function(NodeType, pattern) {
+        if(NodeType) {
+            return function(packet,context,pathParams,next) {
+                if(!context.node) {
+                    context.node=this.data[packet.resource]=new NodeType({
+                        resource: packet.resource,
+                        pattern: pattern,
+                        src: packet.src
+                    });
+                }
+                return next();
+            };
+        } else {
+            return function(packet,context,pathParams,next) {
+                if(!context.node) {
+                    context.node=this.createCollectionNode({
+                        resource: packet.resource,
+                        pattern: pattern || packet.pattern || packet.resource + "/"
+                    });
+                }
+                return next();
+            };
+        }
+    },
+    markAsCollector: function(){
+
+        function isCollector(node){
+            return (node && node.pattern && node.collection);
+        }
+
+        return function(packet,context,pathParams,next) {
+            if(isCollector(context.node)) {
+                var index = this.collectorList.indexOf(context.node.resource);
+                if(index < 0){
+                    this.collectorList.push(context.node.resource);
+                    this.updateCollectionNode(context.node);
+                }
+            }
+            return next();
+        };
+    },
 
     /**
      * Returns a filter function with the following features:
