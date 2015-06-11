@@ -95,6 +95,11 @@ ozpIwc.ApiBase=function(config) {
     });
 };
 
+ozpIwc.ApiBase.prototype.createdHandler=function(node){
+    //Whenever a node is created update the collector's lists.
+    this.updateCollections();
+};
+
 ozpIwc.ApiBase.prototype.changedHandler =function(node,entity,packetContext) {
     //var culprit = packetContext.src;
     var lifespanFns = ozpIwc.Lifespan.getLifespan(node.lifespan);
@@ -112,7 +117,6 @@ ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
             self.markForChange(node);
         }
     });
-    self.updateCollections();
     self.resolveChangedNodes();
 };
 //===============================================================
@@ -258,6 +262,8 @@ ozpIwc.ApiBase.prototype.transitionToLeader=function() {
     this.leaderState = "leader";
     this.broadcastLeaderReady();
     this.deliverRequestQueue();
+
+    this.on("createdNode",this.createdHandler,this);
     this.on("changed",this.changedHandler,this);
     this.on("addressDisconnects",this.disconnectHandler,this);
 };
@@ -290,6 +296,7 @@ ozpIwc.ApiBase.prototype.transitionToMemberReady=function(deathScream) {
         return;
     }
     this.deathScream=deathScream;
+    this.off("createdNode",this.createdHandler);
     this.off("changed",this.changedHandler);
     this.off("addressDisconnects",this.disconnectHandler);
     this.enableRequestQueue();
@@ -391,6 +398,24 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
     watchList.push(watcher);
 };
 
+/**
+ * Adds the given node to the collector list. It's colleciton list will be updated on api data changes.
+ * @method addCollector
+ * @param {Object} node
+ */
+ozpIwc.ApiBase.prototype.addCollector=function(node){
+    function isCollector(obj){
+        return (obj && obj.pattern && obj.collection);
+    }
+
+    if(isCollector(node)) {
+        var index = this.collectors.indexOf(node.resource);
+        if(index < 0){
+            this.collectors.push(node.resource);
+            this.updateCollectionNode(node);
+        }
+    }
+};
 
 ozpIwc.ApiBase.prototype.resolveChangedNode=function(resource,snapshot,packetContext) {
     var node=this.data[resource];
@@ -444,6 +469,7 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
     ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot){
         this.resolveChangedNode(resource,snapshot,packetContext);
     },this);
+    this.updateCollections(); //@todo needed?
     this.changeList={};
 };
 
@@ -456,16 +482,25 @@ ozpIwc.ApiBase.prototype.updateCollections = function(){
 };
 
 ozpIwc.ApiBase.prototype.updateCollectionNode = function(cNode){
-    var snapshot = cNode.snapshot();
-    cNode.collection = this.matchingNodes(cNode.pattern).filter(function(node){
-        if(node.deleted) {
-            return false;
+
+    //If the collection node is deleted, stop collecting for it.
+    if(cNode.deleted){
+        var index = this.collectors.indexOf(cNode.resource);
+        if(index > -1) {
+            this.collectors.splice(index, 1);
         }
-        return true;
+        return;
+    }
+
+    var snapshot = cNode.snapshot();
+
+    cNode.collection = this.matchingNodes(cNode.pattern).filter(function(node){
+        return !node.deleted;
     }).map(function(node) {
         return node.resource;
     });
-    if(!ozpIwc.util.arrayContainsAll(cNode.collection,snapshot.collection)) {
+
+    if(!ozpIwc.util.arrayContainsAll(snapshot.collection,cNode.collection) || !ozpIwc.util.arrayContainsAll(cNode.collection,snapshot.collection)) {
         cNode.version++;
         this.resolveChangedNode(snapshot.resource,snapshot);
     }
@@ -559,7 +594,6 @@ ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
             packetFragment.response = packetFragment.response || "ok";
             packetContext.replyTo(packetFragment);
         }
-        self.updateCollections();
         self.resolveChangedNodes(packetContext);
     },function(e) {
         if(!e || !e.errorAction) {

@@ -177,6 +177,9 @@
         }
 
         function showHandlers(handlers) {
+
+            document.getElementById("handlerList").innerHTML = "";
+
             handlers.forEach(function(h) {
                 var handler = h;
                 var entry=document.createElement("div");
@@ -248,15 +251,30 @@
             failure("This page is intended to be launch only by the Ozone Platform intents API.");
         }
         var loc=ozpIwc.util.parseOzpUrl(m[1]);
+        loc.action = "watch";
 
-        participant.send(loc).then(function(reply) {
-            if(reply.entity.intent) {
-                var action = reply.entity.intent.action;
-                var type = reply.entity.intent.type;
-                showTitle(action,type);
+        var getHandlers = function(array){
+            var promises = [];
+            for(var i in array){
+                promises.push(participant.intents().get(array[i]));
             }
-            showHandlers(reply.entity.handlerChoices|| [], reply);
+            return Promise.all(promises);
+        };
+
+        var onHandlerChange = function(reply){
+            var collection = reply.entity.newCollection || [];
+            getHandlers(collection).then(showHandlers);
+        };
+
+        participant.send(loc,onHandlerChange).then(function(reply) {
+            var action,type;
+            if(reply.entity.intent) {
+                action = reply.entity.intent.action;
+                type = reply.entity.intent.type;
+            }
+            showTitle(action,type);
             showFooter(reply);
+            getHandlers(reply.collection).then(showHandlers);
         },failure);
     </script>
   </body>

@@ -43,16 +43,19 @@ ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list"]);
 // Intent Invocation Endpoints
 //====================================================================
 
-ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,handlers) {
+ozpIwc.IntentsApi.useDefaultRoute([ "watch", "unwatch"], "/inFlightIntent/{id}");
+ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,handlers,pattern) {
     var inflightNode = new ozpIwc.IntentsInFlightNode({
         resource: this.createKey("/inFlightIntent/"),
         invokePacket: packet,
         type: type,
         action: action,
-        handlerChoices: handlers
+        handlerChoices: handlers,
+        pattern: pattern
     });
     
     this.data[inflightNode.resource] = inflightNode;
+    this.addCollector(inflightNode);
     this.addWatcher(inflightNode.resource,{src:packet.src,replyTo:packet.msgId});
     return this.handleInflightIntentState(inflightNode).then(function() {
         return {
@@ -203,7 +206,8 @@ ozpIwc.IntentsApi.declareRoute({
         packet, 
         pathParams.major+"/"+pathParams.minor,
         pathParams.action,
-        this.matchingNodes(packet.resource+"/")
+        this.matchingNodes(packet.resource+"/"),
+        packet.resource+"/"
     );
 });
 

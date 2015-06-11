@@ -50,18 +50,8 @@ ozpIwc.apiFilter={
     },
     markAsCollector: function(){
 
-        function isCollector(node){
-            return (node && node.pattern && node.collection);
-        }
-
         return function(packet,context,pathParams,next) {
-            if(isCollector(context.node)) {
-                var index = this.collectors.indexOf(context.node.resource);
-                if(index < 0){
-                    this.collectors.push(context.node.resource);
-                    this.updateCollectionNode(context.node);
-                }
-            }
+            this.addCollector(context.node);
             return next();
         };
     },
