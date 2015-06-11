@@ -97,10 +97,12 @@ ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType
         this.self=data._links.self.href;
     }
 
-    if (!this.resource && data._links["ozp:iwcSelf"]) {
-        this.resource = data._links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/, "");
-    } else {
-        this.resourceFallback(data);
+    if (!this.resource) {
+        if (data._links["ozp:iwcSelf"]) {
+            this.resource = data._links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/, "");
+        } else {
+            this.resource = this.resourceFallback(data);
+        }
     }
 };
 
@@ -109,10 +111,11 @@ ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType
  * @override
  * @method resourceFallback
  * @param serializedForm
+ * @returns String
  */
 ozpIwc.DataNode.prototype.resourceFallback = function(serializedForm) {
     if(serializedForm.key) {
-        this.resource = ((serializedForm.key.charAt(0) === "/") ? "" : "/") + serializedForm.key;
+       return ((serializedForm.key.charAt(0) === "/") ? "" : "/") + serializedForm.key;
     }
 };
 

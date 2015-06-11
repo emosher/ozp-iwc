@@ -80,7 +80,21 @@ ozpIwc.ApiNode= function(config) {
      * @default true
      */
     this.deleted=false;
-    
+
+    /**
+     * String to match for collection.
+     * @property pattern
+     * @type String
+     */
+    this.pattern = config.pattern;
+
+    /**
+     * @property collection
+     * @type Array
+     * @default []
+     */
+    this.collection = [];
+
     /**
      * @property self - The url backing this node 
      * @type String
@@ -121,6 +135,8 @@ ozpIwc.ApiNode.prototype.getSelfUri=function() {
 ozpIwc.ApiNode.prototype.serializeLive=function() {
     return this.toPacket({
         deleted: this.deleted,
+        pattern: this.pattern,
+        collection: this.collection,
         lifespan: this.lifespan,
         allowedContentTypes: this.allowedContentTypes,
        _links: {
@@ -144,14 +160,14 @@ ozpIwc.ApiNode.prototype.deserializeLive=function(serializedForm, serializedCont
     if(serializedForm._links && serializedForm._links.self) {
         this.self=serializedForm._links.self.href;
     }
-    if(!this.resource && serializedForm.resource) {
-        this.resource=serializedForm.resource;
-    } else {
-        this.resourceFallback(serializedForm);
+    if(!this.resource){
+        this.resource = serializedForm.resource || this.resourceFallback(serializedForm);
     }
     this.deleted = serializedForm.deleted;
     this.lifespan= serializedForm.lifespan;
     this.allowedContentTypes=serializedForm.allowedContentTypes;
+    this.pattern = serializedForm.pattern;
+    this.collection = serializedForm.collection;
 };
 
 
@@ -213,10 +229,12 @@ ozpIwc.ApiNode.prototype.deserializedEntity=function(serializedForm,contentType)
         if (!this.self && links.self) {
             this.self = links.self.href;
         }
-        if (!this.resource && links["ozp:iwcSelf"]) {
-            this.resource = links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/, "");
-        } else {
-            this.resourceFallback(serializedForm);
+        if (!this.resource) {
+            if (links["ozp:iwcSelf"]) {
+                this.resource = links["ozp:iwcSelf"].href.replace(/web\+ozp:\/\/[^/]+/, "");
+            } else {
+                this.resource = this.resourceFallback(serializedForm);
+            }
         }
     }
 };
@@ -245,6 +263,8 @@ ozpIwc.ApiNode.prototype.toPacket=function(base) {
 	base.permissions=this.permissions;
 	base.eTag=this.version;
 	base.resource=this.resource;
+    base.pattern = this.pattern;
+    base.collection = this.collection;
 	return base;
 };
 
@@ -283,6 +303,8 @@ ozpIwc.ApiNode.prototype.markAsDeleted=function(packet) {
     this.version++;
     this.deleted=true;
     this.entity=null;
+    this.pattern=null;
+    this.collection=null;
 };
 
 /**

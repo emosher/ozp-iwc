@@ -21,7 +21,6 @@ ozpIwc.CommonApiBase = function(config) {
      * @default {}
      */
     this.participant=config.participant;
-    this.participant.on("unloadState",this.unloadState,this);
     this.participant.on("receiveApiPacket",this.routePacket,this);
     this.participant.on("becameLeaderEvent", this.becameLeader,this);
     this.participant.on("newLeaderEvent", this.newLeader,this);

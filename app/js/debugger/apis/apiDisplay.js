@@ -74,6 +74,14 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             cellClass: 'grid-pre',
             filter: containsFilterJSONGen(),
             width: "15%"
+        },{
+            field:'collection',
+            displayName:'collection',
+            cellTemplate: statusTemplate,
+            cellClass: 'grid-pre',
+            filter: containsFilterJSONGen(),
+            width: "15%"
+
         }];
     if(scope.hasChildren){
         columnDefs.push({
@@ -173,12 +181,18 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
                 if(response.response === 'changed') {
                     scope.$evalAsync(function() {
                         key.entity=response.entity.newValue;
+                        key.collection = response.entity.newCollection;
                         key.permissions=response.permissions;
                         key.contentType=response.contentType;
                     });
                 }
-            }).then(function(reply){
-                console.log(reply);
+            }).then(function(response){
+                scope.$evalAsync(function() {
+                    key.entity=response.entity;
+                    key.collection = response.collection;
+                    key.permissions=response.permissions;
+                    key.contentType=response.contentType;
+                });
             });
         } else {
             client.api(scope.api).unwatch(key.resource);

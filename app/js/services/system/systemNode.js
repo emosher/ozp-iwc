@@ -17,11 +17,11 @@ ozpIwc.SystemNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
  * @override
  * @method resourceFallback
  * @param serializedForm
+ * @returns String
  */
 ozpIwc.SystemNode.prototype.resourceFallback = function(serializedForm) {
     switch(this.contentType){
         case "application/vnd.ozp-application-v1+json":
-            this.resource = "/application/" + serializedForm.id;
-            break;
+            return "/application/" + serializedForm.id;
     }
 };

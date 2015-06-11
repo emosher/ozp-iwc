@@ -47,7 +47,7 @@ ozpIwc.ApiBase=function(config) {
     this.endpoints=[];
     this.data={};
     this.watchers={};
-    this.collectorList=[];
+    this.collectors=[];
     this.changeList={};
     this.leaderState="member";
 
@@ -132,6 +132,7 @@ ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
 ozpIwc.ApiBase.prototype.createDeathScream=function() {
     return {
         watchers: this.watchers,
+        collectors: this.collectors,
         data: ozpIwc.object.eachEntry(this.data,function(k,v) {
             return v.serializeLive();
         })
@@ -162,12 +163,14 @@ ozpIwc.ApiBase.prototype.getPreference=function(prefName) {
  * @return {Promise} a promise that resolves when all data is loaded.
  */
 ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
-    deathScream=deathScream || { watchers: {}, data: []};
+    deathScream=deathScream || { watchers: {}, collectors: [], data: []};
     this.watchers=deathScream.watchers;
+    this.collectors = deathScream.collectors;
     deathScream.data.forEach(function(packet) {
         this.createNode({resource: packet.resource}).deserializeLive(packet);
     },this);
-    
+
+    this.updateCollections();
     if(this.endpoints) {
         var self=this;
         return Promise.all(this.endpoints.map(function(u) {
@@ -197,12 +200,6 @@ ozpIwc.ApiBase.prototype.createNode=function(config) {
 };
 
 
-ozpIwc.ApiBase.prototype.createCollectionNode=function(config) {
-    var n= new ozpIwc.ApiCollectionNode(config);
-    this.data[n.resource]=n;
-    this.events.trigger("createdCollectionNode",n);
-    return n;
-};
 
 /**
  * Creates a node appropriate for the given config.  This does
@@ -452,8 +449,8 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
 
 
 ozpIwc.ApiBase.prototype.updateCollections = function(){
-    for(var i in this.collectorList){
-        var collectorNode = this.data[this.collectorList[i]];
+    for(var i in this.collectors){
+        var collectorNode = this.data[this.collectors[i]];
         this.updateCollectionNode(collectorNode);
     }
 };

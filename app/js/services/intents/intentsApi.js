@@ -153,21 +153,26 @@ ozpIwc.IntentsApi.declareRoute({
 // Action endpoints
 //====================================================================
 ozpIwc.IntentsApi.registerFilter = function(nodeType,contentType){
-    return [
-        ozpIwc.apiFilter.createCollectionResource(ozpIwc.ApiCollectionNode),
-        ozpIwc.apiFilter.checkAuthorization(),
-        ozpIwc.apiFilter.checkContentType("application/vnd.ozp-iwc-intent-handler-v1+json"),
-        ozpIwc.apiFilter.checkVersion(),
-        ozpIwc.apiFilter.markResourceAsChanged(),
-        ozpIwc.apiFilter.markAsCollector()
-    ];
+    var filters = ozpIwc.standardApiFilters.setFilters(nodeType,contentType);
+    filters.unshift(ozpIwc.apiFilter.addSubResourcePattern());
+    filters.push(ozpIwc.apiFilter.markAsCollector());
+
+    return filters;
 };
 
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
-    filters: ozpIwc.IntentsApi.registerFilter()
+    filters: ozpIwc.IntentsApi.registerFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
 }, function(packet, context, pathParams) {
+    if(!context.node.entity){
+        context.node.set({
+            entity: {
+                "type": pathParams.major + "/" + pathParams.minor,
+                "action": pathParams.action
+            }
+        });
+    }
     var key = this.createKey(context.node.resource + "/");
     var childNode = new ozpIwc.IntentHandlerNode({
         'resource': key,
@@ -203,33 +208,10 @@ ozpIwc.IntentsApi.declareRoute({
 });
 
 /**
- * A route for getting Intent Actions (/{major}/{minor})
- * @TODO Is the following truly required?
- */
-ozpIwc.IntentsApi.declareRoute({
-    action: "get",
-    resource: "/{major}/{minor}/{action}",
-    filters: []
-}, function(packet, context, pathParams) {
-    if (context.node) {
-        return {
-            response: "ok",
-            entity: {
-                "type": pathParams.major + "/" + pathParams.minor,
-                "action": pathParams.action,
-                "handlers": context.node.collection || this.matchingNodes(packet.resource).map(function(n) {
-                    return n.entity.id; // Needs work
-                })
-            }
-        };
-    }
-});
-
-/**
  * A route for the following actions not handled by other routes: bulkGet, list, delete, watch, and unwatch.
  * Default route used.
  */
-ozpIwc.IntentsApi.useDefaultRoute(["delete", "watch", "unwatch"],"/{major}/{minor}/{action}");
+ozpIwc.IntentsApi.useDefaultRoute(["delete", "watch", "unwatch", "get"],"/{major}/{minor}/{action}");
 
 //====================================================================
 // Content Type endpoints

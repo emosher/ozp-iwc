@@ -29,6 +29,7 @@ ozpIwc.apiFilter={
                 if(!context.node) {
                     context.node=this.data[packet.resource]=new NodeType({
                         resource: packet.resource,
+                        pattern: packet.pattern,
                         src: packet.src
                     });
                 }
@@ -38,31 +39,9 @@ ozpIwc.apiFilter={
             return function(packet,context,pathParams,next) {
                 if(!context.node) {
                     context.node=this.createNode({
-                        resource: packet.resource
-                    });
-                }
-                return next();
-            };
-        }
-    },
-    createCollectionResource: function(NodeType, pattern) {
-        if(NodeType) {
-            return function(packet,context,pathParams,next) {
-                if(!context.node) {
-                    context.node=this.data[packet.resource]=new NodeType({
                         resource: packet.resource,
-                        pattern: pattern,
+                        pattern: packet.pattern,
                         src: packet.src
-                    });
-                }
-                return next();
-            };
-        } else {
-            return function(packet,context,pathParams,next) {
-                if(!context.node) {
-                    context.node=this.createCollectionNode({
-                        resource: packet.resource,
-                        pattern: pattern || packet.pattern || packet.resource + "/"
                     });
                 }
                 return next();
@@ -77,9 +56,9 @@ ozpIwc.apiFilter={
 
         return function(packet,context,pathParams,next) {
             if(isCollector(context.node)) {
-                var index = this.collectorList.indexOf(context.node.resource);
+                var index = this.collectors.indexOf(context.node.resource);
                 if(index < 0){
-                    this.collectorList.push(context.node.resource);
+                    this.collectors.push(context.node.resource);
                     this.updateCollectionNode(context.node);
                 }
             }
@@ -169,6 +148,14 @@ ozpIwc.apiFilter={
         };
     },
 
+    addSubResourcePattern: function(){
+        return function(packet,context,pathParams,next) {
+            if(packet.resource) {
+                packet.pattern = packet.pattern || packet.resource + "/";
+            }
+            return next();
+        };
+    },
     /**
      * Returns a filter function with the following features:
      * Checks the version of the packet against the context.
