@@ -178,6 +178,8 @@
 
         function showHandlers(handlers) {
 
+            onceButton.style.visibility = "hidden";
+            //alwaysButton.style.visibility = "hidden"; //@TODO: enable when persistence implemented
             document.getElementById("handlerList").innerHTML = "";
 
             handlers.forEach(function(h) {
@@ -261,7 +263,11 @@
             return Promise.all(promises);
         };
 
-        var onHandlerChange = function(reply){
+        var onHandlerChange = function(reply,done){
+            if(reply.entity.deleted){
+                done();
+                window.close();
+            }
             var collection = reply.entity.newCollection || [];
             getHandlers(collection).then(showHandlers);
         };

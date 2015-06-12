@@ -9,6 +9,9 @@ ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config)
     // such as resource.
     ozpIwc.ApiNode.apply(this, arguments);
 
+    this.lifespan = new ozpIwc.Lifespan.Bound({
+        'addresses': [config.src]
+    });
     config=config || {};
     if(!config.invokePacket) {
         throw new ozpIwc.BadContentError("In flight intent requires an invocation packet");

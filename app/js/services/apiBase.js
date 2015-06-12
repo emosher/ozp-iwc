@@ -113,8 +113,8 @@ ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
     ozpIwc.object.eachEntry(self.data,function(resource,node) {
         var lifespanFns = ozpIwc.Lifespan.getLifespan(node.lifespan);
         if(lifespanFns.shouldDelete(node.lifespan,address)){
-            node.markAsDeleted();
             self.markForChange(node);
+            node.markAsDeleted();
         }
     });
     self.resolveChangedNodes();
@@ -196,8 +196,8 @@ ozpIwc.ApiBase.prototype.initializeData=function(deathScream) {
  * @param {Object} config The ApiNode configuration.
  * @return {ozpIwc.ApiNode}
  */
-ozpIwc.ApiBase.prototype.createNode=function(config) {
-    var n=this.createNodeObject(config);
+ozpIwc.ApiBase.prototype.createNode=function(config,NodeType) {
+    var n=this.createNodeObject(config,NodeType);
 		this.data[n.resource]=n;
 		this.events.trigger("createdNode",n);
 		return n;
@@ -217,10 +217,15 @@ ozpIwc.ApiBase.prototype.createNode=function(config) {
  * 
  * @method createNodeObject
  * @param {Object} config The ApiNode configuration.
+ * @param {Function} NodeType The contructor call for the given node type to be created.
  * @return {ozpIwc.ApiNode}
  */
-ozpIwc.ApiBase.prototype.createNodeObject=function(config) {
-    return new ozpIwc.ApiNode(config);
+ozpIwc.ApiBase.prototype.createNodeObject=function(config,NodeType) {
+    if(NodeType) {
+        return new NodeType(config);
+    } else {
+        return new ozpIwc.ApiNode(config);
+    }
 };
 
 //===============================================================
@@ -345,7 +350,7 @@ ozpIwc.ApiBase.prototype.checkAuthorization=function(node,context,packet,action)
  */
 ozpIwc.ApiBase.prototype.matchingNodes=function(prefix) {
     return ozpIwc.object.values(this.data, function(k,node) { 
-        return node.resource.indexOf(prefix) ===0;
+        return node.resource.indexOf(prefix) ===0 && !node.deleted;
     });
 };
 
@@ -399,7 +404,7 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
 };
 
 /**
- * Adds the given node to the collector list. It's colleciton list will be updated on api data changes.
+ * Adds the given node to the collector list. It's collection list will be updated on api data changes.
  * @method addCollector
  * @param {Object} node
  */
@@ -440,6 +445,7 @@ ozpIwc.ApiBase.prototype.resolveChangedNode=function(resource,snapshot,packetCon
         newValue: changes.newValue.entity,
         oldCollection: changes.oldValue.collection,
         newCollection: changes.newValue.collection,
+        deleted: node.deleted
     };
 
     this.events.trigger("changed",node,entity,packetContext);
@@ -469,7 +475,7 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
     ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot){
         this.resolveChangedNode(resource,snapshot,packetContext);
     },this);
-    this.updateCollections(); //@todo needed?
+    this.updateCollections();
     this.changeList={};
 };
 

@@ -48,7 +48,7 @@ ozpIwc.DataApi.declareRoute({
         key =packet.resource + "/" + ozpIwc.util.generateId();
     } while(key in this.data);
 
-    childNode = this.data[key] = new ozpIwc.DataNode({resource: key});
+    childNode = this.createNode({resource: key}, ozpIwc.DataNode);
     childNode.set(packet);
     context.node.addChild(key);
 

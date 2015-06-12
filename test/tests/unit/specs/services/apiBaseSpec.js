@@ -261,7 +261,8 @@ describe("ApiBase request handling",function() {
                         newValue: { foo:1},
                         oldValue: "hello world",
                         newCollection: [],
-                        oldCollection: []
+                        oldCollection: [],
+                        deleted: false
                     }
                 });
             });
@@ -279,7 +280,8 @@ describe("ApiBase request handling",function() {
                         newValue: null,
                         oldValue: "hello world",
                         newCollection: null,
-                        oldCollection: []
+                        oldCollection: [],
+                        deleted: true
                     }
                 });
             });
@@ -324,7 +326,8 @@ describe("ApiBase request handling",function() {
                         newValue: { foo:1},
                         oldValue: undefined,
                         newCollection: [],
-                        oldCollection: []
+                        oldCollection: [],
+                        deleted: false
                     }
                 });
             });

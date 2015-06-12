@@ -34,24 +34,23 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
 
     this.leaderPromise.then(function() {
         ozpIwc.log.debug("System.api registering for the launch intent");
-        self.participant.send({
-        'dst' : "intents.api",
-        'src' : "system.api",
-        'action': "set",
-        'resource': "/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
-        'contentType': "application/vnd.ozp-iwc-intent-handler-v1+json",
-        'entity': {
-            'type': "application/vnd.ozp-iwc-launch-data-v1+json",
-            'action': "run",
-            'label': "Open in new tab",
-            'invokeIntent': {
-                'dst': "system.api",
-                'action' : 'invoke',
-                'resource' : "/launchNewWindow"
+        var registerData = {
+            'contentType': "application/vnd.ozp-iwc-intent-handler-v1+json",
+            'entity': {
+                'type': "application/vnd.ozp-iwc-launch-data-v1+json",
+                'action': "run",
+                'label': "Open in new tab",
+                'invokeIntent': {
+                    'dst': "system.api",
+                    'action' : 'invoke',
+                    'resource' : "/launchNewWindow"
+                }
             }
-        }}).catch(function(error) {
-            ozpIwc.log.error("System.api failed to register for launch intent: ",error);
-        });
+        };
+        self.participant.intents().register("/application/vnd.ozp-iwc-launch-data-v1+json/run/system.api",
+            registerData).catch(function(error) {
+                ozpIwc.log.error("System.api failed to register for launch intent: ",error);
+            });
     });
 });
 

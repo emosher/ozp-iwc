@@ -47,6 +47,7 @@ ozpIwc.IntentsApi.useDefaultRoute([ "watch", "unwatch"], "/inFlightIntent/{id}")
 ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,handlers,pattern) {
     var inflightNode = new ozpIwc.IntentsInFlightNode({
         resource: this.createKey("/inFlightIntent/"),
+        src:packet.src,
         invokePacket: packet,
         type: type,
         action: action,
@@ -155,40 +156,109 @@ ozpIwc.IntentsApi.declareRoute({
 //====================================================================
 // Action endpoints
 //====================================================================
-ozpIwc.IntentsApi.registerFilter = function(nodeType,contentType){
+/**
+ * A route filter for creating an intent definition (/{major}/{minor}/{action}) if it does not exist.
+ * @method registerDefinitionFilter
+ * @param nodeType
+ * @param contentType
+ * @returns {*}
+ */
+ozpIwc.IntentsApi.registerDefinitionFilter = function(nodeType,contentType){
+    var setDefinition = function(packet,context,pathParams,next){
+        // Only set to the definition if not already set.
+        if(!context.node.entity){
+            context.node.set({
+                entity: {
+                    "type": pathParams.major + "/" + pathParams.minor,
+                    "action": pathParams.action
+                }
+            });
+        }
+
+        return next();
+    };
+
     var filters = ozpIwc.standardApiFilters.setFilters(nodeType,contentType);
     filters.unshift(ozpIwc.apiFilter.addSubResourcePattern());
     filters.push(ozpIwc.apiFilter.markAsCollector());
+    filters.push(setDefinition);
 
     return filters;
 };
 
+/**
+ * A route filter for creating an intent definition node (/{major}/{minor}/{action}) if it does not exist, then creates
+ * an intent handler node with the specified handlerId ({major}/{minor}/{action}/{handlerId})
+ * @method registerHandlerFilter
+ * @param nodeType
+ * @param contentType
+ * @returns {*}
+ */
+ozpIwc.IntentsApi.registerHandlerFilter = function(nodeType,contentType){
+    var generateDefinitionResource = function(packet,context,pathParams,next){
+        packet.resource = "/"+pathParams.major + "/" + pathParams.minor + "/" + pathParams.action;
+        context.node = this.data[packet.resource];
+        return next();
+    };
+
+    var generateHandlerResource = function(packet,context,pathParams,next){
+        packet.resource = "/"+pathParams.major + "/" + pathParams.minor + "/" + pathParams.action + "/" +
+            pathParams.handlerId;
+        context.node = this.data[packet.resource];
+        return next();
+    };
+
+    var definitionFilter = ozpIwc.IntentsApi.registerDefinitionFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json");
+    definitionFilter.unshift(generateDefinitionResource);
+
+    var handlerFilter = ozpIwc.standardApiFilters.setFilters(nodeType,contentType);
+    handlerFilter.unshift(generateHandlerResource);
+
+    // Concat the two filters together, run through the definition then the handler.
+    definitionFilter.push.apply(definitionFilter,handlerFilter);
+
+    return definitionFilter;
+};
+
+/**
+ * Registration handler when a handlerId is not specified
+ */
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
-    filters: ozpIwc.IntentsApi.registerFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
+    filters: ozpIwc.IntentsApi.registerHandlerFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
 }, function(packet, context, pathParams) {
-    if(!context.node.entity){
-        context.node.set({
-            entity: {
-                "type": pathParams.major + "/" + pathParams.minor,
-                "action": pathParams.action
-            }
-        });
-    }
-    var key = this.createKey(context.node.resource + "/");
-    var childNode = new ozpIwc.IntentHandlerNode({
-        'resource': key,
+
+    var childNode = this.createNode({
+        'resource': this.createKey(context.node.resource + "/"),
         'src': packet.src
-    });
-    this.data[childNode.resource]=childNode;
+    }, ozpIwc.IntentHandlerNode);
     childNode.set(packet);
-    this.updateCollectionNode(context.node);
+
     ozpIwc.log.debug(this.logPrefix+" registered ",context.node);
     return {
         'response': 'ok',
         'entity': {
             'resource': childNode.resource
+        }
+    };
+});
+
+/**
+ * Registration handler when a handlerId is specified
+ */
+ozpIwc.IntentsApi.declareRoute({
+    action: "register",
+    resource: "/{major}/{minor}/{action}/{handlerId}",
+    filters: ozpIwc.IntentsApi.registerHandlerFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
+}, function(packet, context, pathParams) {
+    context.node.set(packet);
+
+    ozpIwc.log.debug(this.logPrefix+" registered ",context.node);
+    return {
+        'response': 'ok',
+        'entity': {
+            'resource': context.node.resource
         }
     };
 });
@@ -200,14 +270,14 @@ ozpIwc.IntentsApi.declareRoute({
 ozpIwc.IntentsApi.declareRoute({
     action: "invoke",
     resource: "/{major}/{minor}/{action}",
-    filters: []
+    filters: ozpIwc.standardApiFilters.getFilters()
 }, function(packet, context, pathParams) {
     return this.invokeIntentHandler(
         packet, 
         pathParams.major+"/"+pathParams.minor,
         pathParams.action,
-        this.matchingNodes(packet.resource+"/"),
-        packet.resource+"/"
+        this.matchingNodes(context.node.pattern),
+        context.node.pattern
     );
 });
 
