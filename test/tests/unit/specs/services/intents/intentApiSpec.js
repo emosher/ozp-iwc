@@ -98,7 +98,7 @@ describe("Intent API Class", function () {
                     }
                 },
                 'leaderState': "leader"
-            })
+            });
         };
         beforeEach(function() {
             apiBase.receivePacketContext(makeRegistrationPacket(handlerResource));
