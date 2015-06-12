@@ -226,7 +226,7 @@ ozpIwc.IntentsApi.registerHandlerFilter = function(nodeType,contentType){
 ozpIwc.IntentsApi.declareRoute({
     action: "register",
     resource: "/{major}/{minor}/{action}",
-    filters: ozpIwc.IntentsApi.registerHandlerFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
+    filters: ozpIwc.IntentsApi.registerDefinitionFilter(null, "application/vnd.ozp-iwc-intent-handler-v1+json")
 }, function(packet, context, pathParams) {
 
     var childNode = this.createNode({

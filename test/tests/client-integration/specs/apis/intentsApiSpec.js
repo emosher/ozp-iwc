@@ -66,6 +66,8 @@ describe("Intents API", function() {
 //            expect(reply.entity.invokeIntent.resource).toMatch("/intents/text/plain/view");
 //            expect(reply.entity.invokeIntent.replyTo).toBeDefined();
 //            expect(reply.entity.invokeIntent.action).toEqual("invoke");
+        }).catch(function(er){
+            console.log(er);
         });
     });
 

@@ -80,34 +80,46 @@ describe("Intent API Class", function () {
                 'leaderState': "leader"
             });
         };
-        
+
+        var makeRegistrationPacket=function(resource) {
+            return new TestPacketContext({
+                'packet': {
+                    'resource': handlerResource,
+                    'contentType' : "application/vnd.ozp-iwc-intent-handler-v1+json",
+                    'action': "register",
+                    'entity': {
+                        'type': "text/plain",
+                        'action' : "view",
+                        'invokeIntent': {
+                            dst: "system.api",
+                            resource: "/intentHandler",
+                            action: "view"
+                        }
+                    }
+                },
+                'leaderState': "leader"
+            })
+        };
         beforeEach(function() {
-            apiBase.data[handlerResource]=new ozpIwc.ApiNode({
-                'resource': handlerResource,
-                'contentType' : "application/vnd.ozp-iwc-intent-handler-v1+json",
-                'entity': {
-                    'type': "text/plain",
-                    'action' : "view",
-                    'invokeIntent': {
-                        dst: "system.api",
-                        resource: "/intentHandler",
-                        action: "view"
+            apiBase.receivePacketContext(makeRegistrationPacket(handlerResource));
+            apiBase.receivePacketContext(new TestPacketContext({
+                'packet': {
+                    'resource': "/text/plain/view/7890",
+                    'contentType' : "application/vnd.ozp-iwc-intent-handler-v1+json",
+                    'action': "register",
+                    'entity': {
+                        'type': "text/plain",
+                        'action' : "view",
+                        'invokeIntent': {
+                            dst: "someApplication",
+                            resource: "/intentHandler",
+                            action: "view"
+                        }
                     }
-                }
-            });
-            apiBase.data["/text/plain/view/7890"]=new ozpIwc.ApiNode({
-                'resource': "/text/plain/view/7890",
-                'contentType' : "application/vnd.ozp-iwc-intent-handler-v1+json",
-                'entity': {
-                    'type': "text/plain",
-                    'action' : "view",
-                    'invokeIntent': {
-                        dst: "someApplication",
-                        resource: "/intentHandler",
-                        action: "view"
-                    }
-                }
-            });
+                },
+                'leaderState': "leader"
+            }));
+
             // act as if there are no saved preferences by default
             apiBase.getPreference=function() {return Promise.reject();};
         });
