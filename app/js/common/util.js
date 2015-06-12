@@ -234,6 +234,83 @@ ozpIwc.util.parseQueryParams=function(query) {
 };
 
 /**
+ * Adds params to the query string of the given url. Accepts objects, preformed query strings, and arrays of query
+ * params.
+ *
+ * @method addQueryParams
+ * @param {String} url
+ * @param {String|Object|Array} params
+ * @returns {String}
+ */
+ozpIwc.util.addQueryParams=function(url,params){
+    if(typeof url !== "string") { throw new Error("url should be a string."); }
+
+    var formattedParams = {};
+    switch(typeof params){
+        case "object":
+            // if in array form ["a=true","b=en_us",...]
+            if(Array.isArray(params)){
+                if(params.length === 0){
+                    return url;
+                }
+                for(var i in params){
+                    if(typeof params[i] === "string") {
+                        var p = ozpIwc.util.parseQueryParams(params[i]);
+                        for(var j in p){
+                            formattedParams[j] = p[j];
+                        }
+                    }
+                }
+            } else {
+                if(Object.keys(params).length === 0){
+                    return url;
+                }
+                // if in object form {a:true, b:"en_us",...}
+                formattedParams = params;
+            }
+            break;
+        case "undefined":
+            return url;
+
+        default:
+            if(params.length === 0) {
+                return url;
+            }
+            // if in string form "?a=true&b=en_us&..."
+            formattedParams = ozpIwc.util.parseQueryParams(params);
+            break;
+    }
+    var hash = "";
+    // Separate the hash temporarily (if exists)
+    var hashSplit = url.split("#");
+    if(hashSplit.length > 2){
+        throw new Error("Invalid url.");
+    } else {
+        url = hashSplit[0];
+        hash = hashSplit[1] || "";
+    }
+
+    //if the url has no query params  we append the initial "?"
+    if(url.indexOf("?") === -1) {
+        url += "?";
+    } else {
+        url += "&";
+    }
+    //skip on first iteration
+    var ampersand = "";
+    for(var k in formattedParams){
+        url += ampersand + k +"=" + formattedParams[k];
+        ampersand = "&";
+    }
+
+    if(hash.length > 0){
+        url += "#" + hash;
+    }
+
+    return url;
+};
+
+/**
  * Determines the origin of a given url.  
  * @method determineOrigin
  * @param url

@@ -26,12 +26,12 @@ ozpIwc.Client=function(config) {
     ozpIwc.ApiPromiseMixin(this,config.autoConnect);
 };
 
-    /**
+/**
  * Generates the Peer URL checking logic based on the data type received.
  * @method genPeerUrlCheck
  * @property {String|Array|Function} configUrl the url(s) to connect the client on. If function, the output of the
  *                                   function will be used.
-     */
+ */
 ozpIwc.Client.prototype.genPeerUrlCheck = function(configUrl){
     if(typeof(configUrl) === "string") {
         this.peerUrlCheck=function(url,resolve) {
@@ -137,7 +137,7 @@ ozpIwc.Client.prototype.connect=function() {
             return self.afterConnected();
         });
     }
-    return this.connectPromise; 
+    return this.connectPromise;
 };
 
 /**

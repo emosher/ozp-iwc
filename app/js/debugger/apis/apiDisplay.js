@@ -169,7 +169,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
         client.connect().then(function(){
             scope.actions = client.apiMap[scope.api].actions;
             if(scope.gridApi && scope.gridApi.core) {
-              scope.gridApi.core.handleWindowResize();
+                scope.gridApi.core.handleWindowResize();
             }
         });
 

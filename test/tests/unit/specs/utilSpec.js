@@ -576,4 +576,67 @@ describe("General Utilities", function() {
 		});
 	});
 	
+    describe("addQueryParams", function() {
+        var queryObj = {
+            "a": true,
+            "b": 123
+        };
+        var queryString = "?a=true&b=123";
+        var queryArray = ["a=true","b=123"];
+        var url;
+        beforeEach(function(){
+            url = "www.test.com";
+        });
+
+        it("expects the url to be a string", function(){
+            try{
+                ozpIwc.util.addQueryParams({},queryObj);
+            }catch (e){
+                expect(e.message).toEqual("url should be a string.");
+            }
+
+        });
+
+        it("adds the query string '?' if needed",function(){
+            url = ozpIwc.util.addQueryParams(url,queryObj);
+            expect(url).toEqual("www.test.com?a=true&b=123");
+        });
+
+        it("turns objects into query parameters",function(){
+            url = ozpIwc.util.addQueryParams(url,queryObj);
+            expect(url).toEqual("www.test.com?a=true&b=123");
+        });
+
+        it("accepts preformed query strings", function() {
+            url = ozpIwc.util.addQueryParams(url,queryString);
+            expect(url).toEqual("www.test.com?a=true&b=123");
+        });
+
+        it("accepts an array of query parameters ", function() {
+            url = ozpIwc.util.addQueryParams(url,queryArray);
+            expect(url).toEqual("www.test.com?a=true&b=123");
+        });
+
+        it("returns the original url if no query params given",function(){
+            url = ozpIwc.util.addQueryParams(url,{});
+            expect(url).toEqual("www.test.com");
+            url = ozpIwc.util.addQueryParams(url,"");
+            expect(url).toEqual("www.test.com");
+            url = ozpIwc.util.addQueryParams(url,[]);
+            expect(url).toEqual("www.test.com");
+            url = ozpIwc.util.addQueryParams(url);
+            expect(url).toEqual("www.test.com");
+        });
+
+        it("retains the urls hash", function(){
+            url = "www.test.com#test-hash";
+            url = ozpIwc.util.addQueryParams(url,queryObj);
+            expect(url).toEqual("www.test.com?a=true&b=123#test-hash");
+            url = "www.test.com#test-hash";
+            url = ozpIwc.util.addQueryParams(url,{});
+            expect(url).toEqual("www.test.com#test-hash");
+
+        });
+    });
+    
 });

@@ -40,7 +40,11 @@ ozpIwc.ApiPromiseMixin=function(participant,autoConnect) {
 };
 
 /**
+<<<<<<< HEAD
  * Registers event listeners for the participant.  Listens for the following events: disconnect.
+=======
+ * Registers event listeners for the participant.  Listens for the following events: connectedToRouter, disconnect.
+>>>>>>> master
  * @method registerEvents
  * @static
  * @param {ozpIwc.Participant} participant
