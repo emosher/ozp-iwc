@@ -241,7 +241,7 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
 
                 handled = this.registeredCallbacks[packet.replyTo](packet, registeredDone);
                 if (registeredCancel) {
-                    if (this.watchMsgMap[packet.replyTo].action === "watch") {
+                    if (this.watchMsgMap[packet.replyTo] && this.watchMsgMap[packet.replyTo].action === "watch") {
                         this.api(this.watchMsgMap[packet.replyTo].dst).unwatch(this.watchMsgMap[packet.replyTo].resource);
                     }
                     this.cancelRegisteredCallback(packet.replyTo);
@@ -401,6 +401,8 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
             var self = this;
             var res;
             var promiseChain;
+            callback = callback || function(){};
+
             if(intentEntity) {
                 promiseChain = Promise.resolve(intentEntity);
             } else {
@@ -427,14 +429,18 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                     resource: intentResource,
                     entity: response.entity
                 });
-            }).then(function (reply) {
-                //Now run the intent
-                res.reply = {
-                    entity : callback(res) || {}
+            }).then(function(){
+                // Run the intent handler. Wrapped in a promise chain in case the callback itself is async.
+                return callback(res);
+            }).then(function (result) {
+
+                // Respond to the inflight resource
+                res.entity.reply = {
+                    'entity': result || {},
+                    'contentType': res.intent.type
                 };
-                // then respond to the inflight resource
                 res.entity.state = "complete";
-                res.reply.contentType = res.intent.type;
+
                 return self.send({
                     dst: "intents.api",
                     contentType: res.contentType,
@@ -616,6 +622,7 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
 
             // fetch the inFlightIntent
             return self.intents().get(self.launchParams.inFlightIntent).then(function (response) {
+                // If there is an inflight intent that has not already been handled (i.e. page refresh driving to here)
                 if (response && response.entity && response.entity.intent) {
                     self.launchedIntents.push(response);
                     var launchData = response.entity.entity || {};
@@ -624,9 +631,11 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                             self.launchParams[k] = launchData[k];
                         }
                     }
-                    self.intents().set(self.launchParams.inFlightIntent, { entity: {
-                        state: "complete"
-                    }});
+                    self.intents().set(self.launchParams.inFlightIntent, {
+                        entity: {
+                            state: "complete"
+                        }
+                    });
                 }
                 self.events.trigger("connected");
             })['catch'](function(e){

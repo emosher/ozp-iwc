@@ -69,6 +69,7 @@ ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,hand
 
 ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
     var self=this;
+    var packet;
     switch(inflightNode.entity.state){
         case "choosing":
             var showChooser=function(err) {
@@ -94,7 +95,7 @@ ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
         case "delivering":
             var handlerNode=this.data[inflightNode.entity.handlerChosen.resource];
 
-            var packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
+            packet = ozpIwc.util.clone(handlerNode.entity.invokeIntent);
             packet.entity = packet.entity || {};
             packet.replyTo = handlerNode.replyTo;
             packet.entity.inFlightIntent = inflightNode.resource;
@@ -104,6 +105,16 @@ ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
             this.send(packet);
             break;
         case "complete":
+            if(inflightNode.entity.invokePacket && inflightNode.entity.invokePacket.src && inflightNode.entity.reply) {
+                packet ={
+                    dst: inflightNode.entity.invokePacket.src,
+                    replyTo: inflightNode.entity.invokePacket.msgId,
+                    contentType: inflightNode.entity.reply.contentType,
+                    response: "complete",
+                    entity: inflightNode.entity.reply.entity
+                };
+                this.send(packet);
+            }
             inflightNode.markAsDeleted();
             break;
         default:
