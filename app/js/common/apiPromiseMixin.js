@@ -448,6 +448,13 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                     resource: intentResource,
                     entity: res.entity
                 });
+            })['catch'](function(e){
+                ozpIwc.log.error("Error in handling intent: ", e, " -- Clearing in-flight intent node:", intentResource);
+                self.send({
+                    dst: "intents.api",
+                    resource: intentResource,
+                    action: "delete"
+                });
             });
         },
 
