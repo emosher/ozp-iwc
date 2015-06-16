@@ -37,23 +37,6 @@ ozpIwc.NamesApi = ozpIwc.createApi(function(config) {
 ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"{c:/}");
 ozpIwc.NamesApi.useDefaultRoute(["list","bulkGet"],"{c:/(?:api|address|multicast|router).*}");
 
-/**
- * @class NamesNode
- * @namespace ozpIwc
- * @extends ozpIwc.ApiNode
- * @constructor
- */
-ozpIwc.NamesNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
-    // Take the supplied data for anything that matches in the super class,
-    // such as resource.
-    ozpIwc.ApiNode.apply(this, arguments);
-    this.lifespan = new ozpIwc.Lifespan.Bound({
-        'addresses': [config.src]
-    });
-    this.entity = config.entity || {};
-
-});
-
 //====================================================================
 // Address, Multicast, and Router endpoints
 //====================================================================

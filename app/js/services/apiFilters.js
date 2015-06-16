@@ -48,6 +48,12 @@ ozpIwc.apiFilter={
             };
         }
     },
+    /**
+     * Returns a filter function with the following features:
+     * Adds the resource as a collector to the API, it will now get updates based on its pattern property.
+     * @method markAsCollector
+     * @returns {Function}
+     */
     markAsCollector: function(){
 
         return function(packet,context,pathParams,next) {
@@ -138,6 +144,12 @@ ozpIwc.apiFilter={
         };
     },
 
+    /**
+     * Returns a filter function with the following features:
+     * If the packet does not contain a pattern property create one from the packet resource + "/". This filter is to
+     * be used only in node creation as it can overwrite the nodes pattern property if different than resource + "/".
+     * @returns {Function}
+     */
     addSubResourcePattern: function(){
         return function(packet,context,pathParams,next) {
             if(packet.resource) {
@@ -146,6 +158,7 @@ ozpIwc.apiFilter={
             return next();
         };
     },
+
     /**
      * Returns a filter function with the following features:
      * Checks the version of the packet against the context.

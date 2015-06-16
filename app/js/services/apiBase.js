@@ -95,11 +95,38 @@ ozpIwc.ApiBase=function(config) {
     });
 };
 
+
+/**
+ * Generates a unique key with the given prefix.
+ * @param {String} prefix
+ * @returns {String}
+ */
+ozpIwc.ApiBase.prototype.createKey = function(prefix) {
+    prefix = prefix || "";
+    var key;
+    do {
+        key = prefix + ozpIwc.util.generateId();
+    } while (key in this.data);
+    return key;
+};
+
+/**
+ * A handler function for when a node is created. Can be overridden by inherited APIs.
+ * @method createdHandler
+ * @param node
+ */
 ozpIwc.ApiBase.prototype.createdHandler=function(node){
     //Whenever a node is created update the collector's lists.
     this.updateCollections();
 };
 
+/**
+ * A handler function called after a node is changed but before it's watchers are notified.
+ * @method changedHandler
+ * @param {Object} node
+ * @param {Object} entity
+ * @param {Object} packetContext
+ */
 ozpIwc.ApiBase.prototype.changedHandler =function(node,entity,packetContext) {
     //var culprit = packetContext.src;
     var lifespanFns = ozpIwc.Lifespan.getLifespan(node.lifespan);
@@ -108,6 +135,11 @@ ozpIwc.ApiBase.prototype.changedHandler =function(node,entity,packetContext) {
     }
 };
 
+/**
+ * A handler function called when an instance of this API has disconnected from the bus.
+ * @method disconnectHandler
+ * @param {String} address
+ */
 ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
     var self = this;
     ozpIwc.object.eachEntry(self.data,function(resource,node) {
@@ -120,7 +152,7 @@ ozpIwc.ApiBase.prototype.disconnectHandler =function(address) {
     self.resolveChangedNodes();
 };
 //===============================================================
-// Default methods that can be overriden by subclasses
+// Default methods that can be overridden by subclasses
 //===============================================================
 /**
  * Create the data that needs to be handed off to the new leader.
@@ -143,6 +175,12 @@ ozpIwc.ApiBase.prototype.createDeathScream=function() {
     };
 };
 
+/**
+ * Gathers the desired preference from the data API.
+ * @method getPreference
+ * @param {String} prefName
+ * @returns {Promise}
+ */
 ozpIwc.ApiBase.prototype.getPreference=function(prefName) {
     return this.participant.send({
         dst: "data.api",
@@ -422,6 +460,13 @@ ozpIwc.ApiBase.prototype.addCollector=function(node){
     }
 };
 
+/**
+ * Notifies watchers of changes of the resource since the given snapshot.
+ * @method resolveChangedNode
+ * @param {String} resource
+ * @param {Object} snapshot
+ * @param {Object} packetContext
+ */
 ozpIwc.ApiBase.prototype.resolveChangedNode=function(resource,snapshot,packetContext) {
     var node=this.data[resource];
     var watcherList=this.watchers[resource] || [];
@@ -464,6 +509,7 @@ ozpIwc.ApiBase.prototype.resolveChangedNode=function(resource,snapshot,packetCon
         });
     },this);
 };
+
 /**
  * Called after the request is complete to send out change notices.
  *  
@@ -479,7 +525,10 @@ ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
     this.changeList={};
 };
 
-
+/**
+ * Itterates over all collectors of the API for updates
+ * @method updateCollections
+ */
 ozpIwc.ApiBase.prototype.updateCollections = function(){
     for(var i in this.collectors){
         var collectorNode = this.data[this.collectors[i]];
@@ -487,6 +536,14 @@ ozpIwc.ApiBase.prototype.updateCollections = function(){
     }
 };
 
+/**
+ * Removes the collector node resource from the collectors list if deleted. Removes references to nodes in the given
+ * collectors collection property if said referenced node is deleted. Adds newly created nodes to the collection
+ * property if said node's resource matches the collection nodes pattern property.
+ *
+ * @method updateCollectionNode
+ * @param {Object} cNode the collector node to update
+ */
 ozpIwc.ApiBase.prototype.updateCollectionNode = function(cNode){
 
     //If the collection node is deleted, stop collecting for it.
@@ -511,17 +568,26 @@ ozpIwc.ApiBase.prototype.updateCollectionNode = function(cNode){
         this.resolveChangedNode(snapshot.resource,snapshot);
     }
 };
+
 //===============================================================
 // Packet Routing
 //===============================================================
+/**
+ * Sends packets of data from this API to other parts of the IWC bus.
+ *
+ * @param {Object} fragment
+ * @returns {Promise}
+ */
 ozpIwc.ApiBase.prototype.send=function(fragment) {
     fragment.src=this.name;
     return this.participant.send(fragment);
 };
+
 /**
- * Routes a packet received from the participant
+ * Routes a packet received from the participant.
  *  
  * @method receivePacketContext
+ * @property {Object} packetContext
  * @private
  */
 ozpIwc.ApiBase.prototype.receivePacketContext=function(packetContext) {
@@ -539,6 +605,13 @@ ozpIwc.ApiBase.prototype.receivePacketContext=function(packetContext) {
     }
 };
 
+/**
+ * Handles packets received with a destination of "$bus.multicast".
+ *
+ * @method receiveBusPacket
+ * @param {Object} packetContext
+ * @returns {*}
+ */
 ozpIwc.ApiBase.prototype.receiveBusPacket=function(packetContext) {
     var packet=packetContext.packet;
     switch(packet.action) {
@@ -553,7 +626,13 @@ ozpIwc.ApiBase.prototype.receiveBusPacket=function(packetContext) {
     return Promise.resolve();
 };
 
-
+/**
+ * If the the given address is watching a resource, it will be removed from the watch list. Router addresses will
+ * remove all of its participants watch registrations.
+ *
+ * @method removeDeadWatchers
+ * @param {String} address
+ */
 ozpIwc.ApiBase.prototype.removeDeadWatchers = function(address){
     var len=address.length;
     ozpIwc.object.eachEntry(this.watchers,function(resource,array) {
@@ -574,6 +653,7 @@ ozpIwc.ApiBase.prototype.removeDeadWatchers = function(address){
  * such as change requests.
  *  
  * @method receivePacketContext
+ * @property {Object} packetContext
  * @private
  */
 ozpIwc.ApiBase.prototype.receiveRequestPacket=function(packetContext) {
@@ -637,6 +717,7 @@ ozpIwc.ApiBase.prototype.defaultRoute=function(packet,context) {
 };
 
 /**
+ * Enables the API's request queue, all requests will be held until deliverRequestQueue or flushRequestQueue is called.
  * @method enableRequestQueue
  * @private
  */
@@ -646,7 +727,7 @@ ozpIwc.ApiBase.prototype.enableRequestQueue=function() {
 };
 
 /**
- * Routes all queued packets and turns off request queueing
+ * Routes all queued packets and turns off request queueing.
  * @method deliverRequestQueue
  * @private
  */
@@ -657,7 +738,7 @@ ozpIwc.ApiBase.prototype.deliverRequestQueue=function() {
 };
 
 /**
- * Empties the queue of requests without processing and turns off queuing
+ * Empties the queue of requests without processing and turns off queuing.
  * @method flushRequestQueue
  * @private
  */
@@ -671,6 +752,10 @@ ozpIwc.ApiBase.prototype.flushRequestQueue=function() {
 //===============================================================
 // API Coordination Handling
 //===============================================================
+/**
+ * Broadcasts to other instances of this API on the bus that it is ready to lead.
+ * @method broadcastLeaderReady
+ */
 ozpIwc.ApiBase.prototype.broadcastLeaderReady=function() {
     this.participant.send({
         dst: this.coordinationAddress,
@@ -678,6 +763,11 @@ ozpIwc.ApiBase.prototype.broadcastLeaderReady=function() {
     });
 };
 
+/**
+ * Broadcasts to other instances of this API on the bus this APIs state.
+ * @method broadcastDeathScream
+ * @param {Object} deathScream the state data to pass on.
+ */
 ozpIwc.ApiBase.prototype.broadcastDeathScream=function(deathScream) {
     this.participant.send({
         dst: this.coordinationAddress,
@@ -686,6 +776,12 @@ ozpIwc.ApiBase.prototype.broadcastDeathScream=function(deathScream) {
     });
 };
 
+/**
+ * Handles packets received regarding leadership actions.
+ * @method receiveCoordinationPacket
+ * @param {Object} packetContext
+ * @returns {Promise}
+ */
 ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
     var packet=packetContext.packet;
     switch(packet.action) {
@@ -694,9 +790,9 @@ ozpIwc.ApiBase.prototype.receiveCoordinationPacket=function(packetContext) {
         case "deathScream":
             return this.transitionToMemberReady(packet.entity);
         default:
-            ozpIwc.log.error("Unknown coordination packet: ",packet);
+            ozpIwc.log.error("Unknown coordination packet: ", packet);
+            return Promise.reject(new Error("Unknown action: " + packet.action + " in " + JSON.stringify(packetContext)));
     }
-    return Promise.reject(new Error("Unknown action: " + packet.action + " in " + JSON.stringify(packetContext)));
 };
 
 //===============================================================
@@ -758,6 +854,12 @@ ozpIwc.ApiBase.prototype.loadFromEndpoint=function(endpoint,headers) {
 // Default Routes and Subclass Helpers
 //===============================================================
 
+/**
+ * A collection of default action handlers for an API.
+ * @property defaultHandler
+ * @static
+ * @type {Object}
+ */
 ozpIwc.ApiBase.defaultHandler={
     "get":function(packet,context,pathParams) {
         return context.node.toPacket();
@@ -840,9 +942,10 @@ ozpIwc.ApiBase.allActions=Object.keys(ozpIwc.ApiBase.defaultHandler);
 
 /**
  * Creates a subclass of ApiBase and adds some static helper functions.
- * 
+ *
+ * @method createApi
  * @param {Function} init the constructor function for the class
- * @return {Class} A new API class that us
+ * @return {Object} A new API class that inherits from the ApiBase class.
  */
 ozpIwc.createApi=function(init) {
     var api=ozpIwc.util.extend(ozpIwc.ApiBase,function() {

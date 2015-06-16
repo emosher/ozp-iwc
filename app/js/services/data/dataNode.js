@@ -14,7 +14,12 @@ ozpIwc.DataNode=ozpIwc.util.extend(ozpIwc.ApiNode,function(config) {
     this.lifespan = new ozpIwc.Lifespan.Persistent();
 });
 
+/**
+ * @property uriTemplate
+ * @type {string}
+ */
 ozpIwc.DataNode.prototype.uriTemplate="ozp:data-item";
+
 /**
  * Serialize the node to a form that conveys both persistent and
  * ephemeral state of the object to be handed off to a new API
@@ -33,7 +38,7 @@ ozpIwc.DataNode.prototype.serializeLive=function() {
  * Set the node using the state returned by serializeLive.
  *
  * @method deserializeLive
- * @param packet
+ * @param {Object} packet
  */
 ozpIwc.DataNode.prototype.deserializeLive=function(packet) {
     ozpIwc.ApiNode.prototype.deserializeLive.apply(this,arguments);
@@ -110,8 +115,8 @@ ozpIwc.DataNode.prototype.deserializedEntity=function(serializedForm,contentType
  * If a resource path isn't given, this takes the best guess at assigning it.
  * @override
  * @method resourceFallback
- * @param serializedForm
- * @returns String
+ * @param {Object} serializedForm
+ * @returns {String}
  */
 ozpIwc.DataNode.prototype.resourceFallback = function(serializedForm) {
     if(serializedForm.key) {

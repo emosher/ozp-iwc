@@ -54,20 +54,20 @@ ozpIwc.LocksApi.prototype.makeValue = function(packet) {
  * @param {Object} newOwner
  */
 ozpIwc.LocksApi.prototype.updateLock=function(node,newOwner) {
-    if(!newOwner || !this.participant.activeStates.leader) {
-//        console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
-        return;
+    if(newOwner && this.isLeader()) {
+        //console.log("[locks.api] New lock owner on " + node.resource + ": ",newOwner);
+        var pkt = {
+            'dst': newOwner.src,
+            'src': this.participant.name,
+            'replyTo': newOwner.msgId,
+            'response': 'ok',
+            'resource': node.resource
+        };
+
+        this.participant.send(pkt);
+    } else {
+        //console.log("[locks.api] Unchanged lock " + node.resource + " queue is ", JSON.stringify(node.entity));
     }
-//    console.log("[locks.api] New lock owner on " + node.resource + ": ",newOwner);
-    var pkt={
-        'dst'   : newOwner.src,
-        'src'   : this.participant.name,
-        'replyTo' : newOwner.msgId,
-        'response': 'ok',
-        'resource': node.resource
-    };
-    
-    this.participant.send(pkt);
 };
 
 /**
@@ -93,7 +93,7 @@ ozpIwc.LocksApi.prototype.handleLock=function(node,packetContext) {
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleUnlock=function(node,packetContext) {
-//	console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
+	//console.log("Unlocking " + node.resource + " due to request " + packetContext.packet);
     this.updateLock(node,node.unlock({
         src: packetContext.packet.src,
         msgId: packetContext.packet.msgId
@@ -107,10 +107,9 @@ ozpIwc.LocksApi.prototype.handleUnlock=function(node,packetContext) {
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleEventChannelDisconnectImpl = function (packetContext) {
-
     for(var key in this.data) {
         var node=this.data[key];
-//        console.log("Unlocking " + node.resource + " due to shutdown of " + packetContext.packet.entity.address,packetContext.packet);
+        //console.log("Unlocking " + node.resource + " due to shutdown of " + packetContext.packet.entity.address,packetContext.packet);
         this.updateLock(node,node.unlock({
             src: packetContext.packet.entity.address
         }));
@@ -125,14 +124,15 @@ ozpIwc.LocksApi.prototype.handleEventChannelDisconnectImpl = function (packetCon
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleSet = function(node,packetContext) {
-    if(!this.participant.activeStates.leader)	{return;}
-    packetContext.replyTo({
-        'response': 'badAction',
-        'entity': {
-            'action': packetContext.packet.action,
-            'originalRequest' : packetContext.packet
-        }
-    });
+    if(this.isLeader()) {
+        packetContext.replyTo({
+            'response': 'badAction',
+            'entity': {
+                'action': packetContext.packet.action,
+                'originalRequest': packetContext.packet
+            }
+        });
+    }
 };
 
 /**
@@ -143,12 +143,13 @@ ozpIwc.LocksApi.prototype.handleSet = function(node,packetContext) {
  * @param {ozpIwc.TransportPacket} packetContext
  */
 ozpIwc.LocksApi.prototype.handleDelete = function(node,packetContext) {
-    if(!this.participant.activeStates.leader)	{return;}
-    packetContext.replyTo({
-        'response': 'badAction',
-        'entity': {
-            'action': packetContext.packet.action,
-            'originalRequest' : packetContext.packet
-        }
-    });
+    if(this.isLeader()) {
+        packetContext.replyTo({
+            'response': 'badAction',
+            'entity': {
+                'action': packetContext.packet.action,
+                'originalRequest': packetContext.packet
+            }
+        });
+    }
 };

@@ -55,20 +55,20 @@ ozpIwc.util.ajax = function (config) {
          * */
 
         request.onload = function () {
-						if(Math.floor(this.status/100) === 2) {
-							var entity;
-							try {
-								entity=JSON.parse(this.responseText);
-							} catch(e) {
-									entity=this.reponseText || this.responseXML;
-							}
-							resolve({
-								"response": entity,
-								"header":  ozpIwc.util.ajaxResponseHeaderToJSON(this.getAllResponseHeaders())
-								
-							});
-						} else {
-							reject(this);
+            if(Math.floor(this.status/100) === 2) {
+                var entity;
+                try {
+                    entity=JSON.parse(this.responseText);
+                } catch(e) {
+                        entity=this.reponseText || this.responseXML;
+                }
+                resolve({
+                    "response": entity,
+                    "header":  ozpIwc.util.ajaxResponseHeaderToJSON(this.getAllResponseHeaders())
+
+                });
+            } else {
+                reject(this);
             }
         };
 

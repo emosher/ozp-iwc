@@ -27,6 +27,8 @@ ozpIwc.DataApi = ozpIwc.createApi(function(config) {
 
 /**
  * Override the default node type to be a DataNode.
+ * @override
+ * @method createNodeObject
  * @param {type} config
  * @returns {ozpIwc.DataNode}
  */
@@ -60,6 +62,12 @@ ozpIwc.DataApi.declareRoute({
     };
 });
 
+/**
+ * A filter for the removeChild action.
+ * @method removeChildFilter
+ * @static
+ * @returns {Function[]}
+ */
 ozpIwc.DataApi.removeChildFilter= function() {
     var filters = ozpIwc.standardApiFilters.deleteFilters();
     var removeChild = function(packet,context,pathParams,next) {
@@ -77,6 +85,7 @@ ozpIwc.DataApi.removeChildFilter= function() {
 
     return filters;
 };
+
 ozpIwc.DataApi.declareRoute({
     action: ["removeChild"],
     resource: "{resource:.*}",

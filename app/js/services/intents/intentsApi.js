@@ -12,7 +12,16 @@
  * @constructor
  */
 ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
+    /**
+     * @property persistenceQueue
+     * @type {ozpIwc.AjaxPersistenceQueue|*}
+     */
     this.persistenceQueue = config.persistenceQueue || new ozpIwc.AjaxPersistenceQueue();
+
+    /**
+     * @property endpoints
+     * @type {Object[]}
+     */
     this.endpoints=[
         {
             link: ozpIwc.linkRelPrefix+":intent",
@@ -20,21 +29,6 @@ ozpIwc.IntentsApi = ozpIwc.createApi(function(config) {
         }
     ];
 });
-
-/**
- * Generates a unique key with the given prefix.
- * @TODO should this be in the apiBase?
- * @param prefix
- * @returns {*}
- */
-ozpIwc.IntentsApi.prototype.createKey = function(prefix) {
-    prefix = prefix || "";
-    var key;
-    do {
-        key = prefix + ozpIwc.util.generateId();
-    } while (key in this.data);
-    return key;
-};
 
 // turn on bulkGet and list for everything
 ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list"]);
@@ -44,6 +38,18 @@ ozpIwc.IntentsApi.useDefaultRoute(["bulkGet", "list"]);
 //====================================================================
 
 ozpIwc.IntentsApi.useDefaultRoute([ "watch", "unwatch", "delete"], "/inFlightIntent/{id}");
+
+/**
+ * A handler for invoke calls. Creates an inFlight-intent node and kicks off the inflight state machine.
+ *
+ * @method invokeIntentHandler
+ * @param {Object} packet
+ * @param {String} type
+ * @param {String} action
+ * @param {Object[]} handlers
+ * @param {String} pattern
+ * @returns {Promise}
+ */
 ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,handlers,pattern) {
     var inflightNode = new ozpIwc.IntentsInFlightNode({
         resource: this.createKey("/inFlightIntent/"),
@@ -67,6 +73,14 @@ ozpIwc.IntentsApi.prototype.invokeIntentHandler=function(packet,type,action,hand
     });
 };
 
+/**
+ * Handles the current state of the state machine.
+ * If "choosing", the intent chooser will open.
+ * If "delivering", the api will send the intent to the chosen handler
+ * If "complete", the api will send the intent handler's reply back to the invoker and mark the inflight intent as deleted.
+ * @param {Object} inflightNode
+ * @returns {*}
+ */
 ozpIwc.IntentsApi.prototype.handleInflightIntentState=function(inflightNode) {
     var self=this;
     var packet;
@@ -170,8 +184,8 @@ ozpIwc.IntentsApi.declareRoute({
 /**
  * A route filter for creating an intent definition (/{major}/{minor}/{action}) if it does not exist.
  * @method registerDefinitionFilter
- * @param nodeType
- * @param contentType
+ * @param {String} nodeType
+ * @param {String} contentType
  * @returns {*}
  */
 ozpIwc.IntentsApi.registerDefinitionFilter = function(nodeType,contentType){
@@ -201,8 +215,8 @@ ozpIwc.IntentsApi.registerDefinitionFilter = function(nodeType,contentType){
  * A route filter for creating an intent definition node (/{major}/{minor}/{action}) if it does not exist, then creates
  * an intent handler node with the specified handlerId ({major}/{minor}/{action}/{handlerId})
  * @method registerHandlerFilter
- * @param nodeType
- * @param contentType
+ * @param {String} nodeType
+ * @param {String} contentType
  * @returns {*}
  */
 ozpIwc.IntentsApi.registerHandlerFilter = function(nodeType,contentType){

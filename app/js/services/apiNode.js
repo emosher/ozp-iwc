@@ -110,6 +110,11 @@ ozpIwc.ApiNode= function(config) {
     }
 };
 
+/**
+ * Gathers the self uri from the uriTemplate property if it does not already exist.
+ * @method getSelfUri
+ * @returns {Number|*}
+ */
 ozpIwc.ApiNode.prototype.getSelfUri=function() {
 	if(this.self) {
 		return this.self;
@@ -297,7 +302,7 @@ ozpIwc.ApiNode.prototype.set=function(packet) {
 /**
  * Clears the entity of the node and marks as deleted.
  * @method markAsDeleted
- * @param {ozpIwc.TransportPacket} packet @TODO unused?
+ * @param {ozpIwc.TransportPacket} packet
  */
 ozpIwc.ApiNode.prototype.markAsDeleted=function(packet) {
     this.version++;
@@ -317,7 +322,7 @@ ozpIwc.ApiNode.prototype.addWatch=function(watch) {
     this.watchers.push(watch);
 };
 
-/*
+/**
  * Removes all watchers who's packet matches that which is passed in.
  * @method removeWatch
  * @param {ozpIwc.TransportPacket} filter

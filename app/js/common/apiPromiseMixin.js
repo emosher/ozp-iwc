@@ -40,11 +40,7 @@ ozpIwc.ApiPromiseMixin=function(participant,autoConnect) {
 };
 
 /**
-<<<<<<< HEAD
  * Registers event listeners for the participant.  Listens for the following events: disconnect.
-=======
- * Registers event listeners for the participant.  Listens for the following events: connectedToRouter, disconnect.
->>>>>>> master
  * @method registerEvents
  * @static
  * @param {ozpIwc.Participant} participant
@@ -246,8 +242,6 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                     }
                     this.cancelRegisteredCallback(packet.replyTo);
                 }
-            //} else if (packet.dst === "$bus.multicast"){
-            //    this.events.trigger("receiveEventChannelPacket",packetContext);
             }
             if(!handled){
                 // Otherwise trigger "receive" for someone to handle it

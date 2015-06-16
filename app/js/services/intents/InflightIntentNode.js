@@ -5,22 +5,31 @@
  * @constructor
  */
 ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config) {
+    config=config || {};
+
     // Take the supplied data for anything that matches in the super class,
     // such as resource.
     ozpIwc.ApiNode.apply(this, arguments);
-
+    /**
+     * @property lifespan
+     * @type {ozpIwc.Lifespan.Bound}
+     */
     this.lifespan = new ozpIwc.Lifespan.Bound({
         'addresses': [config.src]
     });
-    config=config || {};
+
     if(!config.invokePacket) {
         throw new ozpIwc.BadContentError("In flight intent requires an invocation packet");
     }
     if(!Array.isArray(config.handlerChoices) || config.handlerChoices <1) {
         throw new ozpIwc.BadContentError("No handlers available");
     }
-    // Extra gravy that isn't captured already by the base class, or that isn't
-    // captured adequately.
+    /**
+     * Extra information that isn't captured already by the base class, or that isn't captured adequately.
+     *
+     * @property entity
+     * @type {Object}
+     */
     this.entity = {
         'intent': {
             'type': config.type,
@@ -49,12 +58,24 @@ ozpIwc.IntentsInFlightNode = ozpIwc.util.extend(ozpIwc.ApiNode, function(config)
     }
 });
 
+/**
+ * Sets the inFlight state to "error".
+ *
+ * @method setError
+ * @param {Object} entity
+ */
 ozpIwc.IntentsInFlightNode.prototype.setError=function(entity) {
     this.entity.reply=entity.error;
     this.entity.state = "error";
     this.version++;
 };
 
+/**
+ * Sets the handler chosen to the inFlight node.
+ *
+ * @method setHandlerResource
+ * @param {Object} entity
+ */
 ozpIwc.IntentsInFlightNode.prototype.setHandlerResource=function(entity) {
     if(!entity.handlerChosen || !entity.handlerChosen.resource || !entity.handlerChosen.reason) {
        throw new ozpIwc.BadStateError("Choosing state requires a resource and reason");
@@ -63,6 +84,13 @@ ozpIwc.IntentsInFlightNode.prototype.setHandlerResource=function(entity) {
     this.entity.state = "delivering";
     this.version++;
 };
+
+/**
+ * Sets the handler participant that is running the inFlight node.
+ *
+ * @method setHandlerParticipant
+ * @param {Object} entity
+ */
 ozpIwc.IntentsInFlightNode.prototype.setHandlerParticipant=function(entity) {
     if(!entity.handler || !entity.handler.address) {
         throw new ozpIwc.BadContentError("Entity lacks a 'handler.address' field");
@@ -72,12 +100,26 @@ ozpIwc.IntentsInFlightNode.prototype.setHandlerParticipant=function(entity) {
     this.version++;
 };
 
+/**
+ * Sets the inFlight state to "complete".
+ *
+ * @method setComplete
+ * @param {Object} entity
+ */
 ozpIwc.IntentsInFlightNode.prototype.setComplete=function(entity) {
     this.entity.reply=entity.reply;
     this.entity.state = "complete";
     this.version++;
 };
 
+/**
+ * The different states each state can transition to. Any given object level denotes a current state and its properties
+ * are possible next states.
+ *
+ * @static
+ * @property stateTransitions
+ * @type {Object}
+ */
 ozpIwc.IntentsInFlightNode.stateTransitions={
     "choosing": {
         "error": ozpIwc.IntentsInFlightNode.prototype.setError,

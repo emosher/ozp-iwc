@@ -15,6 +15,10 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
     // The stock initializeData should do fine for us here as we're not using
     // any special subclasses for these items.  Might have to revisit this at
     // some point.
+    /**
+     * @property endpoints
+     * @type {Object[]}
+     */
     this.endpoints = [
         {
             link: ozpIwc.linkRelPrefix + ":application",
@@ -54,6 +58,11 @@ ozpIwc.SystemApi = ozpIwc.createApi(function(config) {
     });
 });
 
+/**
+ * Updates intents API registrations for the given system api application.
+ * @method updateIntents
+ * @param {Object} node
+ */
 ozpIwc.SystemApi.prototype.updateIntents=function(node) {
     if(!node.entity || !node.entity.intents) {
         return;
@@ -177,6 +186,8 @@ ozpIwc.SystemApi.declareRoute({
 
 /**
  * Override the default node type to be a SystemNode.
+ * @override
+ * @method createNodeObject
  * @param {type} config
  * @returns {ozpIwc.SystemNode}
  */

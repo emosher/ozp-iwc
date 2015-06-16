@@ -17,19 +17,19 @@
  */
 ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) {
     config=config || {};
-	ozpIwc.Participant.apply(this,arguments);
+    ozpIwc.Participant.apply(this,arguments);
     /**
      * The type of the participant.
      * @property participantType
      * @type {String}
      * @default "internal"
      */
-	this.participantType="internalClient";
+    this.participantType="internalClient";
 
     /**
      * Notes if this is a client participant internal to the bus.
      * @property internal
-     * @type {boolean|*}
+     * @type {Boolean}
      * @default false
      */
     this.internal = config.internal || false;
@@ -39,7 +39,7 @@ ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) 
      * @type {String}
      * @default ""
      */
-	this.name=config.name;
+    this.name=config.name;
 
     /**
      * The router to connect to.
@@ -49,17 +49,17 @@ ozpIwc.ClientParticipant=ozpIwc.util.extend(ozpIwc.Participant,function(config) 
     this.router=config.router || ozpIwc.defaultRouter;
     var self = this;
     this.on("connectedToRouter",function() {
-            self.permissions.pushIfNotExist('ozp:iwc:address', self.address);
-            self.permissions.pushIfNotExist('ozp:iwc:sendAs',self.address);
-            self.permissions.pushIfNotExist('ozp:iwc:receiveAs', self.address);
+        self.permissions.pushIfNotExist('ozp:iwc:address', self.address);
+        self.permissions.pushIfNotExist('ozp:iwc:sendAs',self.address);
+        self.permissions.pushIfNotExist('ozp:iwc:receiveAs', self.address);
 
-            ozpIwc.metrics.gauge(self.metricRoot,"registeredCallbacks").set(function() {
-                if (!self.replyCallbacks || !Object.keys(self.replyCallbacks)) {
-                    return 0;
-                }
-                return Object.keys(self.replyCallbacks).length;
-            });
+        ozpIwc.metrics.gauge(self.metricRoot,"registeredCallbacks").set(function() {
+            if (!self.replyCallbacks || !Object.keys(self.replyCallbacks)) {
+                return 0;
+            }
+            return Object.keys(self.replyCallbacks).length;
         });
+    });
 
     ozpIwc.ApiPromiseMixin(this,config.autoConnect);
 });
