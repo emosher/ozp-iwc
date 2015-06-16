@@ -39,6 +39,6 @@
     "build": "grunt build",
     "tarVersion": "grunt shell:tarVersion",
     "tarDate": "grunt shell:tarDate",
-    "test": "grunt dist"
+    "test": "grunt travis"
   }
 }

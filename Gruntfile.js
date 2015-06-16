@@ -429,10 +429,12 @@ module.exports = function(grunt) {
         ['copy:hackBootstrap', 'jshint', 'concat_sourcemap', 
             'uglify', 'copy:dist','shell:buildVersionFile']
     );
-    
+
     grunt.registerTask('karmaTests', "Runs the unit and integration tests.",
         ['build','karma:unit','connect:testBus','connect:mockParticipant', 'karma:integrationClient', 'karma:integrationBus']
     );
+    grunt.registerTask('travis', "Build, Runs the unit tests, and create Docs",['build','karma:unit', 'yuidoc']);
+
     grunt.registerTask('dist', "Builds and tests the full distribution",
         ['build','karmaTests','yuidoc']
     );
