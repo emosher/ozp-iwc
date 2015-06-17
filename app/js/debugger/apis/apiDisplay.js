@@ -12,7 +12,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
 
     scope.api = attrs.api;
     scope.msg.api = scope.api;
-    scope.hasChildren = apiDat.apis[scope.api].hasChildren || false;
     scope.clickActions = [];
     for(var i in apiDat.apis[scope.api].actions){
         var action = apiDat.apis[scope.api].actions[i].action;
@@ -83,16 +82,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
             width: "15%"
 
         }];
-    if(scope.hasChildren){
-        columnDefs.push({
-            field: 'children',
-            displayName: 'Children',
-            cellTemplate:  statusTemplate,
-            cellClass: 'grid-pre',
-            filter: containsFilterJSONGen(),
-            width: "15%"
-        });
-    }
     scope.gridOptions = {
         data : 'keys',
         columnDefs: columnDefs,
@@ -112,20 +101,7 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
                 key[i] = response[i];
             }
             key.isLoaded = true;
-            if(scope.hasChildren){
-                client.api(scope.api).get(key.resource).then(function(response) {
-                    if (response.response === "ok") {
-                        key.children = response.children;
-                    } else {
-                        key.children = "Not Supported: " + response.response;
-                    }
-                    if(!scope.$$phase) { scope.$apply(); }
-                })["catch"](function (error) {
-                    console.log('Error in loadKey: ' + JSON.stringify(error));
-                });
-            } else {
-                if(!scope.$$phase) { scope.$apply(); }
-            }
+            if(!scope.$$phase) { scope.$apply(); }
         })["catch"](function (error) {
             console.log('Error in loadKey: ' + JSON.stringify(error));
         });
@@ -258,12 +234,6 @@ debuggerModule.controller("ApiDisplayCtrl",["$scope", "$attrs", "iwcClient","api
     });
 
     scope.refresh();
-    scope.$on('$stateChangeSuccess',
-        function(event, toState, toParams) {
-            if (toState.name.indexOf('hasChildren') > -1) {
-                scope.hasChildren = toParams.hasChildren;
-            }
-        });
 }]);
 
 debuggerModule.directive( "apiDisplay", function() {

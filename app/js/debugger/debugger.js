@@ -64,7 +64,6 @@ debuggerModule.service("apiSettingService",function(){
     this.apis={
         'data.api' : {
             'address': "data.api",
-            'hasChildren':true
         },
         'intents.api': {
             'address': "intents.api",

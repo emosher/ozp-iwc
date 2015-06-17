@@ -236,5 +236,22 @@ ozpIwc.standardApiFilters={
             ozpIwc.apiFilter.requireResource(),
             ozpIwc.apiFilter.checkAuthorization()
         ];
+    },
+
+    /**
+     * Filters for set-like actions that need to mark the resource as a collector.
+     * @method getFilters
+     * @returns {Function[]} array of filters
+     */
+    createAndCollectFilters: function(nodeType,contentType) {
+        return [
+            ozpIwc.apiFilter.addSubResourcePattern(),
+            ozpIwc.apiFilter.createResource(nodeType),
+            ozpIwc.apiFilter.checkAuthorization(),
+            ozpIwc.apiFilter.checkContentType(contentType),
+            ozpIwc.apiFilter.checkVersion(),
+            ozpIwc.apiFilter.markResourceAsChanged(),
+            ozpIwc.apiFilter.markAsCollector()
+        ];
     }
 };

@@ -291,6 +291,7 @@ ozpIwc.ApiNode.prototype.set=function(packet) {
     }
     this.contentType=packet.contentType;
     this.entity=packet.entity;
+    this.pattern = packet.pattern || this.pattern;
     this.deleted = false;
     if(packet.eTag) {
         this.version=packet.eTag;

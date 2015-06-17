@@ -409,19 +409,19 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                 });
             }
             return promiseChain.then(function(response) {
-                response.entity.handler = {
-                    address: self.address,
-                    resource: resource
-                };
-                response.entity.state = "running";
-
                 res = response;
                 return self.send({
                     dst: "intents.api",
                     contentType: response.contentType,
                     action: "set",
                     resource: intentResource,
-                    entity: response.entity
+                    entity: {
+                        handler: {
+                            resource: resource,
+                            address: self.address
+                        },
+                        state: "running"
+                    }
                 });
             }).then(function(){
                 // Run the intent handler. Wrapped in a promise chain in case the callback itself is async.
@@ -429,21 +429,21 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
             }).then(function (result) {
 
                 // Respond to the inflight resource
-                res.entity.reply = {
-                    'entity': result || {},
-                    'contentType': res.intent.type
-                };
-                res.entity.state = "complete";
-
                 return self.send({
                     dst: "intents.api",
                     contentType: res.contentType,
                     action: "set",
                     resource: intentResource,
-                    entity: res.entity
+                    entity: {
+                        reply: {
+                            'entity': result || {},
+                            'contentType': res.intent.type
+                        },
+                        state: "complete"
+                    }
                 });
             })['catch'](function(e){
-                ozpIwc.log.error("Error in handling intent: ", e, " -- Clearing in-flight intent node:", intentResource);
+                console.log("Error in handling intent: ", e, " -- Clearing in-flight intent node:", intentResource);
                 self.send({
                     dst: "intents.api",
                     resource: intentResource,
@@ -640,7 +640,7 @@ ozpIwc.ApiPromiseMixin.getCore = function() {
                 }
                 self.events.trigger("connected");
             })['catch'](function(e){
-                ozpIwc.log.debug(self.launchParams.inFlightIntent, " not handled, reason: ", e);
+                console.log(self.launchParams.inFlightIntent, " not handled, reason: ", e);
                 self.events.trigger("connected");
             });
         }

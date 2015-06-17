@@ -45,7 +45,9 @@ module.exports = function(grunt) {
                 'app/js/bus/api/*.js',
                 'app/js/bus/api/**/*.js',
                 'app/js/bus/*/**/*.js',
-                'app/js/services/**/*.js',
+                'app/js/services/*.js',
+                'app/js/services/node/**/*.js',
+                'app/js/services/api/**/*.js',
                 'app/js/defaultWiring.js'
             ],
             client: [

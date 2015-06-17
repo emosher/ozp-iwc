@@ -423,12 +423,13 @@ ozpIwc.ApiBase.prototype.markForChange=function(/*varargs*/) {
 };
 
 /**
- * Marks that a node has changed and that change notices may need to 
+ * Marks that a node has changed and that change notices may need to
  * be sent out after the request completes.
- *  
+ *
  * @method addWatcher
  * @param {String} resource name of the resource to watch
  * @param {Object} watcher
+ * @param {String} watcher.resource name of the resource to watch
  * @param {String} watcher.src Address of the watcher
  * @param {String | Number} watcher.replyTo The conversation id that change notices will go to
  */
@@ -440,6 +441,26 @@ ozpIwc.ApiBase.prototype.addWatcher=function(resource,watcher) {
 
     watchList.push(watcher);
 };
+
+/**
+ * Removes mark that a node has changed and that change notices may need to
+ * be sent out after the request completes.
+ *
+ * @method removeWatcher
+ * @param {String} resource name of the resource to unwatch
+ * @param {Object} watcher
+ * @param {String} watcher.src Address of the watcher
+ * @param {String | Number} watcher.replyTo The conversation id that change notices will go to
+ */
+ozpIwc.ApiBase.prototype.removeWatcher=function(resource,watcher) {
+    var watchList=this.watchers[resource];
+    if(watchList) {
+        this.watchers[resource]=watchList.filter(function(watch) {
+            return watch.src === watcher.src && watch.replyTo === watcher.msgId;
+        });
+    }
+};
+
 
 /**
  * Adds the given node to the collector list. It's collection list will be updated on api data changes.
@@ -457,6 +478,19 @@ ozpIwc.ApiBase.prototype.addCollector=function(node){
             this.collectors.push(node.resource);
             this.updateCollectionNode(node);
         }
+    }
+};
+
+
+/**
+ * Removes the given node from the collector list. It's collection list will no longer be updated on api data changes.
+ * @method removeCollector
+ * @param {Object} node
+ */
+ozpIwc.ApiBase.prototype.removeCollector=function(node){
+    var index = this.collectors.indexOf(node.resource);
+    if(index > -1) {
+        this.collectors.splice(index, 1);
     }
 };
 
@@ -518,10 +552,10 @@ ozpIwc.ApiBase.prototype.resolveChangedNode=function(resource,snapshot,packetCon
  * @private
  */
 ozpIwc.ApiBase.prototype.resolveChangedNodes=function(packetContext) {
+    this.updateCollections();
     ozpIwc.object.eachEntry(this.changeList,function(resource,snapshot){
         this.resolveChangedNode(resource,snapshot,packetContext);
     },this);
-    this.updateCollections();
     this.changeList={};
 };
 
@@ -548,24 +582,21 @@ ozpIwc.ApiBase.prototype.updateCollectionNode = function(cNode){
 
     //If the collection node is deleted, stop collecting for it.
     if(cNode.deleted){
-        var index = this.collectors.indexOf(cNode.resource);
-        if(index > -1) {
-            this.collectors.splice(index, 1);
-        }
+        this.removeCollector(cNode);
         return;
     }
 
-    var snapshot = cNode.snapshot();
 
-    cNode.collection = this.matchingNodes(cNode.pattern).filter(function(node){
+    var updatedCollection = this.matchingNodes(cNode.pattern).filter(function(node){
         return !node.deleted;
     }).map(function(node) {
         return node.resource;
     });
 
-    if(!ozpIwc.util.arrayContainsAll(snapshot.collection,cNode.collection) || !ozpIwc.util.arrayContainsAll(cNode.collection,snapshot.collection)) {
+    if(!ozpIwc.util.arrayContainsAll(cNode.collection,updatedCollection) || !ozpIwc.util.arrayContainsAll(updatedCollection,cNode.collection)) {
+        this.markForChange(cNode);
+        cNode.collection = updatedCollection;
         cNode.version++;
-        this.resolveChangedNode(snapshot.resource,snapshot);
     }
 };
 
@@ -912,12 +943,7 @@ ozpIwc.ApiBase.defaultHandler={
         }
     },
     "unwatch": function(packet,context,pathParams) {
-        var watchList=this.watchers[packet.resource];
-        if(watchList) {
-            this.watchers[packet.resource]=watchList.filter(function(watch) {
-               return watch.src === packet.src && watch.replyTo === packet.msgId;
-           });
-        }
+        this.removeWatcher(packet.resource, packet);
 
         return { response: "ok" };
     }
