@@ -1,23 +1,29 @@
 [ozp-iwc](http://ozone-development.github.io/ozp-iwc/) [![Build Status](https://travis-ci.org/ozone-development/ozp-iwc.svg?branch=master)](https://travis-ci.org/ozone-development/ozp-iwc)
 ==============================
+The Ozone Platform's Inter-Widget Communications (IWC) enables loosely coupled integration of web applications by
+applying the best practices of enterprise service buses and service-oriented architecture to a completely
+in-browser system that works across multiple tabs and windows. Applications can share data and services then use
+the data and services offered by others to enrich their own user experience.
 
-ozp-iwc provides an in-browser communications network between participants in multiple browser tabs, 
-iframes, or workers using HTML5 standard features.  These participants, which can be from different origins,
-can use the client API to send messages to any other participant on the network.
-
-To Build
+The IWC provides lightweight integration.
 --------------
-1.  Install node.js.
-2.  sudo npm install -g grunt-cli
-3.  git clone git@github.com:ozone-development/ozp-iwc.git
-4.  cd ozp-iwc
-5.  git submodule init
-6.  git submodule update
-7.  npm install
-8.  npm install -g bower
-9.  bower install
-10. grunt connect-all
-11. Browse to http://localhost:14000 for an index of samples and tests!
+Today’s rich web applications tend to carry more state than a simple link can convey, and componentized development
+allows UI elements to be embedded, but at the cost of maintenance and application size. The IWC allows application
+frontends to expose data and services to other applications within the browser. Just like services on an ESB, these
+elements can be developed, deployed, and extended without impact to other applications.
+
+The IWC stays out of your way.
+--------------
+The IWC is designed to minimize the impact on your application. It is completely agnostic to the application
+presentation, including a tiny client library that adds a single, invisible element to your page.
+
+
+Links
+--------------
+  * [Quick Start](docs/iwc_guide/quickStart.md)
+  * [FAQ](docs/iwc_guide/FAQ.md)
+  * [Developer's Guide](docs/iwc_guide/SUMMARY.md)
+
 
 Demo
 ---------------

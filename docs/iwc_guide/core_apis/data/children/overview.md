@@ -5,7 +5,7 @@ is arbitrary as it is created at run time, but a link to child is created in the
 
 ***
 
-####An example of when children resources are beneficial is a shopping cart implementation
+####An example of children resources: items in a shopping cart
 
 **`/shoppingCart`**: a resource that holds information pertaining to a user's purchase. This is the **parent resource**
 and it holds a field `total`, the total of all items in the shopping cart.

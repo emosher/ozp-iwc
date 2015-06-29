@@ -1,4 +1,7 @@
 ##Removing a Child Resource from the Data API
+
+**DEPRECATED: Functionally the removeChild action just routes the child resource to the "delete" action.**
+
 To remove a child resource from the Data API, it should be removed via it's parent resource with the `removeChild`
 action.
 

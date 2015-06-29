@@ -66,6 +66,11 @@ This address designates who should receive the data being transmitted.
 
 **entity**: The value of the resource. In this case, `/foo` holds `{ 'bar': "buzz"}`
 
+**pattern**: A string pattern set to the resource to compile its collection of other relevant resources when watched.
+
+**collection**: An array of resources matching this resource's pattern , this only updated if the resource is being
+ watched.
+
 **ver**: The version of the resource. Whenever the value of `/foo` changes, `ver` will increment.
 
 **time**: Epoch time representation of when the response was generated.
@@ -75,3 +80,25 @@ Bus keeps track of message identifiers so that components know to whom they shou
 
 **replyTo**: The message identifier of the request that this response was sent because of.
 
+####Response Types
+The following table breaks down the `response` property of the object passed back to the promises then, catch, or
+registered callback:
+
+| Response      | Occurs When                                     | Reason |
+|---------------|-------------------------------------------------|--------|
+| ok            | Promise resolves or registered callback called. | Action was performed as expected        |
+| changed       | Registered callback for a watch action called.  | A resource has changed after a watch request was 
+                                                                    issued. The entity contains fields "newValue" and 
+                                                                    "oldValue" fields that of the indicated contentType.
+                                                                    If the resource was deleted, "newValue" will be 
+                                                                    undefined. If the resource was created, "oldValue"
+                                                                    will be null.|
+| badResource   | Promise rejects.                                |  The resource was not semantically valid for this 
+                                                                     API.|
+| badAction     | Promise rejects.                                | The action property of the request is not valid in 
+                                                                    this API.|
+| badPermission | Promise rejects.                                | The permission property of the request was not 
+                                                                    valid.|
+| noPermission  | Promise rejects.                                | Sender does not have permission to perform the 
+                                                                    requested action.|
+| noMatch       | Promise rejects.                                | A conditional action failed.|

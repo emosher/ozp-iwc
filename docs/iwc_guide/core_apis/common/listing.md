@@ -1,12 +1,16 @@
-##Listing Data API Resources
-To obtain a list of all resources in the Data API, the **list** action is used.
+##Listing API Resources
+To obtain a list of all resources in the API, the **list** action is used.
 
-The list action without any resource specified returns **an array of resource keys in entity**.
+**The list action on the root path returns an array of all of the API's resource keys in it's entity**. This is because
+the list action matches any resource that **begins with** the resource provided.
+
+The list action does not create or update a resource, rather finds resources within the API that match the resource 
+string provided. 
 
 ```
 var dataApi = client.data();
 
-dataApi.list().then(function(res){
+dataApi.list("/").then(function(res){
     var dataResources = res.entity;
 });
 ```
@@ -37,8 +41,5 @@ The value of `res`, the resolved object of the list request, is formatted as fol
 names in the api. This means there is no Data API resource that is providing this information, rather it is gathered
 when called.
 
-**ver**: The version of the resource. In this case, as a dynamically generated resource, the resource does not have a
-name and is not stored in the Data API. Because of this, history of the version does not exist so it will always be `1`.
-
-
-The list action can also be used for [gathering children of a resource](children/listing.md).
+**ver**: The version of the resource. In the case of a list action no individual resource is returned, rather a list of
+matches. Because of this, history of the version does not exist so it will always be `1`.

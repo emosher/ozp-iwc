@@ -5,7 +5,7 @@ Using bower, the IWC client can be gathered with the following:
 
 To add the client module to an application, include the ozpIwc-client.min.js script from the dist directory.
 
-`<script src="../bower_components/ozp-iwc-/dist/js/ozpIwc-client.js"></script>`
+`<script src="../bower_components/ozp-iwc/dist/js/ozpIwc-client.js"></script>`
 
 
 A pre-configured example bus is hosted at `http://ozone-development.github.io/iwc` for demonstrative purposes.
